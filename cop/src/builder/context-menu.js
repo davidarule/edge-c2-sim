@@ -178,6 +178,7 @@ export function entityMenuItems(entity) {
     { label: 'Edit Properties', icon: '\u270E', action: 'edit' },
     { label: 'Set Behavior', icon: '\u2699', action: 'set-behavior' },
     { label: 'Define Route', icon: '\u2B9E', action: 'define-route' },
+    { label: 'Add Event', icon: '\u26A1', action: 'add-event-for-entity' },
     { divider: true },
     { label: 'Duplicate', icon: '\u2398', action: 'duplicate' },
     { label: 'Fly To', icon: '\u2708', action: 'fly-to' },

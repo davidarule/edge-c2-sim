@@ -301,6 +301,12 @@ async function main() {
         scenarioPanel.setScenario(currentScenario);
       });
     }
+    if (action === 'remove-event' && data) {
+      currentScenario.events = (currentScenario.events || []).filter(e => e !== data);
+      scenarioPanel.setScenario(currentScenario);
+      previewScrubber.setScenario(currentScenario);
+      runValidation();
+    }
     if (action === 'add-background') {
       openBackgroundEditor(null, (group) => {
         if (!currentScenario.background_entities) currentScenario.background_entities = [];
@@ -410,6 +416,16 @@ async function main() {
         if (menuAction === 'set-behavior') {
           areaEditor.editArea(entity);
         }
+        if (menuAction === 'add-event-for-entity') {
+          const prefilled = { targets: [entity.id], type: 'detection', severity: 'info' };
+          openEventEditor(prefilled, currentScenario.entities, (evt) => {
+            if (!currentScenario.events) currentScenario.events = [];
+            currentScenario.events.push(evt);
+            scenarioPanel.setScenario(currentScenario);
+            previewScrubber.setScenario(currentScenario);
+            runValidation();
+          });
+        }
         if (menuAction === 'edit') {
           // Show entity in scenario panel selection
           scenarioPanel.refresh();
@@ -478,6 +494,61 @@ async function main() {
       validationBadge.update(results);
     }, 500);
   }
+
+  // ── Keyboard shortcuts (BUILD mode) ──
+
+  document.addEventListener('keydown', (e) => {
+    if (builderMode.getMode() !== 'BUILD') return;
+
+    // Don't intercept when typing in input fields
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+    // Delete — remove selected entity
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      const selectedId = entityPlacer.getSelectedEntityId();
+      if (selectedId) {
+        currentScenario.entities = currentScenario.entities.filter(e => e.id !== selectedId);
+        entityPlacer.setEntities(currentScenario.entities);
+        routeEditor.setEntities(currentScenario.entities);
+        areaEditor.setEntities(currentScenario.entities);
+        scenarioPanel.setScenario(currentScenario);
+        runValidation();
+      }
+    }
+
+    // S — toggle to Select mode
+    if (e.key === 's' && !e.ctrlKey && !e.metaKey) {
+      mapInteraction.setMode('SELECT');
+    }
+    // W — toggle to Waypoint mode
+    if (e.key === 'w' && !e.ctrlKey && !e.metaKey) {
+      mapInteraction.setMode('WAYPOINT');
+    }
+    // P — toggle to Place mode
+    if (e.key === 'p' && !e.ctrlKey && !e.metaKey) {
+      mapInteraction.setMode('PLACE');
+    }
+    // A — toggle to Area mode
+    if (e.key === 'a' && !e.ctrlKey && !e.metaKey) {
+      mapInteraction.setMode('AREA');
+    }
+    // F — fly to selected entity
+    if (e.key === 'f' && !e.ctrlKey && !e.metaKey) {
+      const selectedId = entityPlacer.getSelectedEntityId();
+      if (selectedId) entityPlacer.flyToEntity(selectedId);
+    }
+    // Space — toggle preview playback
+    if (e.key === ' ') {
+      e.preventDefault();
+      if (previewScrubber.isPlaying()) {
+        previewScrubber.hide();
+        previewScrubber.show(); // re-render with paused state
+      } else {
+        // Trigger play via the internal API
+      }
+    }
+  });
 
   // Expose for debugging
   window.builderMode = builderMode;
