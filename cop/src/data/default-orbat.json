@@ -1,0 +1,707 @@
+{
+  "version": 1,
+  "name": "Malaysian ESSZONE Forces",
+  "created": "2026-02-26T00:00:00Z",
+  "modified": "2026-02-26T00:00:00Z",
+  "organisations": [
+    {
+      "id": "org_rmp",
+      "name": "Royal Malaysia Police",
+      "abbreviation": "RMP",
+      "color": "#1B3A8C",
+      "standard_identity": 3,
+      "units": [
+        {
+          "id": "RMP-MP-101",
+          "callsign": "PDRM Marine 01",
+          "entity_type": "RMP_PATROL_CAR",
+          "domain": "MARITIME",
+          "agency": "RMP",
+          "sidc": "10033000001403000000",
+          "home_base": { "lat": 4.48, "lon": 118.608, "name": "Semporna Jetty" },
+          "speed_min": 5,
+          "speed_max": 30,
+          "speed_cruise": 18,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "vessel_type": "Rigid Hull Fender Boat",
+            "equipment": ["FLIR", "NVG", "boarding_kit"]
+          }
+        },
+        {
+          "id": "RMP-MP-102",
+          "callsign": "PDRM Marine 02",
+          "entity_type": "RMP_PATROL_CAR",
+          "domain": "MARITIME",
+          "agency": "RMP",
+          "sidc": "10033000001403000000",
+          "home_base": { "lat": 5.84, "lon": 118.105, "name": "Sandakan Harbor" },
+          "speed_min": 5,
+          "speed_max": 30,
+          "speed_cruise": 18,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "vessel_type": "Rigid Hull Fender Boat"
+          }
+        },
+        {
+          "id": "RMP-MP-201",
+          "callsign": "PDRM Marine Semporna 01",
+          "entity_type": "RMP_PATROL_CAR",
+          "domain": "MARITIME",
+          "agency": "RMP",
+          "sidc": "10033000001403000000",
+          "home_base": { "lat": 4.48, "lon": 118.608, "name": "Semporna Jetty" },
+          "speed_min": 5,
+          "speed_max": 30,
+          "speed_cruise": 18,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "vessel_type": "Rigid Hull Fender Boat",
+            "equipment": ["FLIR", "NVG", "boarding_kit", "M4_rifle"]
+          }
+        },
+        {
+          "id": "RMP-MP-202",
+          "callsign": "PDRM Marine Semporna 02",
+          "entity_type": "RMP_PATROL_CAR",
+          "domain": "MARITIME",
+          "agency": "RMP",
+          "sidc": "10033000001403000000",
+          "home_base": { "lat": 4.48, "lon": 118.608, "name": "Semporna Jetty" },
+          "speed_min": 5,
+          "speed_max": 30,
+          "speed_cruise": 18,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "vessel_type": "Rigid Hull Fender Boat"
+          }
+        },
+        {
+          "id": "RMP-MP-203",
+          "callsign": "PDRM Marine Semporna 03",
+          "entity_type": "RMP_PATROL_CAR",
+          "domain": "MARITIME",
+          "agency": "RMP",
+          "sidc": "10033000001403000000",
+          "home_base": { "lat": 4.50, "lon": 118.608, "name": "Semporna Patrol Area" },
+          "speed_min": 5,
+          "speed_max": 30,
+          "speed_cruise": 18,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {}
+        },
+        {
+          "id": "RMP-GOF-201",
+          "callsign": "GOF Tactical Team Alpha",
+          "entity_type": "RMP_TACTICAL_TEAM",
+          "domain": "PERSONNEL",
+          "agency": "RMP",
+          "sidc": "10031000001211000000",
+          "home_base": { "lat": 5.84, "lon": 118.07, "name": "GOF Sandakan Base" },
+          "speed_min": 0,
+          "speed_max": 6,
+          "speed_cruise": 4,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "unit_size": 16,
+            "equipment": ["rifle", "radio", "body_armor", "NVG", "sniper_rifle"],
+            "formation": "assault_team"
+          }
+        },
+        {
+          "id": "RMP-GOF-202",
+          "callsign": "GOF Team Bravo",
+          "entity_type": "RMP_TACTICAL_TEAM",
+          "domain": "PERSONNEL",
+          "agency": "RMP",
+          "sidc": "10031000001211000000",
+          "home_base": { "lat": 4.48, "lon": 118.61, "name": "Semporna" },
+          "speed_min": 0,
+          "speed_max": 6,
+          "speed_cruise": 4,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "unit_size": 12,
+            "equipment": ["rifle", "radio", "body_armor"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "org_mmea",
+      "name": "Malaysian Maritime Enforcement Agency",
+      "abbreviation": "MMEA",
+      "color": "#FF6600",
+      "standard_identity": 3,
+      "units": [
+        {
+          "id": "MMEA-PV-101",
+          "callsign": "KM Semporna",
+          "entity_type": "MMEA_PATROL",
+          "domain": "MARITIME",
+          "agency": "MMEA",
+          "sidc": "10033000001204020000",
+          "home_base": { "lat": 5.84, "lon": 118.105, "name": "Sandakan Harbor" },
+          "speed_min": 8,
+          "speed_max": 22,
+          "speed_cruise": 15,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {}
+        },
+        {
+          "id": "MMEA-FI-101",
+          "callsign": "KM Penggalang 7",
+          "entity_type": "MMEA_FAST_INTERCEPT",
+          "domain": "MARITIME",
+          "agency": "MMEA",
+          "sidc": "10033000001204010000",
+          "home_base": { "lat": 4.48, "lon": 118.608, "name": "Semporna Jetty" },
+          "speed_min": 15,
+          "speed_max": 35,
+          "speed_cruise": 25,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {}
+        },
+        {
+          "id": "MMEA-PV-102",
+          "callsign": "KM Sangitan",
+          "entity_type": "MMEA_PATROL",
+          "domain": "MARITIME",
+          "agency": "MMEA",
+          "sidc": "10033000001204020000",
+          "home_base": { "lat": 5.50, "lon": 118.30, "name": "On Patrol - Sandakan Sector" },
+          "speed_min": 8,
+          "speed_max": 22,
+          "speed_cruise": 15,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {}
+        },
+        {
+          "id": "MMEA-PV-201",
+          "callsign": "KM Semporna",
+          "entity_type": "MMEA_PATROL",
+          "domain": "MARITIME",
+          "agency": "MMEA",
+          "sidc": "10033000001204020000",
+          "home_base": { "lat": 4.48, "lon": 118.608, "name": "Semporna Jetty" },
+          "speed_min": 8,
+          "speed_max": 22,
+          "speed_cruise": 15,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {}
+        },
+        {
+          "id": "MMEA-FI-201",
+          "callsign": "KM Kilat 3",
+          "entity_type": "MMEA_FAST_INTERCEPT",
+          "domain": "MARITIME",
+          "agency": "MMEA",
+          "sidc": "10033000001204010000",
+          "home_base": { "lat": 4.24, "lon": 117.90, "name": "Tawau" },
+          "speed_min": 15,
+          "speed_max": 35,
+          "speed_cruise": 25,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "id": "org_ci",
+      "name": "Customs & Immigration",
+      "abbreviation": "CI",
+      "color": "#2E7D32",
+      "standard_identity": 3,
+      "units": [
+        {
+          "id": "CI-TEAM-101",
+          "callsign": "Customs Boarding Team A",
+          "entity_type": "CI_OFFICER",
+          "domain": "GROUND_VEHICLE",
+          "agency": "CI",
+          "sidc": "10031500001703000000",
+          "home_base": { "lat": 5.84, "lon": 118.105, "name": "Sandakan Harbor" },
+          "speed_min": 0,
+          "speed_max": 80,
+          "speed_cruise": 40,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "unit_size": 4,
+            "equipment": ["documentation_kit", "radio"],
+            "formation": "standby"
+          }
+        },
+        {
+          "id": "CI-IMMI-101",
+          "callsign": "Immigration Team Sandakan",
+          "entity_type": "CI_IMMIGRATION_TEAM",
+          "domain": "GROUND_VEHICLE",
+          "agency": "CI",
+          "sidc": "10031500001703000000",
+          "home_base": { "lat": 5.84, "lon": 118.105, "name": "Sandakan Harbor" },
+          "speed_min": 0,
+          "speed_max": 80,
+          "speed_cruise": 40,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "unit_size": 6,
+            "formation": "standby"
+          }
+        },
+        {
+          "id": "CI-BORDER-201",
+          "callsign": "Immigration Rapid Response",
+          "entity_type": "CI_OFFICER",
+          "domain": "GROUND_VEHICLE",
+          "agency": "CI",
+          "sidc": "10031500001703000000",
+          "home_base": { "lat": 4.24, "lon": 117.89, "name": "Tawau" },
+          "speed_min": 0,
+          "speed_max": 80,
+          "speed_cruise": 40,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "unit_size": 8,
+            "equipment": ["documentation_kit", "radio"],
+            "note": "Border lockdown enforcement team"
+          }
+        },
+        {
+          "id": "CI-BORDER-202",
+          "callsign": "Customs Marine Unit",
+          "entity_type": "CI_OFFICER",
+          "domain": "GROUND_VEHICLE",
+          "agency": "CI",
+          "sidc": "10031500001703000000",
+          "home_base": { "lat": 4.48, "lon": 118.61, "name": "Semporna" },
+          "speed_min": 0,
+          "speed_max": 80,
+          "speed_cruise": 40,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "unit_size": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "org_rmaf",
+      "name": "Royal Malaysian Air Force",
+      "abbreviation": "RMAF",
+      "color": "#5C6BC0",
+      "standard_identity": 3,
+      "units": [
+        {
+          "id": "RMAF-MPA-101",
+          "callsign": "TUDM MPA Beechcraft",
+          "entity_type": "RMAF_MPA",
+          "domain": "AIR",
+          "agency": "RMAF",
+          "sidc": "10030100001101040000",
+          "home_base": { "lat": 5.30, "lon": 115.25, "name": "RMAF Labuan" },
+          "speed_min": 120,
+          "speed_max": 280,
+          "speed_cruise": 200,
+          "altitude_min": 500,
+          "altitude_max": 10000,
+          "altitude_cruise": 5000,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "aircraft_type": "B350",
+            "adsb_active": true
+          }
+        },
+        {
+          "id": "RMAF-HELI-101",
+          "callsign": "TUDM EC725 Sandakan",
+          "entity_type": "RMAF_HELICOPTER",
+          "domain": "AIR",
+          "agency": "RMAF",
+          "sidc": "10030100001102000000",
+          "home_base": { "lat": 5.0318, "lon": 118.3210, "name": "Lahad Datu Airport" },
+          "speed_min": 0,
+          "speed_max": 140,
+          "speed_cruise": 100,
+          "altitude_min": 0,
+          "altitude_max": 4000,
+          "altitude_cruise": 1500,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {}
+        },
+        {
+          "id": "RMAF-HELI-201",
+          "callsign": "TUDM EC725 Hunter",
+          "entity_type": "RMAF_HELICOPTER",
+          "domain": "AIR",
+          "agency": "RMAF",
+          "sidc": "10030100001102000000",
+          "home_base": { "lat": 5.0316, "lon": 118.3230, "name": "Lahad Datu Airport" },
+          "speed_min": 0,
+          "speed_max": 140,
+          "speed_cruise": 100,
+          "altitude_min": 0,
+          "altitude_max": 4000,
+          "altitude_cruise": 1500,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "aircraft_type": "EC725",
+            "armament": "FN MAG 7.62mm"
+          }
+        },
+        {
+          "id": "RMAF-HELI-202",
+          "callsign": "TUDM Blackhawk 1",
+          "entity_type": "RMAF_HELICOPTER",
+          "domain": "AIR",
+          "agency": "RMAF",
+          "sidc": "10030100001102000000",
+          "home_base": { "lat": 5.0314, "lon": 118.3250, "name": "Lahad Datu Airport" },
+          "speed_min": 0,
+          "speed_max": 140,
+          "speed_cruise": 100,
+          "altitude_min": 0,
+          "altitude_max": 4000,
+          "altitude_cruise": 1500,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "aircraft_type": "S-70A Blackhawk",
+            "note": "Troop transport — can insert GOF team"
+          }
+        },
+        {
+          "id": "RMAF-MPA-201",
+          "callsign": "TUDM MPA Eagle",
+          "entity_type": "RMAF_MPA",
+          "domain": "AIR",
+          "agency": "RMAF",
+          "sidc": "10030100001101040000",
+          "home_base": { "lat": 5.30, "lon": 115.25, "name": "RMAF Labuan" },
+          "speed_min": 120,
+          "speed_max": 280,
+          "speed_cruise": 200,
+          "altitude_min": 500,
+          "altitude_max": 10000,
+          "altitude_cruise": 5000,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "id": "org_mil",
+      "name": "Malaysian Armed Forces",
+      "abbreviation": "MIL",
+      "color": "#4E342E",
+      "standard_identity": 3,
+      "units": [
+        {
+          "id": "RMN-FIC-101",
+          "callsign": "KD G2000 Alpha",
+          "entity_type": "MIL_NAVAL_FIC",
+          "domain": "MARITIME",
+          "agency": "MIL",
+          "sidc": "10033000001204010000",
+          "home_base": { "lat": 5.84, "lon": 118.105, "name": "MAWILLA 2 Sandakan Harbor" },
+          "speed_min": 15,
+          "speed_max": 35,
+          "speed_cruise": 25,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "vessel_type": "G2000 Mk II Fast Interceptor Craft",
+            "speed_max_knots": 35
+          }
+        },
+        {
+          "id": "RMN-PV-101",
+          "callsign": "KD Keris",
+          "entity_type": "MIL_NAVAL",
+          "domain": "MARITIME",
+          "agency": "MIL",
+          "sidc": "10033000001202060000",
+          "home_base": { "lat": 6.07055, "lon": 118.28342, "name": "On Patrol - Sulu Sea" },
+          "speed_min": 10,
+          "speed_max": 35,
+          "speed_cruise": 18,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {}
+        },
+        {
+          "id": "RMN-FIC-201",
+          "callsign": "KD G2000 Bravo",
+          "entity_type": "MIL_NAVAL_FIC",
+          "domain": "MARITIME",
+          "agency": "MIL",
+          "sidc": "10033000001204010000",
+          "home_base": { "lat": 4.48, "lon": 118.608, "name": "Semporna Jetty" },
+          "speed_min": 15,
+          "speed_max": 35,
+          "speed_cruise": 25,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "vessel_type": "G2000 Mk II Fast Interceptor Craft",
+            "speed_max_knots": 35
+          }
+        },
+        {
+          "id": "RMN-FIC-202",
+          "callsign": "KD G2000 Charlie",
+          "entity_type": "MIL_NAVAL_FIC",
+          "domain": "MARITIME",
+          "agency": "MIL",
+          "sidc": "10033000001204010000",
+          "home_base": { "lat": 5.84, "lon": 118.105, "name": "MAWILLA 2 Sandakan Harbor" },
+          "speed_min": 15,
+          "speed_max": 35,
+          "speed_cruise": 25,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "vessel_type": "G2000 Mk II Fast Interceptor Craft"
+          }
+        },
+        {
+          "id": "RMN-PV-201",
+          "callsign": "KD Jerong",
+          "entity_type": "MIL_NAVAL",
+          "domain": "MARITIME",
+          "agency": "MIL",
+          "sidc": "10033000001202060000",
+          "home_base": { "lat": 5.02, "lon": 118.34, "name": "Lahad Datu - Darvel Bay" },
+          "speed_min": 10,
+          "speed_max": 35,
+          "speed_cruise": 18,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "vessel_type": "Patrol vessel"
+          }
+        },
+        {
+          "id": "MIL-INF-201",
+          "callsign": "Malay Regiment Squad 1",
+          "entity_type": "MIL_INFANTRY_SQUAD",
+          "domain": "PERSONNEL",
+          "agency": "MIL",
+          "sidc": "10031000001201000000",
+          "home_base": { "lat": 4.25, "lon": 117.89, "name": "Tawau Army Camp" },
+          "speed_min": 0,
+          "speed_max": 6,
+          "speed_cruise": 4,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "unit_size": 10,
+            "equipment": ["rifle", "radio", "NVG"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "org_civilian",
+      "name": "Civilian Entities",
+      "abbreviation": "CIVILIAN",
+      "color": "#78909C",
+      "standard_identity": 4,
+      "units": [
+        {
+          "id": "IFF-001",
+          "callsign": "Unknown Trawler 1",
+          "entity_type": "SUSPECT_VESSEL",
+          "domain": "MARITIME",
+          "agency": "CIVILIAN",
+          "sidc": "10053000001400000000",
+          "home_base": { "lat": 5.80, "lon": 118.90, "name": "Starting Position" },
+          "speed_min": 0,
+          "speed_max": 12,
+          "speed_cruise": 6,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "mmsi": "000000000",
+            "vessel_name": "Unregistered",
+            "ais_active": false,
+            "flag": "VNM",
+            "vessel_type": "Steel-hull trawler",
+            "estimated_crew": 15
+          }
+        },
+        {
+          "id": "IFF-002",
+          "callsign": "Unknown Trawler 2",
+          "entity_type": "SUSPECT_VESSEL",
+          "domain": "MARITIME",
+          "agency": "CIVILIAN",
+          "sidc": "10053000001400000000",
+          "home_base": { "lat": 5.82, "lon": 118.88, "name": "Starting Position" },
+          "speed_min": 0,
+          "speed_max": 12,
+          "speed_cruise": 6,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "ais_active": false,
+            "flag": "VNM"
+          }
+        },
+        {
+          "id": "IFF-003",
+          "callsign": "Unknown Trawler 3",
+          "entity_type": "SUSPECT_VESSEL",
+          "domain": "MARITIME",
+          "agency": "CIVILIAN",
+          "sidc": "10053000001400000000",
+          "home_base": { "lat": 5.78, "lon": 118.92, "name": "Starting Position" },
+          "speed_min": 0,
+          "speed_max": 12,
+          "speed_cruise": 6,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "ais_active": false,
+            "flag": "VNM"
+          }
+        },
+        {
+          "id": "IFF-004",
+          "callsign": "Unknown Trawler 4",
+          "entity_type": "SUSPECT_VESSEL",
+          "domain": "MARITIME",
+          "agency": "CIVILIAN",
+          "sidc": "10053000001400000000",
+          "home_base": { "lat": 5.84, "lon": 118.86, "name": "Starting Position" },
+          "speed_min": 0,
+          "speed_max": 12,
+          "speed_cruise": 6,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "ais_active": false,
+            "flag": "VNM",
+            "note": "Fleet leader — attempts to flee"
+          }
+        },
+        {
+          "id": "IFF-005",
+          "callsign": "Unknown Mothership",
+          "entity_type": "SUSPECT_VESSEL",
+          "domain": "MARITIME",
+          "agency": "CIVILIAN",
+          "sidc": "10053000001400000000",
+          "home_base": { "lat": 5.90, "lon": 119.00, "name": "Starting Position" },
+          "speed_min": 0,
+          "speed_max": 12,
+          "speed_cruise": 6,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "ais_active": false,
+            "flag": "VNM",
+            "vessel_type": "Reefer/mothership",
+            "estimated_crew": 25,
+            "note": "Larger vessel collecting catch from fleet"
+          }
+        },
+        {
+          "id": "HOSTILE-001",
+          "callsign": "Suspect Speedboat 1",
+          "entity_type": "SUSPECT_VESSEL",
+          "domain": "MARITIME",
+          "agency": "CIVILIAN",
+          "sidc": "10053000001400000000",
+          "home_base": { "lat": 4.90, "lon": 119.20, "name": "Starting Position - Sulu Archipelago" },
+          "speed_min": 0,
+          "speed_max": 35,
+          "speed_cruise": 28,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "ais_active": false,
+            "vessel_type": "High-speed fibreglass boat",
+            "estimated_crew": 8,
+            "armed": true,
+            "note": "Armed group — assault rifles, RPG"
+          }
+        },
+        {
+          "id": "HOSTILE-002",
+          "callsign": "Suspect Speedboat 2",
+          "entity_type": "SUSPECT_VESSEL",
+          "domain": "MARITIME",
+          "agency": "CIVILIAN",
+          "sidc": "10053000001400000000",
+          "home_base": { "lat": 4.92, "lon": 119.18, "name": "Starting Position - Sulu Archipelago" },
+          "speed_min": 0,
+          "speed_max": 35,
+          "speed_cruise": 25,
+          "status": "OPERATIONAL",
+          "sensors": [],
+          "weapons": [],
+          "metadata": {
+            "ais_active": false,
+            "vessel_type": "High-speed fibreglass boat",
+            "estimated_crew": 6,
+            "armed": true
+          }
+        }
+      ]
+    }
+  ]
+}

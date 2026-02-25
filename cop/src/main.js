@@ -30,6 +30,18 @@ import { initSettingsPanel } from './settings-panel.js';
 import { initCompass } from './compass.js';
 import { initDemoMode } from './demo-mode.js';
 import { preloadSymbols } from './symbol-renderer.js';
+import { initBuilderMode, createBuilderContainers } from './builder/builder-mode.js';
+import { initOrbatPanel } from './orbat/orbat-panel.js';
+import { initAssetDetail } from './orbat/asset-detail.js';
+import { OrbatStore } from './orbat/orbat-store.js';
+import { initMapInteraction } from './builder/map-interaction.js';
+import { initEntityPlacer } from './builder/entity-placer.js';
+import { showContextMenu, entityMenuItems, mapMenuItems } from './builder/context-menu.js';
+import { createEmptyScenario, pickAndLoadYAML, exportScenarioYAML, downloadYAML } from './builder/yaml-engine.js';
+import { initScenarioPanel } from './builder/scenario-panel.js';
+import { openOrbatPicker } from './builder/orbat-picker.js';
+import { initRouteEditor } from './builder/route-editor.js';
+import { openEventEditor } from './builder/event-editor.js';
 
 async function main() {
   console.log('Edge C2 COP initializing...');
@@ -94,6 +106,297 @@ async function main() {
   // Settings panel (unified gear menu)
   settings = initSettingsPanel(viewer, entityManager, ws, config);
   settings.wireOverlays(overlays);
+
+  // ── Builder Mode ──
+
+  // Create builder sidebar containers
+  const { builderLeft, builderRight } = createBuilderContainers(
+    document.getElementById('sidebar-left'),
+    document.getElementById('sidebar-right')
+  );
+
+  // ORBAT store
+  const orbatStore = new OrbatStore();
+
+  // ORBAT panel (left sidebar in BUILD mode)
+  const orbatPanel = initOrbatPanel(builderLeft, config);
+
+  // Asset detail panel (right sidebar in BUILD mode)
+  const assetDetail = initAssetDetail(builderRight, config);
+
+  // Wire ORBAT panel → asset detail
+  orbatPanel.onAssetSelect((unit, orgId) => {
+    assetDetail.show(unit, orgId);
+    document.getElementById('app').classList.add('detail-open');
+  });
+
+  // Wire asset detail save/delete/duplicate back to ORBAT store
+  assetDetail.onSave((unit, orgId) => {
+    const orbatList = orbatStore.getOrbatList();
+    if (orbatList.length > 0) {
+      const currentName = orbatList[0].name;
+      const model = orbatStore.loadOrbat(currentName);
+      if (model) {
+        const existing = model.getUnit(unit.id);
+        if (existing) {
+          Object.assign(existing, unit);
+        }
+        orbatStore.saveOrbat(currentName, model);
+        orbatPanel.refresh();
+      }
+    }
+  });
+
+  assetDetail.onDelete((unitId, orgId) => {
+    const orbatList = orbatStore.getOrbatList();
+    if (orbatList.length > 0) {
+      const currentName = orbatList[0].name;
+      const model = orbatStore.loadOrbat(currentName);
+      if (model) {
+        model.removeUnit(orgId, unitId);
+        orbatStore.saveOrbat(currentName, model);
+        orbatPanel.refresh();
+        assetDetail.hide();
+        document.getElementById('app').classList.remove('detail-open');
+      }
+    }
+  });
+
+  assetDetail.onDuplicate((unit, orgId) => {
+    const orbatList = orbatStore.getOrbatList();
+    if (orbatList.length > 0) {
+      const currentName = orbatList[0].name;
+      const model = orbatStore.loadOrbat(currentName);
+      if (model) {
+        const newUnit = { ...unit, id: `${unit.id}_copy` };
+        model.addUnit(orgId, newUnit);
+        orbatStore.saveOrbat(currentName, model);
+        orbatPanel.refresh();
+        assetDetail.show(newUnit, orgId);
+      }
+    }
+  });
+
+  // Scenario panel (left sidebar in BUILD mode, under Scenario tab)
+  const scenarioPanel = initScenarioPanel(builderLeft, config);
+
+  // Wire scenario panel actions
+  scenarioPanel.onAction((action, data) => {
+    if (action === 'new') {
+      currentScenario = createEmptyScenario();
+      scenarioPanel.setScenario(currentScenario);
+      entityPlacer.setEntities(currentScenario.entities);
+      routeEditor.setEntities(currentScenario.entities);
+      routeEditor.clear();
+    }
+    if (action === 'load-yaml') {
+      pickAndLoadYAML().then(result => {
+        if (result && result.scenario) {
+          currentScenario = result.scenario;
+          scenarioPanel.setScenario(currentScenario);
+          entityPlacer.setEntities(currentScenario.entities);
+          entityPlacer.refresh();
+          routeEditor.setEntities(currentScenario.entities);
+          routeEditor.refresh();
+          if (result.warnings.length > 0) {
+            console.warn('YAML import warnings:', result.warnings);
+          }
+          if (result.errors.length > 0) {
+            console.error('YAML import errors:', result.errors);
+          }
+        }
+      });
+    }
+    if (action === 'save-yaml') {
+      const yaml = exportScenarioYAML(currentScenario);
+      const name = (currentScenario.metadata.name || 'scenario').replace(/\s+/g, '_').toLowerCase();
+      downloadYAML(yaml, `${name}.yaml`);
+    }
+    if (action === 'add-from-orbat') {
+      const existingIds = currentScenario.entities.map(e => e.id);
+      openOrbatPicker(existingIds, (selectedUnits) => {
+        for (const unit of selectedUnits) {
+          const entity = {
+            id: unit.id,
+            callsign: unit.callsign || unit.id,
+            entity_type: unit.entity_type || 'CIVILIAN_BOAT',
+            agency: unit.agency || 'CIVILIAN',
+            domain: unit.domain || 'MARITIME',
+            sidc: unit.sidc || '10043000001400000000',
+            initial_position: unit.home_base ? {
+              latitude: unit.home_base.lat || unit.home_base.latitude || 0,
+              longitude: unit.home_base.lon || unit.home_base.longitude || 0,
+              altitude_m: unit.home_base.altitude_m || 0,
+            } : null,
+            speed_knots: unit.cruise_speed_knots || 10,
+            heading_deg: 0,
+            status: 'ACTIVE',
+            waypoints: [],
+            behavior: null,
+            metadata: { ...(unit.metadata || {}) },
+            placed: !!(unit.home_base && (unit.home_base.lat || unit.home_base.latitude)),
+            cruise_speed_knots: unit.cruise_speed_knots,
+            cruise_altitude_m: unit.cruise_altitude_m,
+          };
+          currentScenario.entities.push(entity);
+        }
+        scenarioPanel.setScenario(currentScenario);
+        entityPlacer.setEntities(currentScenario.entities);
+        routeEditor.setEntities(currentScenario.entities);
+      });
+    }
+    if (action === 'add-manual') {
+      const newEntity = {
+        id: `entity_${Date.now()}`,
+        callsign: 'New Entity',
+        entity_type: 'CIVILIAN_BOAT',
+        agency: 'CIVILIAN',
+        domain: 'MARITIME',
+        sidc: '10043000001400000000',
+        initial_position: null,
+        speed_knots: 10,
+        heading_deg: 0,
+        status: 'ACTIVE',
+        waypoints: [],
+        behavior: null,
+        metadata: {},
+        placed: false,
+      };
+      currentScenario.entities.push(newEntity);
+      scenarioPanel.setScenario(currentScenario);
+      entityPlacer.setEntities(currentScenario.entities);
+    }
+    if (action === 'remove-entity' && data) {
+      currentScenario.entities = currentScenario.entities.filter(e => e.id !== data.id);
+      scenarioPanel.setScenario(currentScenario);
+      entityPlacer.setEntities(currentScenario.entities);
+      routeEditor.setEntities(currentScenario.entities);
+    }
+    if (action === 'add-event') {
+      openEventEditor(null, currentScenario.entities, (evt) => {
+        if (!currentScenario.events) currentScenario.events = [];
+        currentScenario.events.push(evt);
+        scenarioPanel.setScenario(currentScenario);
+      });
+    }
+    if (action === 'edit-event' && data) {
+      const idx = (currentScenario.events || []).indexOf(data);
+      openEventEditor(data, currentScenario.entities, (evt) => {
+        if (idx >= 0) currentScenario.events[idx] = evt;
+        scenarioPanel.setScenario(currentScenario);
+      });
+    }
+  });
+
+  scenarioPanel.onEntitySelect((entity) => {
+    if (entity && !entity.placed) {
+      entityPlacer.startPlacing(entity.id);
+    } else if (entity) {
+      entityPlacer.selectEntity(entity.id);
+      entityPlacer.flyToEntity(entity.id);
+    }
+  });
+
+  // Mode toggle
+  const builderMode = initBuilderMode({
+    header: document.getElementById('header'),
+    onModeChange: (mode) => {
+      console.log(`Mode switched to: ${mode}`);
+      if (mode === 'BUILD') {
+        orbatPanel.show();
+        orbatPanel.refresh();
+        scenarioPanel.show();
+        scenarioPanel.setScenario(currentScenario);
+        entityPlacer.setEntities(currentScenario.entities);
+        entityPlacer.refresh();
+        routeEditor.setEntities(currentScenario.entities);
+        routeEditor.refresh();
+      } else {
+        orbatPanel.hide();
+        scenarioPanel.hide();
+        assetDetail.hide();
+        entityPlacer.clear();
+        routeEditor.clear();
+        document.getElementById('app').classList.remove('detail-open');
+      }
+    }
+  });
+
+  // Map interaction handler (builder toolbar + click modes)
+  const mapInteraction = initMapInteraction(viewer);
+
+  // Entity placer (place/move entities on globe in BUILD mode)
+  const entityPlacer = initEntityPlacer(viewer, mapInteraction);
+
+  // Route editor (waypoint drawing and editing)
+  const routeEditor = initRouteEditor(viewer, mapInteraction, config);
+
+  // Current scenario state
+  let currentScenario = createEmptyScenario();
+  entityPlacer.setEntities(currentScenario.entities);
+  routeEditor.setEntities(currentScenario.entities);
+
+  // Wire entity placer context menus
+  entityPlacer.onChange((action, entity, screenPos) => {
+    if (action === 'context-menu' && entity) {
+      showContextMenu(screenPos.x, screenPos.y, entityMenuItems(entity), (menuAction) => {
+        if (menuAction === 'fly-to') entityPlacer.flyToEntity(entity.id);
+        if (menuAction === 'define-route') {
+          routeEditor.editRoute(entity);
+        }
+        if (menuAction === 'edit') {
+          // Show entity in scenario panel selection
+          scenarioPanel.refresh();
+        }
+        if (menuAction === 'duplicate') {
+          const dup = { ...entity, id: `${entity.id}_${Date.now()}`, callsign: `${entity.callsign} (copy)`, waypoints: [...(entity.waypoints || [])], placed: false, initial_position: null };
+          currentScenario.entities.push(dup);
+          scenarioPanel.setScenario(currentScenario);
+          entityPlacer.setEntities(currentScenario.entities);
+          routeEditor.setEntities(currentScenario.entities);
+        }
+        if (menuAction === 'remove') {
+          currentScenario.entities = currentScenario.entities.filter(e => e.id !== entity.id);
+          scenarioPanel.setScenario(currentScenario);
+          entityPlacer.setEntities(currentScenario.entities);
+          routeEditor.setEntities(currentScenario.entities);
+        }
+      });
+    }
+    if (action === 'place' && entity) {
+      routeEditor.refresh();
+      scenarioPanel.setScenario(currentScenario);
+    }
+  });
+
+  // Wire right-click on empty map in builder mode
+  mapInteraction.onRightClick((event) => {
+    if (builderMode.getMode() !== 'BUILD') return;
+    if (event.picked && event.picked.id) return; // Entity click handled by placer
+    if (event.position) {
+      showContextMenu(event.screenPosition.x, event.screenPosition.y, mapMenuItems(event.position), (action) => {
+        if (action === 'copy-coords') {
+          navigator.clipboard.writeText(`${event.position.latitude.toFixed(6)}, ${event.position.longitude.toFixed(6)}`);
+        }
+        if (action === 'center-map') {
+          viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(event.position.longitude, event.position.latitude, viewer.camera.positionCartographic.height),
+            duration: 0.5,
+          });
+        }
+      });
+    }
+  });
+
+  // Wire route editor changes back to scenario panel
+  routeEditor.onRouteChange((entity) => {
+    scenarioPanel.setScenario(currentScenario);
+  });
+
+  // Expose for debugging
+  window.builderMode = builderMode;
+  window.orbatStore = orbatStore;
+  window.currentScenario = currentScenario;
 
   // SIDC editor: listen for changes from entity panel (per-entity)
   document.addEventListener('sidc-update', (e) => {

@@ -18,6 +18,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "cesium": "1.138.0",
+    "js-yaml": "^4.1.1",
+    "papaparse": "^5.5.3",
     "reconnecting-websocket": "^4.4.0"
   },
   "devDependencies": {
