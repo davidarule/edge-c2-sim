@@ -1,0 +1,111 @@
+#controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--bg-primary);
+  border-top: 2px solid var(--status-active);
+  z-index: 10;
+}
+
+#controls.paused {
+  border-top-color: var(--severity-warning);
+}
+
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ctrl-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.ctrl-btn:hover {
+  background: var(--border);
+  color: var(--text-emphasis);
+}
+.ctrl-btn.active {
+  border-color: var(--severity-info);
+  color: var(--severity-info);
+  background: rgba(88, 166, 255, 0.1);
+}
+.ctrl-btn.danger {
+  border-color: var(--severity-critical);
+  color: var(--severity-critical);
+}
+.ctrl-btn.danger:hover {
+  background: rgba(248, 81, 73, 0.15);
+}
+
+.speed-group {
+  display: flex;
+  gap: 4px;
+}
+
+.speed-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.speed-btn:hover {
+  color: var(--text-primary);
+}
+.speed-btn.active {
+  background: rgba(88, 166, 255, 0.15);
+  border-color: var(--severity-info);
+  color: var(--severity-info);
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--severity-info);
+  border-radius: 2px;
+  transition: width 0.3s linear;
+  width: 0%;
+}
+
+.controls-clock {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-emphasis);
+}

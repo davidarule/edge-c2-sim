@@ -202,7 +202,11 @@ async def run(
         console = ConsoleAdapter(min_interval=2.0)
         adapters.append(console)
     if "ws" in transport_names:
-        ws_adapter = WebSocketAdapter(entity_store=store, clock=clock, port=port)
+        duration_s = scenario_state.duration.total_seconds() if scenario_state else 0
+        ws_adapter = WebSocketAdapter(
+            entity_store=store, clock=clock, port=port,
+            scenario_duration_s=duration_s,
+        )
         adapters.append(ws_adapter)
         print(f"WebSocket server on ws://0.0.0.0:{port}")
 

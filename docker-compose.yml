@@ -1,4 +1,5 @@
 version: "3.8"
+
 services:
   simulator:
     build: .
@@ -8,22 +9,26 @@ services:
       - ./config:/app/config
       - ./geodata:/app/geodata
     environment:
-      - SIM_SPEED=1
-      - SIM_PORT=8765
-    command: python -m scripts.run_simulator --scenario config/scenarios/strait_intercept.yaml
+      - SCENARIO=${SCENARIO:-config/scenarios/demo_combined.yaml}
+      - SIM_SPEED=${SIM_SPEED:-1}
+    command: python -m scripts.run_simulator --scenario ${SCENARIO:-config/scenarios/demo_combined.yaml} --speed ${SIM_SPEED:-1}
 
   cop:
-    image: nginx:alpine
+    build:
+      context: ./cop
+      args:
+        - VITE_CESIUM_ION_TOKEN=${CESIUM_ION_TOKEN:-}
+        - VITE_WS_URL=${WS_URL:-ws://localhost:8765}
     ports:
-      - "3000:80"
-    volumes:
-      - ./cop/dist:/usr/share/nginx/html
+      - "3000:3000"
     depends_on:
       - simulator
 
-  # Uncomment when ready for TAK integration
-  # freetakserver:
-  #   image: freetakteam/freetakserver:latest
-  #   ports:
-  #     - "8087:8087"
-  #     - "8443:8443"
+  freetakserver:
+    image: freetakteam/freetakserver:latest
+    ports:
+      - "8087:8087"
+      - "8443:8443"
+      - "19023:19023"
+    profiles:
+      - tak

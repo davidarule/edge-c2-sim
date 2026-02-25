@@ -37,11 +37,13 @@ class WebSocketAdapter(TransportAdapter):
         clock: SimulationClock,
         host: str = "0.0.0.0",
         port: int = 8765,
+        scenario_duration_s: float = 0,
     ) -> None:
         self._entity_store = entity_store
         self._clock = clock
         self._host = host
         self._port = port
+        self._scenario_duration_s = scenario_duration_s
         self._clients: set[ServerConnection] = set()
         self._server: Any = None
         self._clock_task: asyncio.Task | None = None
@@ -89,9 +91,14 @@ class WebSocketAdapter(TransportAdapter):
         await self._broadcast(msg)
 
     async def push_bulk_update(self, entities: list[Entity]) -> None:
-        """Broadcast multiple entity updates."""
-        for entity in entities:
-            await self.push_entity_update(entity)
+        """Broadcast multiple entity updates as a batch."""
+        if not entities:
+            return
+        msg = json.dumps({
+            "type": "entity_batch",
+            "entities": [e.to_dict() for e in entities],
+        })
+        await self._broadcast(msg)
 
     async def push_entity_remove(self, entity_id: str) -> None:
         """Broadcast entity removal."""
@@ -130,7 +137,8 @@ class WebSocketAdapter(TransportAdapter):
             logger.warning(f"Invalid JSON from client: {raw[:100]}")
             return
 
-        msg_type = msg.get("type")
+        # Support both { type: "..." } and { cmd: "..." } formats
+        msg_type = msg.get("cmd") or msg.get("type")
 
         if msg_type == "set_speed":
             speed = msg.get("speed", 1.0)
@@ -140,12 +148,19 @@ class WebSocketAdapter(TransportAdapter):
             self._clock.pause()
             logger.info("Clock paused")
         elif msg_type == "resume":
-            self._clock.resume()
+            self._clock.start()
             logger.info("Clock resumed")
+        elif msg_type == "snapshot":
+            # Re-send full snapshot to requesting client
+            pass  # Handled per-client; snapshot sent on connect
+        elif msg_type == "reset":
+            logger.info("Reset requested by client")
+            if "reset" in self._command_handlers:
+                await self._command_handlers["reset"](msg)
         elif msg_type in self._command_handlers:
             await self._command_handlers[msg_type](msg)
         else:
-            logger.warning(f"Unknown message type: {msg_type}")
+            logger.debug(f"Unknown message type: {msg_type}")
 
     async def _broadcast(self, message: str) -> None:
         """Send a message to all connected clients."""
@@ -163,11 +178,17 @@ class WebSocketAdapter(TransportAdapter):
         """Periodically broadcast clock state to all clients."""
         while True:
             try:
+                elapsed = self._clock.get_elapsed().total_seconds()
+                progress = 0.0
+                if self._scenario_duration_s > 0:
+                    progress = min(1.0, elapsed / self._scenario_duration_s)
+
                 msg = json.dumps({
                     "type": "clock",
                     "sim_time": self._clock.get_sim_time().isoformat(),
                     "speed": self._clock.speed,
                     "running": self._clock.is_running,
+                    "scenario_progress": round(progress, 3),
                 })
                 await self._broadcast(msg)
                 await asyncio.sleep(1.0)

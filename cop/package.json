@@ -1,0 +1,23 @@
+{
+  "name": "edge-c2-cop",
+  "version": "1.0.0",
+  "description": "Edge C2 Common Operating Picture — CesiumJS 3D Dashboard",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["c2", "cesium", "cop", "military"],
+  "author": "Edge C2 Team",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "cesium": "^1.138.0",
+    "milsymbol": "^3.0.3",
+    "reconnecting-websocket": "^4.4.0"
+  },
+  "devDependencies": {
+    "vite": "^7.3.1",
+    "vite-plugin-cesium": "^1.2.23"
+  }
+}
