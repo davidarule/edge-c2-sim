@@ -42,6 +42,10 @@ import { initScenarioPanel } from './builder/scenario-panel.js';
 import { openOrbatPicker } from './builder/orbat-picker.js';
 import { initRouteEditor } from './builder/route-editor.js';
 import { openEventEditor } from './builder/event-editor.js';
+import { initAreaEditor } from './builder/area-editor.js';
+import { openBackgroundEditor } from './builder/background-editor.js';
+import { initPreviewScrubber } from './builder/preview-scrubber.js';
+import { initValidation } from './builder/validation.js';
 
 async function main() {
   console.log('Edge C2 COP initializing...');
@@ -188,6 +192,11 @@ async function main() {
       entityPlacer.setEntities(currentScenario.entities);
       routeEditor.setEntities(currentScenario.entities);
       routeEditor.clear();
+      areaEditor.setEntities(currentScenario.entities);
+      areaEditor.clear();
+      previewScrubber.setScenario(currentScenario);
+      previewScrubber.reset();
+      runValidation();
     }
     if (action === 'load-yaml') {
       pickAndLoadYAML().then(result => {
@@ -198,6 +207,10 @@ async function main() {
           entityPlacer.refresh();
           routeEditor.setEntities(currentScenario.entities);
           routeEditor.refresh();
+          areaEditor.setEntities(currentScenario.entities);
+          areaEditor.refresh();
+          previewScrubber.setScenario(currentScenario);
+          runValidation();
           if (result.warnings.length > 0) {
             console.warn('YAML import warnings:', result.warnings);
           }
@@ -243,6 +256,8 @@ async function main() {
         scenarioPanel.setScenario(currentScenario);
         entityPlacer.setEntities(currentScenario.entities);
         routeEditor.setEntities(currentScenario.entities);
+        areaEditor.setEntities(currentScenario.entities);
+        runValidation();
       });
     }
     if (action === 'add-manual') {
@@ -286,6 +301,20 @@ async function main() {
         scenarioPanel.setScenario(currentScenario);
       });
     }
+    if (action === 'add-background') {
+      openBackgroundEditor(null, (group) => {
+        if (!currentScenario.background_entities) currentScenario.background_entities = [];
+        currentScenario.background_entities.push(group);
+        scenarioPanel.setScenario(currentScenario);
+      });
+    }
+    if (action === 'edit-background' && data) {
+      const idx = (currentScenario.background_entities || []).indexOf(data);
+      openBackgroundEditor(data, (group) => {
+        if (idx >= 0) currentScenario.background_entities[idx] = group;
+        scenarioPanel.setScenario(currentScenario);
+      });
+    }
   });
 
   scenarioPanel.onEntitySelect((entity) => {
@@ -311,12 +340,21 @@ async function main() {
         entityPlacer.refresh();
         routeEditor.setEntities(currentScenario.entities);
         routeEditor.refresh();
+        areaEditor.setEntities(currentScenario.entities);
+        areaEditor.refresh();
+        previewScrubber.setScenario(currentScenario);
+        previewScrubber.show();
+        validationBadge.element.style.display = '';
+        runValidation();
       } else {
         orbatPanel.hide();
         scenarioPanel.hide();
         assetDetail.hide();
         entityPlacer.clear();
         routeEditor.clear();
+        areaEditor.clear();
+        previewScrubber.hide();
+        validationBadge.element.style.display = 'none';
         document.getElementById('app').classList.remove('detail-open');
       }
     }
@@ -331,10 +369,35 @@ async function main() {
   // Route editor (waypoint drawing and editing)
   const routeEditor = initRouteEditor(viewer, mapInteraction, config);
 
+  // Area editor (patrol area polygon drawing)
+  const areaEditor = initAreaEditor(viewer, mapInteraction, config);
+
+  // Preview scrubber (scenario preview in BUILD mode)
+  const timelineContainer = document.getElementById('timeline');
+  const previewScrubber = initPreviewScrubber(timelineContainer, viewer, config);
+
+  // Validation engine
+  const validation = initValidation(config);
+  const validationBadge = validation.createStatusBadge(
+    document.querySelector('.header-center') || document.getElementById('header')
+  );
+  validationBadge.element.style.display = 'none'; // Only show in BUILD mode
+  validationBadge.onClick(() => {
+    const results = validation.validate(currentScenario);
+    validation.showValidationModal(results, (item) => {
+      // Fix link: select offending entity
+      if (item.entityId) {
+        entityPlacer.selectEntity(item.entityId);
+        entityPlacer.flyToEntity(item.entityId);
+      }
+    });
+  });
+
   // Current scenario state
   let currentScenario = createEmptyScenario();
   entityPlacer.setEntities(currentScenario.entities);
   routeEditor.setEntities(currentScenario.entities);
+  areaEditor.setEntities(currentScenario.entities);
 
   // Wire entity placer context menus
   entityPlacer.onChange((action, entity, screenPos) => {
@@ -343,6 +406,9 @@ async function main() {
         if (menuAction === 'fly-to') entityPlacer.flyToEntity(entity.id);
         if (menuAction === 'define-route') {
           routeEditor.editRoute(entity);
+        }
+        if (menuAction === 'set-behavior') {
+          areaEditor.editArea(entity);
         }
         if (menuAction === 'edit') {
           // Show entity in scenario panel selection
@@ -365,7 +431,10 @@ async function main() {
     }
     if (action === 'place' && entity) {
       routeEditor.refresh();
+      areaEditor.refresh();
       scenarioPanel.setScenario(currentScenario);
+      previewScrubber.setScenario(currentScenario);
+      runValidation();
     }
   });
 
@@ -391,7 +460,24 @@ async function main() {
   // Wire route editor changes back to scenario panel
   routeEditor.onRouteChange((entity) => {
     scenarioPanel.setScenario(currentScenario);
+    runValidation();
   });
+
+  // Wire area editor changes back to scenario panel
+  areaEditor.onAreaChange((entity) => {
+    scenarioPanel.setScenario(currentScenario);
+    runValidation();
+  });
+
+  // Debounced validation runner
+  let validationTimer = null;
+  function runValidation() {
+    clearTimeout(validationTimer);
+    validationTimer = setTimeout(() => {
+      const results = validation.validate(currentScenario);
+      validationBadge.update(results);
+    }, 500);
+  }
 
   // Expose for debugging
   window.builderMode = builderMode;

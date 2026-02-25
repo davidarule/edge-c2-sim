@@ -90,7 +90,7 @@ export function initBuilderMode(opts) {
     /* BUILD mode layout adjustments */
     #app.build-mode {
       grid-template-columns: 260px 1fr 0px;
-      grid-template-rows: 48px 1fr 0px 0px;
+      grid-template-rows: 48px 1fr 0px 120px;
       grid-template-areas:
         "header   header  header"
         "sidebar  viewport detail"
@@ -100,8 +100,14 @@ export function initBuilderMode(opts) {
     #app.build-mode.detail-open {
       grid-template-columns: 260px 1fr 300px;
     }
-    #app.build-mode #controls,
+    #app.build-mode #controls {
+      display: none;
+    }
     #app.build-mode #timeline {
+      border-top: 1px solid var(--border);
+    }
+    #app.build-mode #timeline .timeline-header,
+    #app.build-mode #timeline .timeline-events {
       display: none;
     }
 
