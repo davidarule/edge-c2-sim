@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # --- Nginx Reverse Proxy ---
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - cop
+      - simulator
+      - auth-service
+    networks:
+      - edge_c2_net
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # --- Auth Service ---
+  auth-service:
+    build: ./auth
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS:-24}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-.brumbiesoft.org}
+      - COOKIE_SECURE=true
+      - ADMIN_BOOTSTRAP=true
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    volumes:
+      - auth_data:/data
+    networks:
+      - edge_c2_net
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/auth/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # --- Simulator ---
+  simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - SCENARIO=${SCENARIO:-config/scenarios/demo_combined.yaml}
+      - SIM_SPEED=${SIM_SPEED:-1}
+      - JWT_SECRET=${JWT_SECRET}
+      - WS_AUTH=${WS_AUTH:-true}
+    volumes:
+      - ./config:/app/config
+      - ./geodata:/app/geodata
+      - ./logs:/app/logs
+    command: >
+      edge-c2-sim
+        --scenario ${SCENARIO:-config/scenarios/demo_combined.yaml}
+        --speed ${SIM_SPEED:-1}
+        --transport ws,console
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8766/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - edge_c2_net
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # --- COP Dashboard ---
+  cop:
+    build:
+      context: ./cop
+      args:
+        - VITE_CESIUM_ION_TOKEN=${CESIUM_ION_TOKEN}
+        - VITE_WS_URL=wss://ec2sim.brumbiesoft.org/ws
+    networks:
+      - edge_c2_net
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  edge_c2_net:
+    driver: bridge
+
+volumes:
+  auth_data:

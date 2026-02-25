@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge C2 Simulator — Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0D1117;
+            color: #C9D1D9;
+            font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: #161B22;
+            border: 1px solid #30363D;
+            border-radius: 8px;
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 380px;
+            margin: 16px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #E6EDF3;
+            letter-spacing: 0.5px;
+        }
+
+        .logo .subtitle {
+            font-size: 13px;
+            color: #8B949E;
+            margin-top: 4px;
+        }
+
+        .logo .icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+            color: #58A6FF;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #8B949E;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0D1117;
+            border: 1px solid #30363D;
+            border-radius: 4px;
+            color: #E6EDF3;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.15s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #58A6FF;
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: #484F58;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 10px;
+            background: #58A6FF;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            background: #79C0FF;
+        }
+
+        .btn-login:active {
+            background: #388BFD;
+        }
+
+        .error-msg {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid rgba(248, 81, 73, 0.3);
+            color: #F85149;
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 11px;
+            color: #484F58;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">
+            <span class="icon">&#x2316;</span>
+            <h1>Edge C2 Simulator</h1>
+            <div class="subtitle">Common Operating Picture</div>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/auth/login">
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username"
+                       placeholder="Enter username" autocomplete="username"
+                       autofocus required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password"
+                       placeholder="Enter password" autocomplete="current-password"
+                       required>
+            </div>
+
+            <button type="submit" class="btn-login">Sign In</button>
+        </form>
+
+        <div class="footer">
+            Edge C2 Simulation Platform &mdash; Authorized Access Only
+        </div>
+    </div>
+</body>
+</html>

@@ -4,12 +4,22 @@ WebSocket server that broadcasts entity updates to connected COP clients.
 Runs a WebSocket server on a configurable port. All connected clients
 (typically the CesiumJS COP dashboard) receive real-time entity updates,
 events, and clock synchronization messages.
+
+Authentication:
+  When WS_AUTH=true (default in production), the server validates JWT tokens
+  on WebSocket connection upgrade. Tokens are read from:
+    1. The 'edge_c2_session' cookie in the upgrade request headers
+    2. A 'token' query parameter in the connection URL
+  The JWT_SECRET must match the auth service's secret.
+  For development (WS_AUTH=false), auth is disabled.
 """
 
 import asyncio
 import json
 import logging
+import os
 from typing import Any
+from urllib.parse import urlparse, parse_qs
 
 import websockets
 from websockets.server import ServerConnection
@@ -20,6 +30,61 @@ from simulator.core.clock import SimulationClock
 from simulator.transport.base import TransportAdapter
 
 logger = logging.getLogger(__name__)
+
+# JWT validation for WebSocket connections
+_ws_auth_enabled = os.environ.get("WS_AUTH", "false").lower() == "true"
+_jwt_secret = os.environ.get("JWT_SECRET", "")
+_jwt_algorithm = os.environ.get("JWT_ALGORITHM", "HS256")
+_cookie_name = os.environ.get("COOKIE_NAME", "edge_c2_session")
+
+
+def _validate_ws_token(path: str, request_headers) -> bool:
+    """Validate JWT token from cookie or query parameter.
+
+    Returns True if auth is disabled or token is valid.
+    """
+    if not _ws_auth_enabled:
+        return True
+
+    if not _jwt_secret:
+        logger.warning("WS_AUTH=true but JWT_SECRET not set, allowing all connections")
+        return True
+
+    try:
+        from jose import jwt, JWTError
+    except ImportError:
+        logger.warning("python-jose not installed, skipping WS auth")
+        return True
+
+    token = None
+
+    # Try cookie first
+    cookie_header = request_headers.get("Cookie", "")
+    if cookie_header:
+        for part in cookie_header.split(";"):
+            part = part.strip()
+            if part.startswith(f"{_cookie_name}="):
+                token = part[len(_cookie_name) + 1:]
+                break
+
+    # Try query parameter as fallback
+    if not token:
+        parsed = urlparse(path)
+        params = parse_qs(parsed.query)
+        tokens = params.get("token", [])
+        if tokens:
+            token = tokens[0]
+
+    if not token:
+        logger.info("WebSocket connection rejected: no auth token")
+        return False
+
+    try:
+        jwt.decode(token, _jwt_secret, algorithms=[_jwt_algorithm])
+        return True
+    except JWTError as e:
+        logger.info(f"WebSocket connection rejected: invalid token ({e})")
+        return False
 
 
 class WebSocketAdapter(TransportAdapter):
@@ -117,6 +182,11 @@ class WebSocketAdapter(TransportAdapter):
 
     async def _handle_client(self, websocket: ServerConnection) -> None:
         """Handle a single client connection."""
+        # Validate JWT token on connection
+        if not _validate_ws_token(websocket.request.path or "/", websocket.request.headers):
+            await websocket.close(4001, "Unauthorized")
+            return
+
         self._clients.add(websocket)
         logger.info(f"Client connected ({len(self._clients)} total)")
 

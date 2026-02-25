@@ -2,10 +2,27 @@
  * Application configuration — agency colors, SIDC mappings, defaults.
  */
 
+/**
+ * Determine WebSocket URL based on current page location.
+ *
+ * In production (served through Nginx proxy):
+ *   wss://ec2sim.brumbiesoft.org/ws
+ *
+ * In development (direct connection):
+ *   ws://localhost:8765
+ */
+function getWebSocketUrl() {
+  if (window.location.protocol === 'https:') {
+    return `wss://${window.location.host}/ws`;
+  }
+  // Fall back to env variable or default for dev
+  return import.meta.env.VITE_WS_URL || 'ws://localhost:8765';
+}
+
 export function initConfig() {
   const config = {
     cesiumToken: import.meta.env.VITE_CESIUM_ION_TOKEN || '',
-    wsUrl: import.meta.env.VITE_WS_URL || 'ws://localhost:8765',
+    wsUrl: getWebSocketUrl(),
     defaultSpeed: parseInt(import.meta.env.VITE_SIM_DEFAULT_SPEED || '1', 10),
 
     initialCenter: { lat: 5.00, lon: 118.50 },

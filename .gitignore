@@ -33,6 +33,7 @@ Thumbs.db
 .env.local
 .env.*.local
 *.pem
+*.key
 credentials.json
 
 # SUMO
