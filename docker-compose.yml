@@ -20,7 +20,7 @@ services:
         - VITE_CESIUM_ION_TOKEN=${CESIUM_ION_TOKEN:-}
         - VITE_WS_URL=${WS_URL:-ws://localhost:8765}
     ports:
-      - "3000:3000"
+      - "3005:3000"
     depends_on:
       - simulator
 

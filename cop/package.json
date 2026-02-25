@@ -12,7 +12,7 @@
   "author": "Edge C2 Team",
   "license": "UNLICENSED",
   "dependencies": {
-    "cesium": "^1.138.0",
+    "cesium": "1.138.0",
     "milsymbol": "^3.0.3",
     "reconnecting-websocket": "^4.4.0"
   },

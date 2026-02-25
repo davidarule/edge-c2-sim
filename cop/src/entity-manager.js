@@ -15,7 +15,7 @@ import ms from 'milsymbol';
 
 const MAX_TRAIL_POINTS = 15;
 const TRAIL_UPDATE_INTERVAL = 3; // Update trail every Nth position update
-const CLUSTER_ALTITUDE = 500000; // Cluster above 500km
+const CLUSTER_ALTITUDE = 0; // Cluster above 500km
 
 export function initEntityManager(viewer, config) {
   const entities = new Map();
@@ -35,7 +35,7 @@ export function initEntityManager(viewer, config) {
 
     try {
       const symbol = new ms.Symbol(sidc, {
-        size: 28,
+        size: 40,
         frame: true,
         fill: true,
         strokeWidth: 1.5,
@@ -97,7 +97,7 @@ export function initEntityManager(viewer, config) {
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
         scale: 1.0,
-        rotation: Cesium.Math.toRadians(-(entityData.heading_deg || 0)),
+        rotation: 0,
         disableDepthTestDistance: Number.POSITIVE_INFINITY
       },
       label: {
@@ -162,7 +162,7 @@ export function initEntityManager(viewer, config) {
     entry.sampledPosition.addSample(time, Cesium.Cartesian3.fromDegrees(lon, lat, alt));
 
     // Update heading rotation
-    entry.cesiumEntity.billboard.rotation = Cesium.Math.toRadians(-(entityData.heading_deg || 0));
+    // rotation removed 
 
     // Regenerate symbol only if type/status changed
     if (entityData.entity_type !== entry.data.entity_type ||
@@ -304,7 +304,7 @@ export function initEntityManager(viewer, config) {
   }
 
   // Check clustering every 2 seconds
-  setInterval(updateClustering, 2000);
+  // setInterval(updateClustering, 2000);
 
   // === CLICK EVENTS ===
   function fireClick(entityData) {

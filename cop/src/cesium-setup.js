@@ -17,40 +17,21 @@ export async function initCesium(containerId, config) {
     infoBox: false,
     selectionIndicator: false,
     skyBox: false,
-    skyAtmosphere: true
+    skyAtmosphere: false
   });
 
-  // Dark globe
+  // Dark globe background
   viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#0a0e17');
   viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#0a0e17');
-  viewer.scene.globe.enableLighting = true;
-  viewer.scene.globe.showGroundAtmosphere = true;
+  viewer.scene.globe.showGroundAtmosphere = false;
 
   // Anti-aliasing
   if (viewer.scene.postProcessStages.fxaa) {
     viewer.scene.postProcessStages.fxaa.enabled = true;
   }
 
-  // Hide Cesium credits (we attribute in our footer)
+  // Hide Cesium credits
   viewer.cesiumWidget.creditContainer.style.display = 'none';
-
-  // Try to load terrain
-  try {
-    viewer.scene.terrainProvider = await Cesium.CesiumTerrainProvider.fromIonAssetId(1);
-  } catch (e) {
-    console.warn('Terrain loading failed, using ellipsoid:', e.message);
-  }
-
-  // Try dark imagery layer
-  try {
-    const darkLayer = await Cesium.ImageryLayer.fromProviderAsync(
-      Cesium.IonImageryProvider.fromAssetId(3845)
-    );
-    viewer.imageryLayers.removeAll();
-    viewer.imageryLayers.add(darkLayer);
-  } catch (e) {
-    console.warn('Dark imagery failed, using default:', e.message);
-  }
 
   // Initial camera — ESSZONE overview
   viewer.camera.flyTo({
