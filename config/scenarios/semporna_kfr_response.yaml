@@ -108,7 +108,7 @@ scenario:
       type: RMP_PATROL_CAR
       callsign: "PDRM Marine Semporna 01"
       agency: RMP
-      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
+      initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
       behavior: "standby"
       metadata:
         vessel_type: "Rigid Hull Fender Boat"
@@ -118,7 +118,7 @@ scenario:
       type: RMP_PATROL_CAR
       callsign: "PDRM Marine Semporna 02"
       agency: RMP
-      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
+      initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
       behavior: "standby"
       metadata:
         vessel_type: "Rigid Hull Fender Boat"
@@ -127,7 +127,7 @@ scenario:
       type: RMP_PATROL_CAR
       callsign: "PDRM Marine Semporna 03"
       agency: RMP
-      initial_position: { lat: 4.50, lon: 118.63 }  # Semporna patrol area
+      initial_position: { lat: 4.50, lon: 118.608 }  # Semporna patrol area
       behavior: "patrol"
       patrol_area: "semporna_islands"
 
@@ -158,7 +158,7 @@ scenario:
       type: MIL_NAVAL_FIC
       callsign: "KD G2000 Bravo"
       agency: MIL
-      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
+      initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
       behavior: "standby"
       metadata:
         vessel_type: "G2000 Mk II Fast Interceptor Craft"
@@ -168,7 +168,7 @@ scenario:
       type: MIL_NAVAL_FIC
       callsign: "KD G2000 Charlie"
       agency: MIL
-      initial_position: { lat: 5.84, lon: 118.12 }  # MAWILLA 2 Sandakan Harbor
+      initial_position: { lat: 5.84, lon: 118.105 }  # MAWILLA 2 Sandakan Harbor
       behavior: "standby"
       metadata:
         vessel_type: "G2000 Mk II Fast Interceptor Craft"
@@ -177,7 +177,7 @@ scenario:
       type: MIL_NAVAL
       callsign: "KD Jerong"
       agency: MIL
-      initial_position: { lat: 5.03, lon: 118.35 }  # Lahad Datu Port
+      initial_position: { lat: 5.02, lon: 118.34 }  # Lahad Datu, Darvel Bay
       behavior: "patrol"
       patrol_area: "esszone_sector_3_lahad_datu"
       metadata:
@@ -188,7 +188,7 @@ scenario:
       type: MMEA_PATROL
       callsign: "KM Semporna"
       agency: MMEA
-      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
+      initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
       behavior: "patrol"
       patrol_area: "esszone_sector_4_semporna"
 

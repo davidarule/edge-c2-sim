@@ -17,11 +17,13 @@ const MAX_TRAIL_POINTS = 15;
 const TRAIL_UPDATE_INTERVAL = 3; // Update trail every Nth position update
 
 // === DECLUTTER CONFIG ===
-const OVERLAP_THRESHOLD_PX = 30;  // Entities closer than this (in pixels) get spread
-const SPREAD_RADIUS_PX = 50;      // How far to push them apart (in pixels)
-const DECLUTTER_INTERVAL_MS = 1000; // How often to recalculate
-const MIN_SPEED_TO_SKIP = 1.0;     // Don't declutter moving entities (knots)
-const SCALE_DOWN_THRESHOLD = 6;    // Scale down billboards for groups this size or larger
+const OVERLAP_THRESHOLD_PX = 30;      // Entities closer than this (in pixels) get spread
+const SPREAD_RADIUS_PX_MAX = 50;      // Maximum spread at low altitude
+const DECLUTTER_INTERVAL_MS = 1000;   // How often to recalculate
+const MIN_SPEED_TO_SKIP = 1.0;        // Don't declutter moving entities (knots)
+const SCALE_DOWN_THRESHOLD = 6;       // Scale down billboards for groups this size or larger
+const DECLUTTER_FULL_ALT = 5000;      // Below 5km: full spread radius
+const DECLUTTER_ZERO_ALT = 80000;     // Above 80km: no declutter (0px spread)
 
 export function initEntityManager(viewer, config) {
   const entities = new Map();
@@ -264,8 +266,55 @@ export function initEntityManager(viewer, config) {
   }
 
   // === PIXEL-DISTANCE DECLUTTER WITH RING OFFSET ===
+  // Altitude-adaptive: full spread at low altitude, disabled at high altitude
+  // to prevent geographic displacement (50px at 100km ≈ 6km displacement)
+
+  function getEffectiveSpreadRadius() {
+    const height = viewer.camera.positionCartographic.height;
+    if (height <= DECLUTTER_FULL_ALT) return SPREAD_RADIUS_PX_MAX;
+    if (height >= DECLUTTER_ZERO_ALT) return 0;
+    // Linear interpolation between full and zero
+    const t = (height - DECLUTTER_FULL_ALT) / (DECLUTTER_ZERO_ALT - DECLUTTER_FULL_ALT);
+    return SPREAD_RADIUS_PX_MAX * (1 - t);
+  }
+
+  function resetAllDeclutter() {
+    declutterOffsets.forEach((_, id) => {
+      const entry = entities.get(id);
+      if (entry && entry.cesiumEntity.billboard) {
+        entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
+        entry.cesiumEntity.billboard.scale = 1.0;
+        entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
+        entry.cesiumEntity.label.show = true;
+        entry.cesiumTrail.show = true;
+      }
+    });
+    declutterOffsets.clear();
+    declutteredIds.clear();
+  }
+
+  function resetEntry(id) {
+    const entry = entities.get(id);
+    if (entry && entry.cesiumEntity.billboard) {
+      entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
+      entry.cesiumEntity.billboard.scale = 1.0;
+      entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
+      entry.cesiumEntity.label.show = true;
+      entry.cesiumTrail.show = true;
+    }
+    declutterOffsets.delete(id);
+    declutteredIds.delete(id);
+  }
 
   function declutterEntities() {
+    const spreadRadius = getEffectiveSpreadRadius();
+
+    // At high altitude, disable declutter entirely — show all at true positions
+    if (spreadRadius < 2) {
+      if (declutterOffsets.size > 0) resetAllDeclutter();
+      return;
+    }
+
     const scene = viewer.scene;
     const screenPositions = [];
 
@@ -276,16 +325,7 @@ export function initEntityManager(viewer, config) {
       // Skip moving entities — they'll separate naturally
       const speed = entry.data.speed_knots || 0;
       if (speed > MIN_SPEED_TO_SKIP) {
-        // Reset any existing offset
-        if (declutterOffsets.has(id)) {
-          entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
-          entry.cesiumEntity.billboard.scale = 1.0;
-          entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
-          entry.cesiumEntity.label.show = true;
-          entry.cesiumTrail.show = true;
-          declutterOffsets.delete(id);
-          declutteredIds.delete(id);
-        }
+        if (declutterOffsets.has(id)) resetEntry(id);
         return;
       }
 
@@ -302,26 +342,18 @@ export function initEntityManager(viewer, config) {
       }
     });
 
+    // Scale overlap threshold with spread radius
+    const effectiveThreshold = OVERLAP_THRESHOLD_PX * (spreadRadius / SPREAD_RADIUS_PX_MAX);
+
     // Step 2: Find overlapping groups
-    const groups = findOverlapGroups(screenPositions, OVERLAP_THRESHOLD_PX);
+    const groups = findOverlapGroups(screenPositions, effectiveThreshold);
 
     // Step 3: Reset offsets for ungrouped entities
     const groupedIds = new Set();
     groups.forEach(group => group.forEach(item => groupedIds.add(item.id)));
 
     declutterOffsets.forEach((_, id) => {
-      if (!groupedIds.has(id)) {
-        const entry = entities.get(id);
-        if (entry && entry.cesiumEntity.billboard) {
-          entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
-          entry.cesiumEntity.billboard.scale = 1.0;
-          entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
-          entry.cesiumEntity.label.show = true;
-          entry.cesiumTrail.show = true;
-        }
-        declutterOffsets.delete(id);
-        declutteredIds.delete(id);
-      }
+      if (!groupedIds.has(id)) resetEntry(id);
     });
 
     // Step 4: Apply ring offsets to grouped entities
@@ -333,8 +365,8 @@ export function initEntityManager(viewer, config) {
 
       for (let i = 0; i < n; i++) {
         const angle = (2 * Math.PI * i) / n - Math.PI / 2; // Start from top
-        const offsetX = Math.cos(angle) * SPREAD_RADIUS_PX;
-        const offsetY = Math.sin(angle) * SPREAD_RADIUS_PX;
+        const offsetX = Math.cos(angle) * spreadRadius;
+        const offsetY = Math.sin(angle) * spreadRadius;
 
         const item = group[i];
         const entry = entities.get(item.id);
@@ -440,6 +472,22 @@ export function initEntityManager(viewer, config) {
     onEntityDoubleClick: (fn) => doubleClickHandlers.push(fn),
     _fireClick: fireClick,
     _fireDoubleClick: fireDoubleClick,
-    getSymbolImage
+    getSymbolImage,
+    getSidc(entity) {
+      const type = entity.entity_type || '';
+      return config.sidcMap[type] || config.defaultSidc;
+    },
+    updateSidcForType(entityType, newSidc) {
+      // Update config mapping
+      config.sidcMap[entityType] = newSidc;
+      // Clear symbol cache entries that used the old SIDC
+      symbolCache.clear();
+      // Re-render all entities of this type
+      entities.forEach((entry, id) => {
+        if (entry.data.entity_type === entityType) {
+          entry.cesiumEntity.billboard.image = getSymbolImage(entry.data);
+        }
+      });
+    }
   };
 }

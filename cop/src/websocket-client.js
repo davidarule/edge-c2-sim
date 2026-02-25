@@ -72,7 +72,10 @@ export function connectWebSocket(url, handlers) {
     pause: () => ws.send(JSON.stringify({ cmd: 'pause' })),
     resume: () => ws.send(JSON.stringify({ cmd: 'resume' })),
     reset: () => ws.send(JSON.stringify({ cmd: 'reset' })),
-    requestSnapshot: () => ws.send(JSON.stringify({ cmd: 'snapshot' }))
+    requestSnapshot: () => ws.send(JSON.stringify({ cmd: 'snapshot' })),
+    updateSidc: (entityType, sidc) => ws.send(JSON.stringify({
+      cmd: 'update_sidc', entity_type: entityType, sidc
+    }))
   };
 }
 

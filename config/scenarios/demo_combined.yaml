@@ -168,7 +168,7 @@ scenario:
       type: MMEA_PATROL
       callsign: "KM Semporna"
       agency: MMEA
-      initial_position: { lat: 5.84, lon: 118.12 }  # Sandakan Harbor
+      initial_position: { lat: 5.84, lon: 118.105 }  # Sandakan Harbor
       behavior: "patrol"
       patrol_area: "esszone_sector_2_sandakan"
 
@@ -176,7 +176,7 @@ scenario:
       type: MMEA_FAST_INTERCEPT
       callsign: "KM Penggalang 7"
       agency: MMEA
-      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
+      initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
       behavior: "standby"
 
     - id: "MMEA-PV-102"
@@ -191,7 +191,7 @@ scenario:
       type: MIL_NAVAL_FIC
       callsign: "KD G2000 Alpha"
       agency: MIL
-      initial_position: { lat: 5.84, lon: 118.12 }  # MAWILLA 2 Sandakan Harbor
+      initial_position: { lat: 5.84, lon: 118.105 }  # MAWILLA 2 Sandakan Harbor
       behavior: "standby"
       metadata:
         vessel_type: "G2000 Mk II Fast Interceptor Craft"
@@ -222,7 +222,7 @@ scenario:
       type: RMP_PATROL_CAR
       callsign: "PDRM Marine 01"
       agency: RMP
-      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
+      initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
       behavior: "standby"
       metadata:
         vessel_type: "Rigid Hull Fender Boat"
@@ -232,14 +232,14 @@ scenario:
       type: RMP_PATROL_CAR
       callsign: "PDRM Marine 02"
       agency: RMP
-      initial_position: { lat: 5.84, lon: 118.12 }  # Sandakan Harbor
+      initial_position: { lat: 5.84, lon: 118.105 }  # Sandakan Harbor
       behavior: "standby"
 
     - id: "CI-TEAM-101"
       type: CI_OFFICER
       callsign: "Customs Boarding Team A"
       agency: CI
-      initial_position: { lat: 5.84, lon: 118.12 }  # Sandakan Harbor
+      initial_position: { lat: 5.84, lon: 118.105 }  # Sandakan Harbor
       behavior: "standby"
       metadata:
         unit_size: 4
@@ -248,7 +248,7 @@ scenario:
       type: CI_IMMIGRATION_TEAM
       callsign: "Immigration Team Sandakan"
       agency: CI
-      initial_position: { lat: 5.84, lon: 118.12 }  # Sandakan Harbor
+      initial_position: { lat: 5.84, lon: 118.105 }  # Sandakan Harbor
       behavior: "standby"
       metadata:
         unit_size: 6
@@ -304,7 +304,7 @@ scenario:
       type: RMP_PATROL_CAR
       callsign: "PDRM Marine Semporna 01"
       agency: RMP
-      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
+      initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
       behavior: "standby"
       metadata:
         vessel_type: "Rigid Hull Fender Boat"
@@ -333,7 +333,7 @@ scenario:
       type: MIL_NAVAL_FIC
       callsign: "KD G2000 Bravo"
       agency: MIL
-      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
+      initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
       behavior: "standby"
       metadata:
         vessel_type: "G2000 Mk II Fast Interceptor Craft"
@@ -342,7 +342,7 @@ scenario:
       type: MIL_NAVAL_FIC
       callsign: "KD G2000 Charlie"
       agency: MIL
-      initial_position: { lat: 5.84, lon: 118.12 }  # MAWILLA 2 Sandakan Harbor
+      initial_position: { lat: 5.84, lon: 118.105 }  # MAWILLA 2 Sandakan Harbor
       behavior: "standby"
       metadata:
         vessel_type: "G2000 Mk II Fast Interceptor Craft"

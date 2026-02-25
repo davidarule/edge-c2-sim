@@ -75,6 +75,30 @@ async function main() {
   timeline = initTimeline('timeline', viewer, config);
   const overlays = initOverlayManager(viewer, config);
 
+  // SIDC editor: listen for changes from entity panel
+  document.addEventListener('sidc-update', (e) => {
+    const { entityType, sidc } = e.detail;
+    console.log(`SIDC update: ${entityType} -> ${sidc}`);
+    // Update all entities of this type on the map
+    entityManager.updateSidcForType(entityType, sidc);
+    // Send to backend for persistence
+    ws.updateSidc(entityType, sidc);
+    // Save to localStorage for browser persistence
+    try {
+      const saved = JSON.parse(localStorage.getItem('sidc_overrides') || '{}');
+      saved[entityType] = sidc;
+      localStorage.setItem('sidc_overrides', JSON.stringify(saved));
+    } catch (e) { /* ignore */ }
+    // Refresh the detail panel symbol preview
+    const previewImg = document.getElementById('sidc-preview-img');
+    if (previewImg) {
+      const currentEntity = entityManager.getEntity(e.detail.entityId);
+      if (currentEntity) {
+        previewImg.src = entityManager.getSymbolImage(currentEntity);
+      }
+    }
+  });
+
   // Click handling
   const clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 

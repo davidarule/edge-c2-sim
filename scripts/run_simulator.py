@@ -7,11 +7,14 @@ movement strategies, fire events, push updates through transport adapters.
 """
 
 import asyncio
+import json
 import logging
+import os
 import signal
 from datetime import datetime, timezone
 
 import click
+import yaml
 
 from simulator.core.clock import SimulationClock
 from simulator.core.entity_store import EntityStore
@@ -208,6 +211,40 @@ async def run(
             scenario_duration_s=duration_s,
         )
         adapters.append(ws_adapter)
+
+        # SIDC update handler: updates entity store + saves to config/sidc_overrides.json
+        async def handle_sidc_update(msg):
+            entity_type = msg.get("entity_type")
+            new_sidc = msg.get("sidc")
+            if not entity_type or not new_sidc or len(new_sidc) != 20:
+                logger.warning(f"Invalid SIDC update: type={entity_type}, sidc={new_sidc}")
+                return
+            # Update all entities of this type in the store
+            updated = 0
+            for entity in store.get_all_entities():
+                if entity.entity_type == entity_type:
+                    entity.sidc = new_sidc
+                    store.upsert_entity(entity)
+                    updated += 1
+            logger.info(f"SIDC update: {entity_type} -> {new_sidc} ({updated} entities)")
+            # Persist to overrides file
+            overrides_path = "config/sidc_overrides.json"
+            overrides = {}
+            if os.path.exists(overrides_path):
+                try:
+                    with open(overrides_path) as f:
+                        overrides = json.load(f)
+                except (json.JSONDecodeError, OSError):
+                    pass
+            overrides[entity_type] = new_sidc
+            try:
+                with open(overrides_path, "w") as f:
+                    json.dump(overrides, f, indent=2)
+                logger.info(f"SIDC overrides saved to {overrides_path}")
+            except OSError as e:
+                logger.error(f"Failed to save SIDC overrides: {e}")
+
+        ws_adapter.set_command_handler("update_sidc", handle_sidc_update)
         print(f"WebSocket server on ws://0.0.0.0:{port}")
 
     if "console" in transport_names:
