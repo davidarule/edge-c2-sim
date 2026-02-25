@@ -1,0 +1,660 @@
+# Combined Demo Scenario — ESSZONE Multi-Domain Operations
+#
+# This is the master demo scenario for the April 2026 presentation to
+# senior Malaysian defense/security officials. It chains two operational
+# scenarios to demonstrate the full range of Edge C2 capabilities in the
+# Eastern Sabah Security Zone.
+#
+# Structure:
+#   Part 1 (0:00 - 0:55): IUU Fishing Fleet Intercept
+#   Part 2 (1:00 - 2:15): Kidnapping-for-Ransom Response
+#
+# Recommended demo speed: Start at 5x, slow to 2x during action sequences,
+# 1x during boarding/resolution for dramatic effect.
+#
+# Total runtime at 1x: ~135 minutes
+# Total runtime at 5x: ~27 minutes (recommended for briefing)
+# Total runtime at 10x: ~14 minutes (quick overview)
+
+scenario:
+  name: "ESSZONE Multi-Domain Operations — Combined Demo"
+  description: |
+    Combined demonstration of Edge C2 capabilities in the Eastern Sabah
+    Security Zone (ESSZONE), showcasing multi-agency coordination under
+    ESSCOM across two operational scenarios:
+    
+    Part 1: An illegal fishing fleet from Vietnam is detected poaching in
+    Malaysian EEZ waters off Sandakan. ESSCOM coordinates MMEA, RMN, RMAF,
+    RMP Marine Police, and Customs & Immigration for intercept, boarding,
+    and crew processing.
+    
+    Part 2: Armed militants cross from the Sulu Archipelago and attack a
+    fishing village near Semporna, kidnapping hostages. ESSCOM activates
+    Operation Pasir enhanced protocols with full multi-agency pursuit across
+    the Sulu Sea.
+    
+    Demonstrates: maritime surveillance, AIS anomaly detection, multi-agency
+    joint operations, cross-border incursion response, Operation Pasir sea
+    curfew, aerial ISR, tactical team insertion, naval fast intercept, border
+    lockdown, and Trilateral cooperation notification.
+  duration_minutes: 135
+  center: { lat: 5.00, lon: 118.50 }
+  zoom: 8
+
+  # === PERSISTENT BACKGROUND TRAFFIC (whole demo) ===
+  background_entities:
+    # Fishing boats spread across ESSZONE waters
+    - type: CIVILIAN_FISHING
+      count: 20
+      area: "esszone_sector_2_sandakan"
+      speed_variation: 0.15
+      metadata:
+        ais_active: true
+        flag: "MYS"
+
+    - type: CIVILIAN_FISHING
+      count: 10
+      area: "esszone_sector_4_semporna"
+      speed_variation: 0.2
+      metadata:
+        ais_active: true
+        flag: "MYS"
+
+    # Cargo vessels transiting Sulu Sea
+    - type: CIVILIAN_CARGO
+      count: 6
+      route: "sulu_sea_transit_corridor"
+      speed_variation: 0.1
+
+    # Palm oil tankers from Sandakan
+    - type: CIVILIAN_TANKER
+      count: 4
+      route: "sandakan_export_route"
+
+    # Dive tourism boats (Semporna)
+    - type: CIVILIAN_PASSENGER
+      count: 4
+      area: "semporna_islands"
+      metadata:
+        vessel_type: "Dive boat"
+
+    # Light aircraft (civilian)
+    - type: CIVILIAN_LIGHT
+      count: 3
+      route: "kk_sandakan_corridor"
+
+  # ================================================================
+  # PART 1: ILLEGAL FISHING FLEET INTERCEPT (0:00 - 0:55)
+  # ================================================================
+  scenario_entities:
+    # --- ILLEGAL FISHING FLEET (5 trawlers + mothership) ---
+    - id: "IFF-001"
+      type: SUSPECT_VESSEL
+      callsign: "Unknown Trawler 1"
+      initial_position: { lat: 5.80, lon: 118.90 }
+      waypoints:
+        - { lat: 5.75, lon: 118.85, speed: 4, time: "00:00" }
+        - { lat: 5.70, lon: 118.80, speed: 3, time: "00:10" }
+        - { lat: 5.65, lon: 118.75, speed: 3, time: "00:20" }
+        - { lat: 5.55, lon: 118.90, speed: 8, time: "00:30" }
+        - { lat: 5.50, lon: 119.00, speed: 10, time: "00:35" }
+        - { lat: 5.50, lon: 119.00, speed: 0, time: "00:38" }
+      metadata:
+        ais_active: false
+        flag: "VNM"
+        estimated_crew: 15
+
+    - id: "IFF-002"
+      type: SUSPECT_VESSEL
+      callsign: "Unknown Trawler 2"
+      initial_position: { lat: 5.82, lon: 118.88 }
+      waypoints:
+        - { lat: 5.77, lon: 118.83, speed: 4, time: "00:00" }
+        - { lat: 5.72, lon: 118.78, speed: 3, time: "00:10" }
+        - { lat: 5.67, lon: 118.73, speed: 3, time: "00:20" }
+        - { lat: 5.60, lon: 118.65, speed: 9, time: "00:30" }
+        - { lat: 5.55, lon: 118.60, speed: 0, time: "00:40" }
+      metadata:
+        ais_active: false
+        flag: "VNM"
+
+    - id: "IFF-003"
+      type: SUSPECT_VESSEL
+      callsign: "Unknown Trawler 3"
+      initial_position: { lat: 5.78, lon: 118.92 }
+      waypoints:
+        - { lat: 5.73, lon: 118.87, speed: 4, time: "00:00" }
+        - { lat: 5.68, lon: 118.82, speed: 3, time: "00:10" }
+        - { lat: 5.63, lon: 118.77, speed: 3, time: "00:20" }
+        - { lat: 5.58, lon: 118.85, speed: 8, time: "00:30" }
+        - { lat: 5.55, lon: 118.88, speed: 0, time: "00:42" }
+      metadata:
+        ais_active: false
+        flag: "VNM"
+
+    - id: "IFF-004"
+      type: SUSPECT_VESSEL
+      callsign: "Unknown Trawler 4"
+      initial_position: { lat: 5.84, lon: 118.86 }
+      waypoints:
+        - { lat: 5.79, lon: 118.81, speed: 3, time: "00:00" }
+        - { lat: 5.74, lon: 118.76, speed: 3, time: "00:10" }
+        - { lat: 5.69, lon: 118.71, speed: 3, time: "00:20" }
+        - { lat: 5.80, lon: 118.95, speed: 11, time: "00:30" }
+        - { lat: 5.85, lon: 119.05, speed: 12, time: "00:35" }
+        - { lat: 5.87, lon: 119.10, speed: 0, time: "00:40" }
+      metadata:
+        ais_active: false
+        flag: "VNM"
+
+    - id: "IFF-005"
+      type: SUSPECT_VESSEL
+      callsign: "Unknown Mothership"
+      initial_position: { lat: 5.90, lon: 119.00 }
+      waypoints:
+        - { lat: 5.85, lon: 118.95, speed: 6, time: "00:00" }
+        - { lat: 5.80, lon: 118.90, speed: 5, time: "00:10" }
+        - { lat: 5.82, lon: 118.92, speed: 2, time: "00:20" }
+        - { lat: 5.90, lon: 119.10, speed: 10, time: "00:30" }
+        - { lat: 5.95, lon: 119.20, speed: 0, time: "00:45" }
+      metadata:
+        ais_active: false
+        flag: "VNM"
+        vessel_type: "Reefer/mothership"
+        estimated_crew: 25
+
+    # --- PART 1 RESPONSE FORCES ---
+    - id: "MMEA-PV-101"
+      type: MMEA_PATROL
+      callsign: "KM Semporna"
+      agency: MMEA
+      initial_position: { lat: 5.84, lon: 118.07 }
+      behavior: "patrol"
+      patrol_area: "esszone_sector_2_sandakan"
+
+    - id: "MMEA-FI-101"
+      type: MMEA_FAST_INTERCEPT
+      callsign: "KM Penggalang 7"
+      agency: MMEA
+      initial_position: { lat: 4.48, lon: 118.61 }
+      behavior: "standby"
+
+    - id: "MMEA-PV-102"
+      type: MMEA_PATROL
+      callsign: "KM Sangitan"
+      agency: MMEA
+      initial_position: { lat: 5.50, lon: 118.30 }
+      behavior: "patrol"
+      patrol_area: "esszone_sector_2_sandakan"
+
+    - id: "RMN-FIC-101"
+      type: MIL_NAVAL
+      callsign: "KD G2000 Alpha"
+      agency: MIL
+      initial_position: { lat: 5.84, lon: 118.10 }
+      behavior: "standby"
+      metadata:
+        vessel_type: "G2000 Mk II Fast Interceptor Craft"
+
+    - id: "RMN-PV-101"
+      type: MIL_NAVAL
+      callsign: "KD Keris"
+      agency: MIL
+      initial_position: { lat: 5.20, lon: 118.50 }
+      behavior: "patrol"
+      patrol_area: "esszone_sector_3_lahad_datu"
+
+    - id: "RMAF-MPA-101"
+      type: RMAF_TRANSPORT
+      callsign: "TUDM MPA Beechcraft"
+      agency: RMAF
+      initial_position: { lat: 5.30, lon: 115.25 }
+      behavior: "standby"
+
+    - id: "RMAF-HELI-101"
+      type: RMAF_HELICOPTER
+      callsign: "TUDM EC725 Sandakan"
+      agency: RMAF
+      initial_position: { lat: 5.04, lon: 118.33 }
+      behavior: "standby"
+
+    - id: "RMP-MP-101"
+      type: RMP_PATROL_CAR
+      callsign: "PDRM Marine 01"
+      agency: RMP
+      initial_position: { lat: 4.48, lon: 118.61 }
+      behavior: "standby"
+      metadata:
+        vessel_type: "Rigid Hull Fender Boat"
+        equipment: ["FLIR", "NVG", "boarding_kit"]
+
+    - id: "RMP-MP-102"
+      type: RMP_PATROL_CAR
+      callsign: "PDRM Marine 02"
+      agency: RMP
+      initial_position: { lat: 5.84, lon: 118.07 }
+      behavior: "standby"
+
+    - id: "CI-TEAM-101"
+      type: CI_OFFICER
+      callsign: "Customs Boarding Team A"
+      agency: CI
+      initial_position: { lat: 5.84, lon: 118.07 }
+      behavior: "standby"
+      metadata:
+        unit_size: 4
+
+    - id: "CI-IMMI-101"
+      type: CI_IMMIGRATION_TEAM
+      callsign: "Immigration Team Sandakan"
+      agency: CI
+      initial_position: { lat: 5.84, lon: 118.07 }
+      behavior: "standby"
+      metadata:
+        unit_size: 6
+
+    # ================================================================
+    # PART 2: KFR RESPONSE ENTITIES (appear at 1:00)
+    # Note: Some assets from Part 1 are repositioned between scenarios.
+    # New assets specific to the KFR response are added here.
+    # ================================================================
+    - id: "HOSTILE-001"
+      type: SUSPECT_VESSEL
+      callsign: "Suspect Speedboat 1"
+      # Doesn't appear until 1:00 — starts outside scene
+      initial_position: { lat: 4.90, lon: 119.20 }
+      waypoints:
+        # Idle for the first 60 minutes (Part 1)
+        - { lat: 4.90, lon: 119.20, speed: 0, time: "00:00" }
+        # Part 2 begins — crossing from Sulu Archipelago
+        - { lat: 4.90, lon: 119.20, speed: 0, time: "01:00" }
+        - { lat: 4.85, lon: 119.10, speed: 30, time: "01:05" }
+        - { lat: 4.65, lon: 118.80, speed: 25, time: "01:15" }
+        - { lat: 4.47, lon: 118.66, speed: 0, time: "01:23" }
+        # Dwell on island
+        - { lat: 4.47, lon: 118.66, speed: 0, time: "01:40" }
+        # Depart with hostages
+        - { lat: 4.55, lon: 118.75, speed: 28, time: "01:45" }
+        - { lat: 4.65, lon: 118.90, speed: 30, time: "01:53" }
+        - { lat: 4.80, lon: 119.10, speed: 0, time: "02:05" }
+      metadata:
+        ais_active: false
+        vessel_type: "High-speed fibreglass boat"
+        armed: true
+
+    - id: "HOSTILE-002"
+      type: SUSPECT_VESSEL
+      callsign: "Suspect Speedboat 2"
+      initial_position: { lat: 4.92, lon: 119.18 }
+      waypoints:
+        - { lat: 4.92, lon: 119.18, speed: 0, time: "00:00" }
+        - { lat: 4.92, lon: 119.18, speed: 0, time: "01:00" }
+        - { lat: 4.87, lon: 119.08, speed: 30, time: "01:05" }
+        - { lat: 4.67, lon: 118.78, speed: 25, time: "01:15" }
+        - { lat: 4.48, lon: 118.65, speed: 0, time: "01:23" }
+        - { lat: 4.48, lon: 118.65, speed: 0, time: "01:42" }
+        - { lat: 4.56, lon: 118.73, speed: 25, time: "01:47" }
+        - { lat: 4.70, lon: 118.95, speed: 0, time: "02:00" }
+      metadata:
+        ais_active: false
+        armed: true
+
+    # Part 2 additional forces
+    - id: "RMP-MP-201"
+      type: RMP_PATROL_CAR
+      callsign: "PDRM Marine Semporna 01"
+      agency: RMP
+      initial_position: { lat: 4.48, lon: 118.61 }
+      behavior: "standby"
+      metadata:
+        vessel_type: "Rigid Hull Fender Boat"
+        equipment: ["FLIR", "NVG", "M4_rifle"]
+
+    - id: "RMP-GOF-201"
+      type: RMP_TACTICAL_TEAM
+      callsign: "GOF Tactical Team Alpha"
+      agency: RMP
+      initial_position: { lat: 5.84, lon: 118.07 }
+      behavior: "standby"
+      metadata:
+        unit_size: 16
+        equipment: ["rifle", "radio", "body_armor", "NVG"]
+
+    - id: "RMP-GOF-202"
+      type: RMP_TACTICAL_TEAM
+      callsign: "GOF Team Bravo"
+      agency: RMP
+      initial_position: { lat: 4.48, lon: 118.61 }
+      behavior: "standby"
+      metadata:
+        unit_size: 12
+
+    - id: "RMN-FIC-201"
+      type: MIL_NAVAL
+      callsign: "KD G2000 Bravo"
+      agency: MIL
+      initial_position: { lat: 4.48, lon: 118.61 }
+      behavior: "standby"
+      metadata:
+        vessel_type: "G2000 Mk II Fast Interceptor Craft"
+
+    - id: "RMN-FIC-202"
+      type: MIL_NAVAL
+      callsign: "KD G2000 Charlie"
+      agency: MIL
+      initial_position: { lat: 5.84, lon: 118.10 }
+      behavior: "standby"
+      metadata:
+        vessel_type: "G2000 Mk II Fast Interceptor Craft"
+
+    - id: "RMAF-HELI-201"
+      type: RMAF_HELICOPTER
+      callsign: "TUDM EC725 Hunter"
+      agency: RMAF
+      initial_position: { lat: 5.04, lon: 118.33 }
+      behavior: "standby"
+      metadata:
+        aircraft_type: "EC725"
+        armament: "FN MAG 7.62mm"
+
+    - id: "RMAF-HELI-202"
+      type: RMAF_HELICOPTER
+      callsign: "TUDM Blackhawk 1"
+      agency: RMAF
+      initial_position: { lat: 5.04, lon: 118.33 }
+      behavior: "standby"
+
+    - id: "MIL-INF-201"
+      type: MIL_INFANTRY_SQUAD
+      callsign: "Malay Regiment Squad 1"
+      agency: MIL
+      initial_position: { lat: 4.25, lon: 117.89 }
+      behavior: "standby"
+      metadata:
+        unit_size: 10
+
+    - id: "CI-BORDER-201"
+      type: CI_OFFICER
+      callsign: "Immigration Rapid Response"
+      agency: CI
+      initial_position: { lat: 4.24, lon: 117.89 }
+      behavior: "standby"
+      metadata:
+        unit_size: 8
+
+  # ================================================================
+  # EVENTS — COMBINED TIMELINE
+  # ================================================================
+  events:
+    # === PART 1: IUU FISHING INTERCEPT (0:00 - 0:55) ===
+    - time: "00:00"
+      type: "DETECTION"
+      description: "SPEXER 2000 coastal radar detects cluster of 5 unidentified contacts in Malaysian EEZ"
+      position: { lat: 5.80, lon: 118.88 }
+      alert_agencies: [MMEA, MIL]
+      severity: "WARNING"
+
+    - time: "00:02"
+      type: "ALERT"
+      description: "ESSCOM Fusion Centre correlates contacts with INTEL report of Vietnamese IUU fishing fleet"
+      alert_agencies: [MMEA, MIL, RMP, CI]
+      severity: "WARNING"
+
+    - time: "00:04"
+      type: "ORDER"
+      description: "ESSCOM directs MMEA KM Sangitan to investigate contacts"
+      target: "MMEA-PV-102"
+      action: "intercept"
+      intercept_target: "IFF-001"
+
+    - time: "00:06"
+      type: "ORDER"
+      description: "RMAF dispatches maritime patrol aircraft from Labuan"
+      target: "RMAF-MPA-101"
+      action: "search_area"
+      area: "esszone_sector_2_sandakan"
+
+    - time: "00:08"
+      type: "ORDER"
+      description: "RMN scrambles G2000 Fast Interceptor Craft from MAWILLA 2"
+      target: "RMN-FIC-101"
+      action: "intercept"
+      intercept_target: "IFF-004"
+
+    - time: "00:10"
+      type: "ORDER"
+      description: "MMEA KM Semporna diverted from patrol"
+      target: "MMEA-PV-101"
+      action: "intercept"
+      intercept_target: "IFF-005"
+
+    - time: "00:14"
+      type: "DETECTION"
+      description: "RMAF MPA confirms 5 trawlers + mothership. No AIS. Vietnamese markings."
+      source: "RMAF-MPA-101"
+      severity: "WARNING"
+
+    - time: "00:16"
+      type: "ORDER"
+      description: "MMEA fast intercept boat launched from Semporna"
+      target: "MMEA-FI-101"
+      action: "intercept"
+      intercept_target: "IFF-003"
+
+    - time: "00:18"
+      type: "ORDER"
+      description: "RMP Marine Police boats deployed for boarding operations"
+      targets: ["RMP-MP-101", "RMP-MP-102"]
+      action: "deploy"
+
+    - time: "00:20"
+      type: "ORDER"
+      description: "Helicopter dispatched from Lahad Datu FOB"
+      target: "RMAF-HELI-101"
+      action: "deploy"
+
+    - time: "00:25"
+      type: "ALERT"
+      description: "Fishing fleet scatters! Multiple vessels fleeing toward Philippine waters"
+      severity: "CRITICAL"
+      alert_agencies: [MMEA, MIL, RMP]
+
+    - time: "00:28"
+      type: "ORDER"
+      description: "KD Keris diverted to block eastern escape route"
+      target: "RMN-PV-101"
+      action: "intercept"
+      intercept_target: "IFF-004"
+
+    - time: "00:30"
+      type: "INTERCEPT"
+      description: "MMEA KM Sangitan intercepts Trawler 1"
+      source: "MMEA-PV-102"
+      target: "IFF-001"
+
+    - time: "00:32"
+      type: "INTERCEPT"
+      description: "MMEA fast intercept stops Trawler 3"
+      source: "MMEA-FI-101"
+      target: "IFF-003"
+
+    - time: "00:35"
+      type: "BOARDING"
+      description: "RMP Marine Police boards Trawler 1 — crew detained"
+      source: "RMP-MP-102"
+      target: "IFF-001"
+
+    - time: "00:38"
+      type: "INTERCEPT"
+      description: "RMN G2000 intercepts fleeing Trawler 4 before international waters"
+      source: "RMN-FIC-101"
+      target: "IFF-004"
+
+    - time: "00:40"
+      type: "INTERCEPT"
+      description: "MMEA KM Semporna stops Mothership — large illegal catch seized"
+      source: "MMEA-PV-101"
+      target: "IFF-005"
+
+    - time: "00:44"
+      type: "ORDER"
+      description: "All seized vessels ordered escorted to Sandakan port"
+      action: "escort_to_port"
+
+    - time: "00:46"
+      type: "ORDER"
+      description: "Customs & Immigration activated at Sandakan for crew processing"
+      targets: ["CI-TEAM-101", "CI-IMMI-101"]
+      action: "activate"
+
+    - time: "00:50"
+      type: "RESOLUTION"
+      description: "PART 1 COMPLETE: 5 trawlers + mothership secured. 85 crew detained. 40 tonnes illegal catch seized."
+      severity: "INFO"
+
+    # === TRANSITION (0:55 - 1:05): Camera pulls back to show full ESSZONE ===
+
+    - time: "00:55"
+      type: "ALERT"
+      description: "— SCENARIO TRANSITION — ESSZONE routine operations continue..."
+      severity: "INFO"
+
+    # === PART 2: KIDNAPPING-FOR-RANSOM RESPONSE (1:05 - 2:15) ===
+
+    - time: "01:05"
+      type: "DETECTION"
+      description: "Coastal radar detects two fast-moving contacts approaching from Sulu Sea at 30 knots"
+      position: { lat: 4.75, lon: 118.95 }
+      severity: "WARNING"
+      alert_agencies: [MIL, MMEA]
+
+    - time: "01:08"
+      type: "ALERT"
+      description: "ESSCOM flags contacts as potential hostile incursion — cross-border attack pattern"
+      alert_agencies: [RMP, MIL, MMEA, RMAF, CI]
+      severity: "CRITICAL"
+
+    - time: "01:10"
+      type: "ORDER"
+      description: "ESSCOM activates Operation Pasir enhanced protocols — sea curfew expanded"
+      alert_agencies: [RMP, MIL, MMEA]
+
+    - time: "01:12"
+      type: "ORDER"
+      description: "RMP Marine Police Semporna ordered to intercept"
+      target: "RMP-MP-201"
+      action: "intercept"
+      intercept_target: "HOSTILE-001"
+
+    - time: "01:15"
+      type: "ORDER"
+      description: "RMN scrambles G2000 FIC from Semporna"
+      target: "RMN-FIC-201"
+      action: "intercept"
+      intercept_target: "HOSTILE-001"
+
+    - time: "01:23"
+      type: "INCIDENT"
+      description: "ARMED GROUP LANDS ON PULAU BUM BUM — village attacked, hostages taken"
+      position: { lat: 4.47, lon: 118.66 }
+      severity: "CRITICAL"
+      alert_agencies: [RMP, MIL, MMEA, RMAF, CI]
+
+    - time: "01:25"
+      type: "ALERT"
+      description: "Fisherman reports 12-15 armed men, automatic weapons, foreign tourists among hostages"
+      severity: "CRITICAL"
+
+    - time: "01:27"
+      type: "ORDER"
+      description: "ESSCOM declares CRITICAL INCIDENT — GOF Team Bravo scrambled"
+      target: "RMP-GOF-202"
+      action: "deploy"
+      destination: { lat: 4.47, lon: 118.66 }
+
+    - time: "01:29"
+      type: "ORDER"
+      description: "RMAF EC725 dispatched from Lahad Datu for armed surveillance"
+      target: "RMAF-HELI-201"
+      action: "deploy"
+
+    - time: "01:30"
+      type: "ORDER"
+      description: "RMAF Blackhawk dispatched to airlift GOF Alpha from Sandakan"
+      target: "RMAF-HELI-202"
+      action: "deploy"
+
+    - time: "01:31"
+      type: "ORDER"
+      description: "MMEA enforces sea curfew — all unauthorized vessels prohibited"
+      targets: ["MMEA-PV-101", "MMEA-FI-101"]
+      action: "patrol"
+
+    - time: "01:33"
+      type: "ORDER"
+      description: "RMN G2000 Charlie launched from Sandakan to block northern route"
+      target: "RMN-FIC-202"
+      action: "deploy"
+
+    - time: "01:35"
+      type: "ORDER"
+      description: "Immigration activates border lockdown — all sea crossings suspended"
+      target: "CI-BORDER-201"
+      action: "lockdown"
+
+    - time: "01:40"
+      type: "DETECTION"
+      description: "EC725 on station — reports militants loading hostages onto speedboats"
+      source: "RMAF-HELI-201"
+      severity: "CRITICAL"
+
+    - time: "01:43"
+      type: "ALERT"
+      description: "HOSTILE SPEEDBOATS DEPARTING — heading northeast toward Philippine waters!"
+      severity: "CRITICAL"
+      alert_agencies: [RMP, MIL, MMEA, RMAF]
+
+    - time: "01:45"
+      type: "ORDER"
+      description: "ESSCOM orders all assets to pursue — EC725 tracking from air"
+      action: "pursue"
+
+    - time: "01:50"
+      type: "ORDER"
+      description: "Army Malay Regiment deploys from Tawau to secure village"
+      target: "MIL-INF-201"
+      action: "deploy"
+      destination: { lat: 4.47, lon: 118.66 }
+
+    - time: "01:55"
+      type: "INTERCEPT"
+      description: "RMN G2000 Bravo intercepts Speedboat 2 — militants surrender. 4 hostages recovered."
+      source: "RMN-FIC-201"
+      target: "HOSTILE-002"
+
+    - time: "02:00"
+      type: "DETECTION"
+      description: "RMAF MPA locates Speedboat 1 near international boundary"
+      source: "RMAF-MPA-101"
+      detected: "HOSTILE-001"
+
+    - time: "02:05"
+      type: "INTERCEPT"
+      description: "RMN G2000 Charlie intercepts Speedboat 1. All hostages released safely."
+      source: "RMN-FIC-202"
+      target: "HOSTILE-001"
+
+    - time: "02:08"
+      type: "ARRIVAL"
+      description: "GOF Team Alpha arrives — secures detained militants"
+      source: "RMP-GOF-201"
+
+    - time: "02:10"
+      type: "ALERT"
+      description: "ESSCOM notifies Trilateral partners — Philippines and Indonesia MCC alerted"
+      alert_agencies: [MIL, MMEA]
+
+    - time: "02:15"
+      type: "RESOLUTION"
+      description: "OPERATION COMPLETE: All hostages recovered. 14 militants detained. Operation Pasir enhanced patrols continue 72 hours."
+      severity: "INFO"

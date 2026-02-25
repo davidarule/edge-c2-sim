@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+.next/
+dist/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.pem
+credentials.json
+
+# SUMO
+*.xml.bak
+
+# Cesium
+cesium-ion-token.txt
+
+# Build outputs
+*.log
+coverage/
+.nyc_output/
+
+# Docker
+docker-compose.override.yml

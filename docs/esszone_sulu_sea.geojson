@@ -1,0 +1,480 @@
+{
+  "type": "FeatureCollection",
+  "name": "esszone_sulu_sea_operational_data",
+  "description": "Eastern Sabah Security Zone operational geodata — bases, patrol zones, transit corridors, and key locations for Sulu Sea / Celebes Sea simulation",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "esszone_boundary",
+        "name": "ESSZONE Boundary",
+        "description": "Eastern Sabah Security Zone — Kudat to Tawau, 10 districts. Established 25 March 2013."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [116.70, 7.05],
+          [119.30, 7.05],
+          [119.30, 4.00],
+          [118.00, 4.00],
+          [117.50, 4.20],
+          [116.70, 5.80],
+          [116.70, 7.05]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "esszone_sector_1_kudat",
+        "name": "ESSZONE Sector 1 — Kudat / Pulau Banggi",
+        "agency": "MIL",
+        "description": "Northern sector covering Kudat, Kota Marudu, Pitas. Pulau Banggi forward operating area."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [116.70, 6.60],
+          [117.60, 6.60],
+          [117.60, 7.05],
+          [116.70, 7.05],
+          [116.70, 6.60]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "esszone_sector_2_sandakan",
+        "name": "ESSZONE Sector 2 — Sandakan",
+        "agency": "MIL",
+        "description": "Central sector covering Sandakan, Beluran, Kinabatangan. MAWILLA 2 HQ."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [117.60, 5.40],
+          [118.60, 5.40],
+          [118.60, 6.60],
+          [117.60, 6.60],
+          [117.60, 5.40]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "esszone_sector_3_lahad_datu",
+        "name": "ESSZONE Sector 3 — Lahad Datu / Kunak",
+        "agency": "MIL",
+        "description": "Southern-central sector. Site of 2013 Lahad Datu standoff. Helicopter FOB."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [117.80, 4.80],
+          [118.60, 4.80],
+          [118.60, 5.40],
+          [117.80, 5.40],
+          [117.80, 4.80]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "esszone_sector_4_semporna",
+        "name": "ESSZONE Sector 4 — Semporna",
+        "agency": "MIL",
+        "description": "High-threat sector. Dense island cluster 18km from Philippines. Primary kidnapping-for-ransom area."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [118.40, 4.20],
+          [119.00, 4.20],
+          [119.00, 4.80],
+          [118.40, 4.80],
+          [118.40, 4.20]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "esszone_sector_5_tawau",
+        "name": "ESSZONE Sector 5 — Tawau / Sebatik",
+        "agency": "MIL",
+        "description": "Southernmost sector. Tawau Maritime Command Centre. Pulau Sebatik split with Indonesia."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [117.70, 4.00],
+          [118.40, 4.00],
+          [118.40, 4.40],
+          [117.70, 4.40],
+          [117.70, 4.00]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "sulu_sea_transit_corridor",
+        "name": "Sulu Sea Transit Corridor",
+        "description": "Designated safe shipping corridor through the Sulu Sea. Vessels must notify Maritime Command Centre 24 hours in advance."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [117.90, 5.90],
+          [118.40, 5.80],
+          [119.00, 5.50],
+          [119.50, 5.20],
+          [120.00, 5.00],
+          [120.50, 5.30],
+          [121.00, 5.80]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "sibutu_passage",
+        "name": "Sibutu Passage",
+        "description": "Critical sea lane between Borneo and Sulu Archipelago. Major smuggling and piracy corridor."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [118.20, 4.60],
+          [118.60, 4.70],
+          [119.00, 4.80],
+          [119.40, 4.90],
+          [119.80, 5.00]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "semporna_islands",
+        "name": "Semporna Island Cluster",
+        "description": "Dense cluster of islands including Sipadan, Mabul, Kapalai, Ligitan. Tourism and fishing area. Historically targeted by Abu Sayyaf."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [118.50, 4.30],
+          [118.90, 4.30],
+          [118.90, 4.65],
+          [118.50, 4.65],
+          [118.50, 4.30]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "sulu_illegal_fishing_grounds",
+        "name": "Common Illegal Fishing Areas — Sulu Sea",
+        "description": "Areas frequently encroached by foreign fishing vessels (Philippines, Vietnam, China)"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [[[118.00, 5.50], [119.00, 5.50], [119.00, 6.50], [118.00, 6.50], [118.00, 5.50]]],
+          [[[118.30, 4.50], [119.20, 4.50], [119.20, 5.30], [118.30, 5.30], [118.30, 4.50]]],
+          [[[117.80, 4.10], [118.30, 4.10], [118.30, 4.60], [117.80, 4.60], [117.80, 4.10]]]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "rmn_sandakan_mawilla2",
+        "name": "MAWILLA 2 — RMN Sandakan (Sea Area 2 HQ)",
+        "agency": "MIL",
+        "type": "naval_base",
+        "description": "Royal Malaysian Navy Eastern Fleet patrol coordination. G2000 Mk II Fast Interceptor Craft stationed here."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.07, 5.84] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "rmn_semporna",
+        "name": "RMN Semporna Naval Detachment",
+        "agency": "MIL",
+        "type": "naval_station",
+        "description": "Naval patrol station at Semporna. Fast patrol boats and intercept craft."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.61, 4.48] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "rmn_tawau",
+        "name": "RMN Tawau Naval Base",
+        "agency": "MIL",
+        "type": "naval_base",
+        "description": "Naval base at Tawau. Part of Trilateral Maritime Command Centre."
+      },
+      "geometry": { "type": "Point", "coordinates": [117.89, 4.24] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "rmn_lahad_datu",
+        "name": "RMN Lahad Datu Naval Station",
+        "agency": "MIL",
+        "type": "naval_station",
+        "description": "Naval station established after 2013 Lahad Datu standoff."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.33, 5.03] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "rmn_sepanggar",
+        "name": "KD Sri Sepanggar — RMN Eastern Fleet HQ",
+        "agency": "MIL",
+        "type": "naval_base",
+        "description": "RMN Eastern Fleet Headquarters. Major warships, corvettes. Kota Kinabalu area."
+      },
+      "geometry": { "type": "Point", "coordinates": [116.05, 6.05] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "rmaf_labuan",
+        "name": "RMAF Labuan Air Base",
+        "agency": "RMAF",
+        "type": "air_base",
+        "description": "RMAF base on Labuan island. Maritime patrol aircraft, transport aircraft. Closest RMAF base to ESSZONE."
+      },
+      "geometry": { "type": "Point", "coordinates": [115.25, 5.30] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "lahad_datu_heli_fob",
+        "name": "Lahad Datu Helicopter FOB",
+        "agency": "MIL",
+        "type": "forward_operating_base",
+        "description": "Helicopter forward operating base. Capacity for 6 helicopters. EC725, Blackhawk staging."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.33, 5.04] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "esscom_hq_lahad_datu",
+        "name": "ESSCOM Headquarters — Lahad Datu",
+        "agency": "RMP",
+        "type": "headquarters",
+        "description": "Eastern Sabah Security Command joint headquarters. Coordinates all ESSZONE agencies."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.33, 5.03] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "esscom_fusion_centre",
+        "name": "ESSCOM Fusion Centre (EFC)",
+        "agency": "RMP",
+        "type": "intelligence_centre",
+        "description": "Joint intelligence and surveillance centre. AI-enhanced border surveillance."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.34, 5.03] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "tawau_maritime_command",
+        "name": "Tawau Maritime Command Centre",
+        "agency": "MIL",
+        "type": "command_centre",
+        "description": "Part of Trilateral Cooperative Agreement. Coordinates with Philippines (Bongao) and Indonesia (Tarakan)."
+      },
+      "geometry": { "type": "Point", "coordinates": [117.89, 4.24] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "mmea_sandakan",
+        "name": "MMEA Sandakan Maritime Station",
+        "agency": "MMEA",
+        "type": "maritime_station",
+        "description": "MMEA station for central ESSZONE waters."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.06, 5.84] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "mmea_semporna",
+        "name": "MMEA Semporna Maritime Station",
+        "agency": "MMEA",
+        "type": "maritime_station",
+        "description": "MMEA station covering Semporna waters and Sibutu Passage approaches."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.61, 4.48] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "mmea_tawau",
+        "name": "MMEA Tawau Maritime Station",
+        "agency": "MMEA",
+        "type": "maritime_station",
+        "description": "MMEA station at Tawau. Fuel smuggling interdiction."
+      },
+      "geometry": { "type": "Point", "coordinates": [117.90, 4.24] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "mmea_kudat",
+        "name": "MMEA Kudat Maritime Station",
+        "agency": "MMEA",
+        "type": "maritime_station",
+        "description": "MMEA station covering northern ESSZONE and Pulau Banggi."
+      },
+      "geometry": { "type": "Point", "coordinates": [116.84, 6.88] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "rmp_gof_sandakan",
+        "name": "RMP General Operations Force (GOF) — Sandakan",
+        "agency": "RMP",
+        "type": "gof_base",
+        "description": "GOF brigade for ESSZONE. Paramilitary police force for jungle and border operations."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.07, 5.84] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "rmp_marine_semporna",
+        "name": "RMP Marine Police — Semporna",
+        "agency": "RMP",
+        "type": "marine_police",
+        "description": "Marine police unit. Rigid hull fender boats with FLIR night vision."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.61, 4.48] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "army_kota_kinabalu",
+        "name": "1st Infantry Division HQ — Kota Kinabalu",
+        "agency": "MIL",
+        "type": "army_base",
+        "description": "Malaysian Army 1st Infantry Division. Primary ground force for Sabah."
+      },
+      "geometry": { "type": "Point", "coordinates": [116.07, 5.98] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "army_tawau",
+        "name": "Malaysian Army — Tawau Camp",
+        "agency": "MIL",
+        "type": "army_base",
+        "description": "Army garrison at Tawau. Infantry, Malay regiment."
+      },
+      "geometry": { "type": "Point", "coordinates": [117.89, 4.25] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "ci_tawau",
+        "name": "Immigration & Customs — Tawau Port",
+        "agency": "CI",
+        "type": "border_control",
+        "description": "Major customs and immigration checkpoint. Cross-border trade with Nunukan, Indonesia."
+      },
+      "geometry": { "type": "Point", "coordinates": [117.89, 4.24] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "base_id": "ci_sandakan",
+        "name": "Immigration & Customs — Sandakan Port",
+        "agency": "CI",
+        "type": "border_control",
+        "description": "Customs and immigration at Sandakan port."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.07, 5.84] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point_id": "sipadan_island",
+        "name": "Pulau Sipadan",
+        "type": "landmark",
+        "description": "World-famous dive site. Scene of 2000 Abu Sayyaf kidnapping. Now heavily guarded."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.63, 4.11] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point_id": "mabul_island",
+        "name": "Pulau Mabul",
+        "type": "landmark",
+        "description": "Tourism island near Sipadan. Forward Operating Base under construction."
+      },
+      "geometry": { "type": "Point", "coordinates": [118.63, 4.24] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point_id": "pulau_banggi",
+        "name": "Pulau Banggi",
+        "type": "landmark",
+        "description": "Malaysia's largest island. Northern ESSZONE. Coastal radar installation. Tactical floating barge planned."
+      },
+      "geometry": { "type": "Point", "coordinates": [117.13, 7.28] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point_id": "pulau_sebatik",
+        "name": "Pulau Sebatik",
+        "type": "landmark",
+        "description": "Island split between Malaysia and Indonesia. Smuggling corridor. Fibre optic system planned."
+      },
+      "geometry": { "type": "Point", "coordinates": [117.90, 4.17] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "radar_id": "css_network",
+        "name": "Coastal Surveillance System Radar Network",
+        "description": "13 radar stations from Pulau Banggi to Tawau. Includes Airbus SPEXER 2000 (250km range)."
+      },
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [117.13, 7.28],
+          [116.84, 6.88],
+          [117.50, 6.40],
+          [117.90, 6.10],
+          [118.07, 5.84],
+          [118.20, 5.50],
+          [118.33, 5.03],
+          [118.50, 4.70],
+          [118.61, 4.48],
+          [118.70, 4.30],
+          [118.20, 4.25],
+          [117.89, 4.24],
+          [117.80, 4.15]
+        ]
+      }
+    }
+  ]
+}

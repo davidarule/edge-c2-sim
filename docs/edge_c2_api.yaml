@@ -1,0 +1,568 @@
+openapi: "3.0.3"
+info:
+  title: Edge C2 API (Stub)
+  description: |
+    STUB SPECIFICATION — This is a placeholder API definition for Edge C2.
+    It will be replaced with the actual Edge C2 API specification when available.
+    
+    The simulator's REST adapter reads this file to generate API payloads.
+    When the real spec arrives, swap this file and the adapter regenerates
+    payloads automatically — zero code changes needed in the simulator core.
+    
+    IMPORTANT: This stub assumes RESTful JSON endpoints. If Edge C2 uses
+    a different protocol (gRPC, WebSocket, MQTT, etc.), the transport
+    adapter module will need to be swapped, but the simulator core remains
+    unchanged.
+  version: "0.1.0-stub"
+  contact:
+    name: Edge C2 Integration Team
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development stub
+  - url: https://edge-c2.example.com/api/v1
+    description: Production Edge C2 (replace with real URL)
+
+security:
+  - apiKeyHeader: []
+
+paths:
+  /entities:
+    get:
+      summary: List all tracked entities
+      operationId: listEntities
+      tags: [entities]
+      parameters:
+        - name: agency
+          in: query
+          schema:
+            type: string
+            enum: [RMP, MMEA, CI, RMAF, MIL, CIVILIAN]
+          description: Filter by agency
+        - name: domain
+          in: query
+          schema:
+            type: string
+            enum: [MARITIME, AIR, GROUND_VEHICLE, PERSONNEL]
+          description: Filter by domain
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, IDLE, RESPONDING, INTERCEPTING, RTB]
+      responses:
+        "200":
+          description: List of entities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entities:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Entity"
+                  total:
+                    type: integer
+
+    post:
+      summary: Create or register a new entity
+      operationId: createEntity
+      tags: [entities]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntityCreate"
+      responses:
+        "201":
+          description: Entity created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entity"
+        "409":
+          description: Entity with this ID already exists
+
+  /entities/{entity_id}:
+    get:
+      summary: Get entity details
+      operationId: getEntity
+      tags: [entities]
+      parameters:
+        - $ref: "#/components/parameters/EntityId"
+      responses:
+        "200":
+          description: Entity details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entity"
+        "404":
+          description: Entity not found
+
+    put:
+      summary: Update entity (full replace)
+      operationId: updateEntity
+      tags: [entities]
+      parameters:
+        - $ref: "#/components/parameters/EntityId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntityCreate"
+      responses:
+        "200":
+          description: Entity updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entity"
+
+    delete:
+      summary: Remove entity from tracking
+      operationId: deleteEntity
+      tags: [entities]
+      parameters:
+        - $ref: "#/components/parameters/EntityId"
+      responses:
+        "204":
+          description: Entity removed
+
+  /entities/{entity_id}/position:
+    post:
+      summary: Update entity position (lightweight — most frequent call)
+      operationId: updateEntityPosition
+      tags: [positions]
+      description: |
+        This is the primary endpoint called by the simulator on every tick.
+        It updates only the position, heading, speed, and timestamp of an
+        entity without replacing all metadata. Designed for high-frequency
+        updates (every 1-10 seconds per entity).
+      parameters:
+        - $ref: "#/components/parameters/EntityId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PositionUpdate"
+      responses:
+        "200":
+          description: Position updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entity_id:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  acknowledged:
+                    type: boolean
+
+  /entities/bulk:
+    post:
+      summary: Bulk position update (batch mode)
+      operationId: bulkPositionUpdate
+      tags: [positions]
+      description: |
+        Batch endpoint for updating multiple entity positions in a single
+        request. More efficient than individual calls when updating 10+
+        entities simultaneously. The simulator uses this when running at
+        high speed multipliers.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [updates]
+              properties:
+                updates:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/BulkPositionItem"
+                  maxItems: 500
+      responses:
+        "200":
+          description: Bulk update processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  processed:
+                    type: integer
+                  failed:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        entity_id:
+                          type: string
+                        error:
+                          type: string
+
+  /events:
+    post:
+      summary: Push a scenario event
+      operationId: createEvent
+      tags: [events]
+      description: |
+        Pushes a scenario event (alert, order, detection, incident, etc.)
+        to Edge C2. Events drive the operational picture and trigger
+        workflows in the C2 system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Event"
+      responses:
+        "201":
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+    get:
+      summary: List recent events
+      operationId: listEvents
+      tags: [events]
+      parameters:
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Return events after this timestamp
+        - name: agency
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Event"
+
+  /signals/ais:
+    post:
+      summary: Push raw AIS NMEA data
+      operationId: pushAisSignal
+      tags: [signals]
+      description: |
+        Pushes raw AIS NMEA sentences for maritime entities. This endpoint
+        is used when Edge C2 expects to receive AIS-format data rather
+        than pre-parsed position updates. Only used if Edge C2 has its
+        own AIS decoder.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sentences]
+              properties:
+                sentences:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      nmea:
+                        type: string
+                        description: "Raw NMEA sentence (e.g., !AIVDM,...)"
+                      timestamp:
+                        type: string
+                        format: date-time
+                      source:
+                        type: string
+                        description: "Receiving station identifier"
+      responses:
+        "200":
+          description: AIS data ingested
+
+  /signals/adsb:
+    post:
+      summary: Push raw ADS-B data
+      operationId: pushAdsbSignal
+      tags: [signals]
+      description: |
+        Pushes raw ADS-B position data for aviation entities. Used when
+        Edge C2 expects SBS-format or Beast-format ADS-B data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [messages]
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      msg_type:
+                        type: integer
+                        description: "SBS message type (1-8)"
+                      icao_hex:
+                        type: string
+                      callsign:
+                        type: string
+                      altitude_ft:
+                        type: number
+                      ground_speed_knots:
+                        type: number
+                      track_deg:
+                        type: number
+                      latitude:
+                        type: number
+                      longitude:
+                        type: number
+                      vertical_rate_fpm:
+                        type: number
+                      squawk:
+                        type: string
+                      timestamp:
+                        type: string
+                        format: date-time
+      responses:
+        "200":
+          description: ADS-B data ingested
+
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      tags: [system]
+      responses:
+        "200":
+          description: System healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  version:
+                    type: string
+                  uptime_seconds:
+                    type: integer
+
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: "Edge C2 API key (stub: any value accepted)"
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: "Alternative: Bearer token authentication"
+
+  parameters:
+    EntityId:
+      name: entity_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "Unique entity identifier (e.g., MMEA-PV-001)"
+
+  schemas:
+    Position:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          description: "WGS84 latitude in decimal degrees"
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          description: "WGS84 longitude in decimal degrees"
+        altitude_m:
+          type: number
+          format: double
+          default: 0
+          description: "Altitude in meters above sea level"
+
+    PositionUpdate:
+      type: object
+      required: [position, timestamp]
+      properties:
+        position:
+          $ref: "#/components/schemas/Position"
+        heading_deg:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 360
+          description: "True heading in degrees"
+        speed_knots:
+          type: number
+          format: double
+          minimum: 0
+          description: "Speed in knots"
+        course_deg:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 360
+          description: "Course over ground in degrees"
+        timestamp:
+          type: string
+          format: date-time
+          description: "ISO 8601 UTC timestamp"
+        status:
+          type: string
+          enum: [ACTIVE, IDLE, RESPONDING, INTERCEPTING, RTB]
+
+    BulkPositionItem:
+      type: object
+      required: [entity_id, position, timestamp]
+      properties:
+        entity_id:
+          type: string
+        position:
+          $ref: "#/components/schemas/Position"
+        heading_deg:
+          type: number
+          format: double
+        speed_knots:
+          type: number
+          format: double
+        course_deg:
+          type: number
+          format: double
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [ACTIVE, IDLE, RESPONDING, INTERCEPTING, RTB]
+
+    EntityCreate:
+      type: object
+      required: [entity_id, entity_type, domain, agency, callsign, position]
+      properties:
+        entity_id:
+          type: string
+          description: "Unique identifier"
+          example: "MMEA-PV-001"
+        entity_type:
+          type: string
+          description: "Entity subtype"
+          example: "MMEA_PATROL"
+        domain:
+          type: string
+          enum: [MARITIME, AIR, GROUND_VEHICLE, PERSONNEL]
+        agency:
+          type: string
+          enum: [RMP, MMEA, CI, RMAF, MIL, CIVILIAN]
+        callsign:
+          type: string
+          example: "KM Marlin"
+        position:
+          $ref: "#/components/schemas/Position"
+        heading_deg:
+          type: number
+          format: double
+        speed_knots:
+          type: number
+          format: double
+        status:
+          type: string
+          enum: [ACTIVE, IDLE, RESPONDING, INTERCEPTING, RTB]
+          default: ACTIVE
+        sidc:
+          type: string
+          description: "MIL-STD-2525D Symbol Identification Code"
+          example: "10031000001211000000"
+        metadata:
+          type: object
+          description: "Domain-specific metadata (AIS data, ADSB data, vehicle info, etc.)"
+          additionalProperties: true
+
+    Entity:
+      allOf:
+        - $ref: "#/components/schemas/EntityCreate"
+        - type: object
+          properties:
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    Event:
+      type: object
+      required: [event_type, description, timestamp]
+      properties:
+        event_id:
+          type: string
+          description: "Auto-generated if not provided"
+        event_type:
+          type: string
+          enum: [ALERT, ORDER, DETECTION, ARRIVAL, INCIDENT, RESOLUTION, AIS_LOSS, INTERCEPT, BOARDING]
+          description: "Type of operational event"
+        description:
+          type: string
+          description: "Human-readable event description"
+          example: "MMEA detects AIS anomaly in Zone Bravo"
+        timestamp:
+          type: string
+          format: date-time
+        severity:
+          type: string
+          enum: [INFO, WARNING, CRITICAL]
+          default: INFO
+        position:
+          $ref: "#/components/schemas/Position"
+          description: "Location of event (if applicable)"
+        source_entity_id:
+          type: string
+          description: "Entity that generated/detected this event"
+        target_entity_id:
+          type: string
+          description: "Entity this event concerns"
+        agencies_involved:
+          type: array
+          items:
+            type: string
+            enum: [RMP, MMEA, CI, RMAF, MIL]
+          description: "Agencies relevant to this event"
+        metadata:
+          type: object
+          additionalProperties: true

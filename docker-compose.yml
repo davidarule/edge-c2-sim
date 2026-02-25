@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  simulator:
+    build: .
+    ports:
+      - "8765:8765"
+    volumes:
+      - ./config:/app/config
+      - ./geodata:/app/geodata
+    environment:
+      - SIM_SPEED=1
+      - SIM_PORT=8765
+    command: python -m scripts.run_simulator --scenario config/scenarios/strait_intercept.yaml
+
+  cop:
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./cop/dist:/usr/share/nginx/html
+    depends_on:
+      - simulator
+
+  # Uncomment when ready for TAK integration
+  # freetakserver:
+  #   image: freetakteam/freetakserver:latest
+  #   ports:
+  #     - "8087:8087"
+  #     - "8443:8443"

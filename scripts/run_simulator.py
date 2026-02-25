@@ -1,0 +1,272 @@
+"""
+Main entry point for the Edge C2 Simulator.
+
+Loads a scenario, initializes all components, and runs the simulation
+loop. Each tick: advance clock, update all entity positions via their
+movement strategies, fire events, push updates through transport adapters.
+"""
+
+import asyncio
+import logging
+import signal
+from datetime import datetime, timezone
+
+import click
+
+from simulator.core.clock import SimulationClock
+from simulator.core.entity_store import EntityStore
+from simulator.domains.aviation import AviationSimulator
+from simulator.domains.ground_vehicle import GroundVehicleSimulator
+from simulator.domains.maritime import MaritimeSimulator
+from simulator.domains.personnel import PersonnelSimulator
+from simulator.movement.noise import PositionNoise
+from simulator.scenario.event_engine import EventEngine
+from simulator.scenario.loader import ScenarioLoader, ScenarioState
+from simulator.transport.console_adapter import ConsoleAdapter
+from simulator.transport.websocket_adapter import WebSocketAdapter
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+VERSION = "0.1.0"
+
+
+async def simulation_loop(
+    scenario_state: ScenarioState,
+    clock: SimulationClock,
+    entity_store: EntityStore,
+    event_engine: EventEngine,
+    adapters: list,
+    tick_interval_s: float,
+    stop_event: asyncio.Event,
+    domain_simulators: list | None = None,
+) -> None:
+    """Core simulation loop — runs until scenario complete or user stops."""
+    # Noise generators per entity (keyed by domain)
+    noise_cache: dict[str, PositionNoise] = {}
+    tick_count = 0
+    domain_sims = domain_simulators or []
+
+    while not stop_event.is_set():
+        if not clock.is_running:
+            await asyncio.sleep(0.1)
+            continue
+
+        sim_time = clock.get_sim_time()
+
+        # Update all entity positions via movement strategies
+        for entity_id, movement in list(scenario_state.movements.items()):
+            entity = entity_store.get_entity(entity_id)
+            if not entity:
+                continue
+
+            state = movement.get_state(sim_time)
+
+            # Apply noise
+            domain_key = entity.domain.value
+            if domain_key not in noise_cache:
+                noise_cache[domain_key] = PositionNoise.for_domain(domain_key)
+            noisy_state = noise_cache[domain_key].apply(state)
+
+            # Update entity position
+            entity.update_position(
+                latitude=noisy_state.lat,
+                longitude=noisy_state.lon,
+                altitude_m=noisy_state.alt_m,
+                heading_deg=noisy_state.heading_deg,
+                speed_knots=noisy_state.speed_knots,
+                course_deg=noisy_state.course_deg,
+            )
+
+            # Apply metadata overrides from waypoints
+            if noisy_state.metadata_overrides:
+                entity.metadata.update(noisy_state.metadata_overrides)
+
+            entity_store.upsert_entity(entity)
+
+        # Tick domain simulators
+        for domain_sim in domain_sims:
+            try:
+                domain_sim.tick(sim_time)
+            except Exception as e:
+                logger.debug(f"Domain sim tick error: {e}")
+
+        # Process events
+        fired_events = event_engine.tick(sim_time)
+        for event in fired_events:
+            for adapter in adapters:
+                try:
+                    await adapter.push_event(event.to_dict())
+                except Exception as e:
+                    logger.debug(f"Event push error: {e}")
+
+        # Push bulk entity updates
+        all_entities = entity_store.get_all_entities()
+        if all_entities:
+            for adapter in adapters:
+                try:
+                    await adapter.push_bulk_update(all_entities)
+                except Exception as e:
+                    logger.debug(f"Bulk update error: {e}")
+
+        tick_count += 1
+
+        # Periodic status (every 30 ticks)
+        if tick_count % 30 == 0:
+            elapsed = clock.get_elapsed()
+            elapsed_min = elapsed.total_seconds() / 60
+            logger.info(
+                f"Tick {tick_count} | Sim time: +{elapsed_min:.1f}m | "
+                f"Entities: {entity_store.count} | "
+                f"Events: {len(event_engine.get_fired_events())}/{event_engine.total_events}"
+            )
+
+        # Check scenario completion
+        if event_engine.is_complete and tick_count > 10:
+            # All events fired — check if all movements complete too
+            all_done = all(
+                hasattr(m, 'is_complete') and m.is_complete(sim_time)
+                for m in scenario_state.movements.values()
+                if hasattr(m, 'is_complete')
+            )
+            if all_done:
+                logger.info("Scenario complete — all events fired and movements finished")
+                break
+
+        # Wait for next tick
+        await asyncio.sleep(tick_interval_s)
+
+
+async def run(
+    scenario: str | None, speed: float, port: int,
+    tick_rate: float, transport: str,
+) -> None:
+    """Run the simulator."""
+    print(f"\nEdge C2 Simulator v{VERSION}")
+    print("=" * 40)
+
+    # Parse transport options
+    transport_names = [t.strip() for t in transport.split(",")]
+
+    # Load scenario if specified
+    scenario_state = None
+    event_engine = None
+
+    if scenario:
+        print(f"Loading scenario: {scenario}")
+        loader = ScenarioLoader()
+        scenario_state = loader.load(scenario)
+
+        scenario_count = sum(
+            1 for e in scenario_state.entities.values()
+            if not e.metadata.get("background")
+        )
+        bg_count = sum(
+            1 for e in scenario_state.entities.values()
+            if e.metadata.get("background")
+        )
+        print(f"Loaded {scenario_count} scenario entities, {bg_count} background entities")
+        print(f"Loaded {len(scenario_state.events)} events over "
+              f"{scenario_state.duration.total_seconds() / 60:.0f} minutes")
+
+    # Initialize core components
+    start_time = scenario_state.start_time if scenario_state else datetime.now(timezone.utc)
+    clock = SimulationClock(start_time=start_time, speed=speed)
+    store = EntityStore()
+
+    # Populate entity store from scenario
+    if scenario_state:
+        for entity in scenario_state.entities.values():
+            store.add_entity(entity)
+
+        event_engine = EventEngine(
+            events=scenario_state.events,
+            entity_store=store,
+            movements=scenario_state.movements,
+            scenario_start=scenario_state.start_time,
+        )
+
+    # Initialize domain simulators
+    maritime_sim = MaritimeSimulator(store)
+    aviation_sim = AviationSimulator(store)
+    ground_sim = GroundVehicleSimulator(store)
+    personnel_sim = PersonnelSimulator(store)
+    domain_simulators = [maritime_sim, aviation_sim, ground_sim, personnel_sim]
+
+    # Initialize transport adapters
+    adapters = []
+    if "console" in transport_names:
+        console = ConsoleAdapter(min_interval=2.0)
+        adapters.append(console)
+    if "ws" in transport_names:
+        ws_adapter = WebSocketAdapter(entity_store=store, clock=clock, port=port)
+        adapters.append(ws_adapter)
+        print(f"WebSocket server on ws://0.0.0.0:{port}")
+
+    if "console" in transport_names:
+        print("Console output enabled")
+
+    # Connect adapters
+    for adapter in adapters:
+        await adapter.connect()
+
+    # Start clock
+    clock.start()
+    print(f"\nSimulation starting at {start_time.isoformat()} (speed: {speed}x)")
+    print("Press Ctrl+C to stop\n")
+
+    # Setup stop signal
+    stop = asyncio.Event()
+    loop = asyncio.get_event_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, stop.set)
+
+    # Run simulation loop
+    if scenario_state and event_engine:
+        tick_interval = 1.0 / tick_rate
+        await simulation_loop(
+            scenario_state=scenario_state,
+            clock=clock,
+            entity_store=store,
+            event_engine=event_engine,
+            adapters=adapters,
+            tick_interval_s=tick_interval,
+            stop_event=stop,
+            domain_simulators=domain_simulators,
+        )
+    else:
+        logger.info("No scenario specified — running in standby mode")
+        await stop.wait()
+
+    # Cleanup
+    print("\nShutting down...")
+    clock.pause()
+
+    # Summary
+    if event_engine:
+        elapsed = clock.get_elapsed()
+        print(f"Simulation ran for {elapsed.total_seconds() / 60:.1f} simulated minutes")
+        print(f"Events fired: {len(event_engine.get_fired_events())}/{event_engine.total_events}")
+    print(f"Entities tracked: {store.count}")
+
+    for adapter in adapters:
+        await adapter.disconnect()
+    print("Simulator stopped")
+
+
+@click.command()
+@click.option("--scenario", "-s", default=None, help="Path to scenario YAML file")
+@click.option("--speed", default=1.0, help="Simulation speed multiplier (1, 2, 5, 10, 60)")
+@click.option("--port", default=8765, help="WebSocket server port")
+@click.option("--tick-rate", default=1.0, help="Ticks per second (real-time)")
+@click.option("--transport", default="ws,console", help="Comma-separated transports (ws,console)")
+def main(scenario: str | None, speed: float, port: int, tick_rate: float, transport: str) -> None:
+    """Edge C2 Simulator — Multi-domain C2 simulation engine."""
+    asyncio.run(run(scenario, speed, port, tick_rate, transport))
+
+
+if __name__ == "__main__":
+    main()
