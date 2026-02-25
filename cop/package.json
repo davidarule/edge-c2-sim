@@ -8,12 +8,16 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "keywords": ["c2", "cesium", "cop", "military"],
+  "keywords": [
+    "c2",
+    "cesium",
+    "cop",
+    "military"
+  ],
   "author": "Edge C2 Team",
   "license": "UNLICENSED",
   "dependencies": {
     "cesium": "1.138.0",
-    "milsymbol": "^3.0.3",
     "reconnecting-websocket": "^4.4.0"
   },
   "devDependencies": {

@@ -200,7 +200,7 @@ scenario:
       type: MIL_NAVAL
       callsign: "KD Keris"
       agency: MIL
-      initial_position: { lat: 5.20, lon: 118.50 }
+      initial_position: { lat: 6.07055, lon: 118.28342 }  # On patrol, Sulu Sea
       behavior: "patrol"
       patrol_area: "esszone_sector_3_lahad_datu"
 

@@ -26,11 +26,17 @@ import { initPlaybackControls } from './playback-controls.js';
 import { initTimeline } from './timeline.js';
 import { initEntityPanel } from './entity-panel.js';
 import { initOverlayManager } from './overlay-manager.js';
+import { initSettingsPanel } from './settings-panel.js';
+import { initCompass } from './compass.js';
 import { initDemoMode } from './demo-mode.js';
+import { preloadSymbols } from './symbol-renderer.js';
 
 async function main() {
   console.log('Edge C2 COP initializing...');
   const config = initConfig();
+
+  // Preload DISA SVG symbol files before rendering any entities
+  await preloadSymbols();
 
   // Build header
   buildHeader(config);
@@ -53,6 +59,8 @@ async function main() {
   // Connect WebSocket (controls and timeline need ws reference)
   let controls, timeline;
 
+  let settings;
+
   const ws = connectWebSocket(config.wsUrl, {
     onSnapshot: (entities) => {
       entityManager.loadSnapshot(entities);
@@ -68,26 +76,36 @@ async function main() {
       if (controls) controls.updateClock(clockState);
       updateHeaderClock(clockState);
       syncCesiumClock(viewer, clockState);
+    },
+    onRoutes: (routes) => {
+      if (settings) settings.setRoutes(routes);
     }
   });
 
   controls = initPlaybackControls('controls', ws, config);
   timeline = initTimeline('timeline', viewer, config);
+
+  // Compass widget
+  initCompass(viewer);
+
+  // Overlay manager (no UI — settings panel handles the checkboxes)
   const overlays = initOverlayManager(viewer, config);
 
-  // SIDC editor: listen for changes from entity panel
+  // Settings panel (unified gear menu)
+  settings = initSettingsPanel(viewer, entityManager, ws, config);
+  settings.wireOverlays(overlays);
+
+  // SIDC editor: listen for changes from entity panel (per-entity)
   document.addEventListener('sidc-update', (e) => {
-    const { entityType, sidc } = e.detail;
-    console.log(`SIDC update: ${entityType} -> ${sidc}`);
-    // Update all entities of this type on the map
-    entityManager.updateSidcForType(entityType, sidc);
-    // Send to backend for persistence
-    ws.updateSidc(entityType, sidc);
-    // Save to localStorage for browser persistence
+    const { entityId, sidc } = e.detail;
+    console.log(`SIDC update: entity ${entityId} -> ${sidc}`);
+    // Update this specific entity only
+    entityManager.updateSidcForEntity(entityId, sidc);
+    // Save per-entity overrides to localStorage
     try {
-      const saved = JSON.parse(localStorage.getItem('sidc_overrides') || '{}');
-      saved[entityType] = sidc;
-      localStorage.setItem('sidc_overrides', JSON.stringify(saved));
+      const saved = JSON.parse(localStorage.getItem('sidc_entity_overrides') || '{}');
+      saved[entityId] = sidc;
+      localStorage.setItem('sidc_entity_overrides', JSON.stringify(saved));
     } catch (e) { /* ignore */ }
     // Refresh the detail panel symbol preview
     const previewImg = document.getElementById('sidc-preview-img');
@@ -251,10 +269,27 @@ function initAltitudeDisplay(viewer) {
     return `${meters.toFixed(0)} m`;
   }
 
+  let cursorLat = '--', cursorLon = '--';
+
   function update() {
     const height = viewer.camera.positionCartographic.height;
-    el.textContent = `ALT: ${formatAlt(height)}`;
+    el.textContent = `ALT: ${formatAlt(height)}  |  ${cursorLat}, ${cursorLon}`;
   }
+
+  // Track mouse position on globe
+  const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+  handler.setInputAction((movement) => {
+    const cartesian = viewer.camera.pickEllipsoid(movement.endPosition, viewer.scene.globe.ellipsoid);
+    if (cartesian) {
+      const carto = Cesium.Cartographic.fromCartesian(cartesian);
+      cursorLat = Cesium.Math.toDegrees(carto.latitude).toFixed(5);
+      cursorLon = Cesium.Math.toDegrees(carto.longitude).toFixed(5);
+    } else {
+      cursorLat = '--';
+      cursorLon = '--';
+    }
+    update();
+  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
   viewer.camera.changed.addEventListener(update);
   viewer.camera.moveEnd.addEventListener(update);

@@ -58,6 +58,9 @@ export function connectWebSocket(url, handlers) {
         case 'clock':
           if (handlers.onClock) handlers.onClock(msg);
           break;
+        case 'routes':
+          if (handlers.onRoutes) handlers.onRoutes(msg.routes);
+          break;
         default:
           console.debug('Unknown message type:', msg.type);
       }
@@ -72,6 +75,7 @@ export function connectWebSocket(url, handlers) {
     pause: () => ws.send(JSON.stringify({ cmd: 'pause' })),
     resume: () => ws.send(JSON.stringify({ cmd: 'resume' })),
     reset: () => ws.send(JSON.stringify({ cmd: 'reset' })),
+    restart: () => ws.send(JSON.stringify({ cmd: 'restart' })),
     requestSnapshot: () => ws.send(JSON.stringify({ cmd: 'snapshot' })),
     updateSidc: (entityType, sidc) => ws.send(JSON.stringify({
       cmd: 'update_sidc', entity_type: entityType, sidc

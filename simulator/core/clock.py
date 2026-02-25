@@ -64,6 +64,12 @@ class SimulationClock:
         self._running = True
         self._wall_start = time.monotonic()
 
+    def reset(self) -> None:
+        """Reset clock to the beginning (elapsed = 0). Clock is left paused."""
+        self._running = False
+        self._wall_start = None
+        self._accumulated_sim = timedelta()
+
     def set_speed(self, multiplier: float) -> None:
         """Change speed multiplier. Accumulates elapsed time at old speed first."""
         if self._running:

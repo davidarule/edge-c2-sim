@@ -48,6 +48,7 @@ class WebSocketAdapter(TransportAdapter):
         self._server: Any = None
         self._clock_task: asyncio.Task | None = None
         self._command_handlers: dict[str, Any] = {}
+        self._route_data: dict[str, list[dict]] = {}
 
     @property
     def name(self) -> str:
@@ -56,6 +57,15 @@ class WebSocketAdapter(TransportAdapter):
     def set_command_handler(self, command: str, handler: Any) -> None:
         """Register a handler for incoming client commands."""
         self._command_handlers[command] = handler
+
+    def set_route_data(self, routes: dict) -> None:
+        """Store planned route data for COP display.
+
+        Args:
+            routes: Maps entity_id to list of waypoint dicts
+                    [{"lat": ..., "lon": ..., "alt_m": ...}, ...]
+        """
+        self._route_data = routes
 
     async def connect(self) -> None:
         """Start the WebSocket server."""
@@ -119,6 +129,11 @@ class WebSocketAdapter(TransportAdapter):
             })
             await websocket.send(snapshot)
 
+            # Send planned routes if available
+            if self._route_data:
+                routes_msg = json.dumps({"type": "routes", "routes": self._route_data})
+                await websocket.send(routes_msg)
+
             # Listen for commands
             async for message in websocket:
                 await self._handle_message(message)
@@ -151,8 +166,13 @@ class WebSocketAdapter(TransportAdapter):
             self._clock.start()
             logger.info("Clock resumed")
         elif msg_type == "snapshot":
-            # Re-send full snapshot to requesting client
-            pass  # Handled per-client; snapshot sent on connect
+            # Re-send full snapshot to requesting client - broadcast to all
+            entities = self._entity_store.get_all_entities()
+            snapshot = json.dumps({"type": "snapshot", "entities": [e.to_dict() for e in entities]})
+            await self._broadcast(snapshot)
+            if self._route_data:
+                routes_msg = json.dumps({"type": "routes", "routes": self._route_data})
+                await self._broadcast(routes_msg)
         elif msg_type == "reset":
             logger.info("Reset requested by client")
             if "reset" in self._command_handlers:

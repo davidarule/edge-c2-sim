@@ -157,6 +157,11 @@ class EventEngine:
 
         self._entity_store.upsert_entity(entity)
 
+    def reset(self) -> None:
+        """Reset all fired events so they can fire again."""
+        self._fired.clear()
+        self._fired_set.clear()
+
     def get_fired_events(self) -> list[ScenarioEvent]:
         """All events that have fired so far."""
         return list(self._fired)

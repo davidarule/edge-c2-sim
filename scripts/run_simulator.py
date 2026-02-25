@@ -212,6 +212,30 @@ async def run(
         )
         adapters.append(ws_adapter)
 
+        # Extract planned routes for COP display
+        if scenario_state:
+            from simulator.movement.waypoint import WaypointMovement
+            from simulator.movement.patrol import PatrolMovement
+
+            route_data = {}
+            for eid, mov in scenario_state.movements.items():
+                if isinstance(mov, WaypointMovement):
+                    route_data[eid] = [
+                        {"lat": wp.lat, "lon": wp.lon, "alt_m": wp.alt_m}
+                        for wp in mov.waypoints
+                    ]
+                elif isinstance(mov, PatrolMovement):
+                    # Extract patrol waypoints from internal movement
+                    try:
+                        if hasattr(mov, '_waypoint_movement') and mov._waypoint_movement:
+                            route_data[eid] = [
+                                {"lat": wp.lat, "lon": wp.lon, "alt_m": wp.alt_m}
+                                for wp in mov._waypoint_movement.waypoints
+                            ]
+                    except Exception:
+                        pass
+            ws_adapter.set_route_data(route_data)
+
         # SIDC update handler: updates entity store + saves to config/sidc_overrides.json
         async def handle_sidc_update(msg):
             entity_type = msg.get("entity_type")
@@ -245,6 +269,22 @@ async def run(
                 logger.error(f"Failed to save SIDC overrides: {e}")
 
         ws_adapter.set_command_handler("update_sidc", handle_sidc_update)
+
+        async def handle_restart(msg):
+            """Reset clock to beginning and re-broadcast snapshot."""
+            logger.info("Restart requested by client")
+            clock.pause()
+            clock.reset()
+            # Reset all entities to initial positions
+            if scenario_state:
+                for eid, entity in scenario_state.entities.items():
+                    store.upsert_entity(entity)
+            # Reset event engine
+            if event_engine:
+                event_engine.reset()
+            clock.start()
+
+        ws_adapter.set_command_handler("restart", handle_restart)
         print(f"WebSocket server on ws://0.0.0.0:{port}")
 
     if "console" in transport_names:

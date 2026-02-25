@@ -2,7 +2,7 @@
  * Entity lifecycle management for CesiumJS.
  *
  * Each simulation entity maps to a Cesium Billboard (symbol) + Label (callsign)
- * + Polyline (track trail). Uses milsymbol.js to generate MIL-STD-2525D icons.
+ * + Polyline (track trail). Uses JMSML DISA SVGs for MIL-STD-2525D symbols.
  *
  * Features:
  * - Smooth position interpolation via SampledPositionProperty
@@ -11,10 +11,11 @@
  * - Symbol caching for performance
  */
 
-import ms from 'milsymbol';
+import { renderSymbol, clearSymbolCache } from './symbol-renderer.js';
 
 const MAX_TRAIL_POINTS = 15;
 const TRAIL_UPDATE_INTERVAL = 3; // Update trail every Nth position update
+const SYMBOL_RENDER_SIZE = 128;  // Render SVGs at high res to avoid blur when scaled
 
 // === DECLUTTER CONFIG ===
 const OVERLAP_THRESHOLD_PX = 30;      // Entities closer than this (in pixels) get spread
@@ -26,6 +27,10 @@ const DECLUTTER_FULL_ALT = 5000;      // Below 5km: full spread radius
 const DECLUTTER_ZERO_ALT = 80000;     // Above 80km: no declutter (0px spread)
 
 export function initEntityManager(viewer, config) {
+  // Use a CustomDataSource so Cesium EntityCluster works
+  const dataSource = new Cesium.CustomDataSource('entities');
+  viewer.dataSources.add(dataSource);
+
   const entities = new Map();
   const trailPositions = new Map();
   const updateCounters = new Map();
@@ -34,68 +39,36 @@ export function initEntityManager(viewer, config) {
   const doubleClickHandlers = [];
   const filters = { agencies: new Set(), domains: new Set() };
 
+  // Global display state (settable via settings panel)
+  let globalIconSizePx = 40;   // desired display size in pixels
+  let globalIconScale = globalIconSizePx / SYMBOL_RENDER_SIZE;
+  let globalLabelsVisible = true;
+  let globalTrailsVisible = true;
+  let clusteringEnabled = false;
+
+  // Per-entity SIDC overrides (entity_id -> sidc)
+  const entitySidcOverrides = new Map();
+
   // Declutter state
   const declutterOffsets = new Map(); // entity_id -> { x, y } pixel offset
   const declutteredIds = new Set();   // entity IDs currently in a declutter group
 
-  // === MILSYMBOL ===
-  const shortTypeMap = {
-    'MIL_NAVAL':           'NAV',
-    'MIL_NAVAL_FIC':       'FIC',
-    'MMEA_PATROL':         'PB',
-    'MMEA_FAST_INTERCEPT': 'FIC',
-    'RMAF_FIGHTER':        'FTR',
-    'RMAF_HELICOPTER':     'RW',
-    'RMAF_TRANSPORT':      'C',
-    'RMAF_MPA':            'MPA',
-    'RMP_HELICOPTER':      'RW',
-    'RMP_PATROL_CAR':      'MP',
-    'RMP_TACTICAL_TEAM':   'SOF',
-    'MIL_INFANTRY_SQUAD':  'INF',
-    'CI_OFFICER':          'CI',
-    'CI_IMMIGRATION_TEAM': 'IMM',
-    'CIVILIAN_FISHING':    'FV',
-    'CIVILIAN_CARGO':      'CGO',
-    'CIVILIAN_TANKER':     'TKR',
-    'CIVILIAN_COMMERCIAL': 'CIV',
-    'SUSPECT_VESSEL':      '?',
-    'HOSTILE_VESSEL':      'HOS',
-    'HOSTILE_PERSONNEL':   'HOS',
-    'MIL_APC':             'APC',
-  };
-
-  function getShortType(entity) {
-    if (entity.metadata?.type_code) return entity.metadata.type_code;
-    return shortTypeMap[entity.entity_type] || '';
+  // === JMSML SYMBOL RENDERING ===
+  function getSidcForEntity(entity) {
+    // Per-entity override takes precedence
+    if (entitySidcOverrides.has(entity.entity_id)) {
+      return entitySidcOverrides.get(entity.entity_id);
+    }
+    return config.sidcMap[entity.entity_type] || config.defaultSidc;
   }
 
   function getSymbolImage(entity) {
-    const sidc = config.sidcMap[entity.entity_type] || config.defaultSidc;
-    const shortType = getShortType(entity);
-    const cacheKey = `${sidc}_${shortType}`;
-    if (symbolCache.has(cacheKey)) return symbolCache.get(cacheKey);
+    const sidc = getSidcForEntity(entity);
+    if (symbolCache.has(sidc)) return symbolCache.get(sidc);
 
-    try {
-      const symbol = new ms.Symbol(sidc, {
-        size: 35,
-        frame: true,
-        fill: true,
-        strokeWidth: 1.5,
-        infoFields: true,
-        type: shortType,
-      });
-      const url = symbol.toDataURL();
-      symbolCache.set(cacheKey, url);
-      return url;
-    } catch (e) {
-      console.warn('Symbol generation failed for SIDC:', sidc, e);
-      const fallback = new ms.Symbol(config.defaultSidc, {
-        size: 35, frame: true, fill: true, strokeWidth: 1.5, infoFields: false
-      });
-      const url = fallback.toDataURL();
-      symbolCache.set(cacheKey, url);
-      return url;
-    }
+    const url = renderSymbol(sidc, { size: SYMBOL_RENDER_SIZE });
+    symbolCache.set(sidc, url);
+    return url;
   }
 
   function getAgencyColor(agency) {
@@ -132,14 +105,14 @@ export function initEntityManager(viewer, config) {
       : viewer.clock.currentTime;
     sampledPosition.addSample(now, Cesium.Cartesian3.fromDegrees(lon, lat, alt));
 
-    const cesiumEntity = viewer.entities.add({
+    const cesiumEntity = dataSource.entities.add({
       id: `entity-${id}`,
       position: sampledPosition,
       billboard: {
         image: getSymbolImage(entityData),
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        scale: 1.0,
+        scale: globalIconScale,
         rotation: 0,
         pixelOffset: new Cesium.Cartesian2(0, 0),
         disableDepthTestDistance: Number.POSITIVE_INFINITY
@@ -151,6 +124,7 @@ export function initEntityManager(viewer, config) {
         outlineColor: Cesium.Color.BLACK,
         outlineWidth: 2,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        show: globalLabelsVisible,
         verticalOrigin: Cesium.VerticalOrigin.TOP,
         pixelOffset: new Cesium.Cartesian2(0, 20),
         distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 200000),
@@ -163,7 +137,7 @@ export function initEntityManager(viewer, config) {
 
     const agencyColor = Cesium.Color.fromCssColorString(getAgencyColor(entityData.agency));
 
-    const cesiumTrail = viewer.entities.add({
+    const cesiumTrail = dataSource.entities.add({
       id: `trail-${id}`,
       polyline: {
         positions: new Cesium.CallbackProperty(() => {
@@ -171,6 +145,7 @@ export function initEntityManager(viewer, config) {
           return points.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
         }, false),
         width: 2,
+        show: globalTrailsVisible,
         material: new Cesium.PolylineGlowMaterialProperty({
           glowPower: 0.15,
           color: agencyColor.withAlpha(0.5)
@@ -230,8 +205,8 @@ export function initEntityManager(viewer, config) {
   function removeEntity(id) {
     const entry = entities.get(id);
     if (entry) {
-      viewer.entities.remove(entry.cesiumEntity);
-      viewer.entities.remove(entry.cesiumTrail);
+      dataSource.entities.remove(entry.cesiumEntity);
+      dataSource.entities.remove(entry.cesiumTrail);
       entities.delete(id);
       trailPositions.delete(id);
       updateCounters.delete(id);
@@ -261,7 +236,8 @@ export function initEntityManager(viewer, config) {
                    filters.domains.has(entry.data.domain);
 
     entry.cesiumEntity.show = !hidden;
-    entry.cesiumTrail.show = !hidden;
+    entry.cesiumEntity.label.show = !hidden && globalLabelsVisible;
+    entry.cesiumTrail.show = !hidden && globalTrailsVisible;
     entry.visible = !hidden;
   }
 
@@ -283,10 +259,10 @@ export function initEntityManager(viewer, config) {
       const entry = entities.get(id);
       if (entry && entry.cesiumEntity.billboard) {
         entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
-        entry.cesiumEntity.billboard.scale = 1.0;
+        entry.cesiumEntity.billboard.scale = globalIconScale;
         entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
-        entry.cesiumEntity.label.show = true;
-        entry.cesiumTrail.show = true;
+        entry.cesiumEntity.label.show = globalLabelsVisible && entry.visible;
+        entry.cesiumTrail.show = globalTrailsVisible && entry.visible;
       }
     });
     declutterOffsets.clear();
@@ -297,16 +273,22 @@ export function initEntityManager(viewer, config) {
     const entry = entities.get(id);
     if (entry && entry.cesiumEntity.billboard) {
       entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
-      entry.cesiumEntity.billboard.scale = 1.0;
+      entry.cesiumEntity.billboard.scale = globalIconScale;
       entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
-      entry.cesiumEntity.label.show = true;
-      entry.cesiumTrail.show = true;
+      entry.cesiumEntity.label.show = globalLabelsVisible && entry.visible;
+      entry.cesiumTrail.show = globalTrailsVisible && entry.visible;
     }
     declutterOffsets.delete(id);
     declutteredIds.delete(id);
   }
 
   function declutterEntities() {
+    // Disable declutter when Cesium clustering is active
+    if (clusteringEnabled) {
+      if (declutterOffsets.size > 0) resetAllDeclutter();
+      return;
+    }
+
     const spreadRadius = getEffectiveSpreadRadius();
 
     // At high altitude, disable declutter entirely — show all at true positions
@@ -361,7 +343,7 @@ export function initEntityManager(viewer, config) {
       if (group.length <= 1) return;
 
       const n = group.length;
-      const scaleDown = n >= SCALE_DOWN_THRESHOLD ? 0.8 : 1.0;
+      const scaleMultiplier = n >= SCALE_DOWN_THRESHOLD ? 0.8 : 1.0;
 
       for (let i = 0; i < n; i++) {
         const angle = (2 * Math.PI * i) / n - Math.PI / 2; // Start from top
@@ -372,8 +354,8 @@ export function initEntityManager(viewer, config) {
         const entry = entities.get(item.id);
         if (entry && entry.cesiumEntity.billboard) {
           entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(offsetX, offsetY);
-          entry.cesiumEntity.billboard.scale = scaleDown;
-          // Hide labels and trails in declutter groups to reduce overlap
+          entry.cesiumEntity.billboard.scale = globalIconScale * scaleMultiplier;
+          // Hide labels and trails in declutter groups to reduce visual clutter
           entry.cesiumEntity.label.show = false;
           entry.cesiumTrail.show = false;
           declutterOffsets.set(item.id, { x: offsetX, y: offsetY });
@@ -474,20 +456,59 @@ export function initEntityManager(viewer, config) {
     _fireDoubleClick: fireDoubleClick,
     getSymbolImage,
     getSidc(entity) {
-      const type = entity.entity_type || '';
-      return config.sidcMap[type] || config.defaultSidc;
+      return getSidcForEntity(entity);
+    },
+    setIconScale(sizePx) {
+      globalIconSizePx = sizePx;
+      globalIconScale = sizePx / SYMBOL_RENDER_SIZE;
+      entities.forEach((entry) => {
+        if (entry.cesiumEntity.billboard) {
+          entry.cesiumEntity.billboard.scale = globalIconScale;
+        }
+      });
+    },
+    setLabelsVisible(visible) {
+      globalLabelsVisible = visible;
+      entities.forEach((entry) => {
+        if (entry.cesiumEntity.label) {
+          entry.cesiumEntity.label.show = visible && entry.visible;
+        }
+      });
+    },
+    setTrailsVisible(visible) {
+      globalTrailsVisible = visible;
+      entities.forEach((entry) => {
+        entry.cesiumTrail.show = visible && entry.visible;
+      });
+    },
+    updateSidcForEntity(entityId, newSidc) {
+      // Per-entity SIDC override
+      entitySidcOverrides.set(entityId, newSidc);
+      symbolCache.clear();
+      clearSymbolCache();
+      const entry = entities.get(entityId);
+      if (entry) {
+        entry.cesiumEntity.billboard.image = getSymbolImage(entry.data);
+      }
     },
     updateSidcForType(entityType, newSidc) {
-      // Update config mapping
+      // Update config mapping for type-wide changes
       config.sidcMap[entityType] = newSidc;
-      // Clear symbol cache entries that used the old SIDC
       symbolCache.clear();
-      // Re-render all entities of this type
+      clearSymbolCache();
       entities.forEach((entry, id) => {
+        // Skip entities with per-entity overrides
+        if (entitySidcOverrides.has(id)) return;
         if (entry.data.entity_type === entityType) {
           entry.cesiumEntity.billboard.image = getSymbolImage(entry.data);
         }
       });
+    },
+    setClusteringEnabled(enabled) {
+      clusteringEnabled = enabled;
+    },
+    getDataSource() {
+      return dataSource;
     }
   };
 }
