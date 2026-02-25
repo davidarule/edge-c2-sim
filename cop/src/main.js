@@ -39,6 +39,9 @@ async function main() {
   const viewer = await initCesium('cesium-container', config);
   console.log('CesiumJS viewer ready');
 
+  // Expose viewer for debugging
+  window.viewer = viewer;
+
   // Entity manager
   const entityManager = initEntityManager(viewer, config);
 
@@ -85,9 +88,9 @@ async function main() {
         entityManager._fireClick(entityData);
         detail.show(entityData);
       }
-    } else {
-      detail.hide();
+      return;
     }
+    detail.hide();
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
   // Double click — fly to entity
@@ -121,8 +124,27 @@ async function main() {
           ${(entityData.entity_type || '').replace(/_/g, ' ')} | ${entityData.status || ''}<br>
           Speed: ${(entityData.speed_knots || 0).toFixed(1)} kts | HDG: ${Math.round(entityData.heading_deg || 0)}\u00b0
         `;
-        tooltip.style.left = `${movement.endPosition.x + 15}px`;
-        tooltip.style.top = `${movement.endPosition.y - 10}px`;
+        // Position tooltip above-right, with viewport edge detection
+        const tooltipWidth = tooltip.offsetWidth || 200;
+        const tooltipHeight = tooltip.offsetHeight || 80;
+        const viewportWidth = window.innerWidth;
+
+        // Default: above-right of cursor
+        let left = movement.endPosition.x + 25;
+        let top = movement.endPosition.y - tooltipHeight - 20;
+
+        // If tooltip would go off the right edge, flip to left side
+        if (left + tooltipWidth > viewportWidth) {
+          left = movement.endPosition.x - tooltipWidth - 25;
+        }
+
+        // If tooltip would go above the viewport, put it below the cursor
+        if (top < 0) {
+          top = movement.endPosition.y + 30;
+        }
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
         tooltip.classList.add('visible');
         return;
       }
@@ -134,6 +156,9 @@ async function main() {
   document.getElementById('btn-demo-mode').addEventListener('click', () => {
     demoMode.toggle();
   });
+
+  // Camera altitude display
+  initAltitudeDisplay(viewer);
 
   console.log('Edge C2 COP ready');
 }
@@ -180,6 +205,36 @@ function syncCesiumClock(viewer, clockState) {
     viewer.clock.shouldAnimate = clockState.running;
   }
   viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER;
+}
+
+function initAltitudeDisplay(viewer) {
+  const el = document.createElement('div');
+  el.id = 'altitude-display';
+  el.style.cssText = `
+    position: absolute; bottom: 8px; left: 8px; z-index: 20;
+    background: rgba(13,17,23,0.85); color: #E6EDF3;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    padding: 4px 10px; border-radius: 3px;
+    border: 1px solid rgba(48,54,61,0.8);
+    pointer-events: none;
+  `;
+  document.getElementById('cesium-container').appendChild(el);
+
+  function formatAlt(meters) {
+    if (meters >= 1000000) return `${(meters / 1000).toFixed(0)} km`;
+    if (meters >= 10000) return `${(meters / 1000).toFixed(1)} km`;
+    if (meters >= 1000) return `${(meters / 1000).toFixed(2)} km`;
+    return `${meters.toFixed(0)} m`;
+  }
+
+  function update() {
+    const height = viewer.camera.positionCartographic.height;
+    el.textContent = `ALT: ${formatAlt(height)}`;
+  }
+
+  viewer.camera.changed.addEventListener(update);
+  viewer.camera.moveEnd.addEventListener(update);
+  update();
 }
 
 main().catch(err => {

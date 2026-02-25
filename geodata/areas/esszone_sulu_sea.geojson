@@ -48,16 +48,17 @@
         "zone_id": "esszone_sector_2_sandakan",
         "name": "ESSZONE Sector 2 — Sandakan",
         "agency": "MIL",
-        "description": "Central sector covering Sandakan, Beluran, Kinabatangan. MAWILLA 2 HQ."
+        "description": "Central sector covering Sandakan, Beluran, Kinabatangan. MAWILLA 2 HQ. Sulu Sea waters only."
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
-          [117.60, 5.40],
-          [118.60, 5.40],
-          [118.60, 6.60],
-          [117.60, 6.60],
-          [117.60, 5.40]
+          [118.50, 5.60],
+          [119.30, 5.60],
+          [119.30, 6.60],
+          [118.70, 6.60],
+          [118.50, 6.00],
+          [118.50, 5.60]
         ]]
       }
     },
@@ -86,16 +87,17 @@
         "zone_id": "esszone_sector_4_semporna",
         "name": "ESSZONE Sector 4 — Semporna",
         "agency": "MIL",
-        "description": "High-threat sector. Dense island cluster 18km from Philippines. Primary kidnapping-for-ransom area."
+        "description": "High-threat sector. Dense island cluster 18km from Philippines. Primary kidnapping-for-ransom area. Sulu Sea waters only."
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
-          [118.40, 4.20],
-          [119.00, 4.20],
-          [119.00, 4.80],
-          [118.40, 4.80],
-          [118.40, 4.20]
+          [118.75, 4.10],
+          [119.30, 4.10],
+          [119.30, 4.55],
+          [118.85, 4.55],
+          [118.75, 4.30],
+          [118.75, 4.10]
         ]]
       }
     },
@@ -161,16 +163,16 @@
       "properties": {
         "area_id": "semporna_islands",
         "name": "Semporna Island Cluster",
-        "description": "Dense cluster of islands including Sipadan, Mabul, Kapalai, Ligitan. Tourism and fishing area. Historically targeted by Abu Sayyaf."
+        "description": "Dense cluster of islands including Sipadan, Mabul, Kapalai, Ligitan. Tourism and fishing area. Historically targeted by Abu Sayyaf. Waters between islands."
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
-          [118.50, 4.30],
-          [118.90, 4.30],
-          [118.90, 4.65],
-          [118.50, 4.65],
-          [118.50, 4.30]
+          [118.75, 4.15],
+          [119.10, 4.15],
+          [119.10, 4.50],
+          [118.75, 4.50],
+          [118.75, 4.15]
         ]]
       }
     },

@@ -54,29 +54,42 @@ export function initConfig() {
     },
 
     sidcMap: {
-      'MMEA_PATROL':          '10033000001211040000',
-      'MMEA_FAST_INTERCEPT':  '10033000001211040000',
-      'MIL_NAVAL':            '10033000001211000000',
-      'SUSPECT_VESSEL':       '10063000001211000000',
-      'CIVILIAN_CARGO':       '10043000001213000000',
-      'CIVILIAN_FISHING':     '10043000001215000000',
-      'CIVILIAN_TANKER':      '10043000001214000000',
-      'CIVILIAN_PASSENGER':   '10043000001213000000',
-      'RMAF_FIGHTER':         '10031000001211040000',
-      'RMAF_HELICOPTER':      '10031500001211000000',
-      'RMAF_TRANSPORT':       '10031000001211050000',
-      'RMP_HELICOPTER':       '10031500001211040000',
-      'CIVILIAN_COMMERCIAL':  '10041000001213000000',
-      'CIVILIAN_LIGHT':       '10041000001213000000',
-      'RMP_PATROL_CAR':       '10031000001511040000',
-      'RMP_TACTICAL_TEAM':    '10031000001511040000',
-      'MIL_APC':              '10031000001512000000',
-      'MIL_INFANTRY_SQUAD':   '10031000001211000000',
-      'CI_OFFICER':           '10031000001511050000',
-      'CI_IMMIGRATION_TEAM':  '10031000001511050000'
+      // ===== MARITIME (Symbol Set 30 = Sea Surface) =====
+      'MMEA_PATROL':          '10033000001204020000',  // friend patrol boat
+      'MMEA_FAST_INTERCEPT':  '10033000001204010000',  // friend patrol coastal
+      'MIL_NAVAL':            '10033000001201030000',  // friend corvette
+      'SUSPECT_VESSEL':       '10053000001400000000',  // suspect civilian vessel
+      'HOSTILE_VESSEL':       '10063000001400000000',  // hostile civilian vessel
+      'CIVILIAN_CARGO':       '10043000001401010000',  // neutral cargo
+      'CIVILIAN_FISHING':     '10043000001402000000',  // neutral fishing
+      'CIVILIAN_TANKER':      '10043000001401020000',  // neutral tanker
+      'CIVILIAN_PASSENGER':   '10043000001401030000',  // neutral passenger
+      'CIVILIAN_BOAT':        '10043000001400000000',  // neutral generic civilian vessel
+      'RMP_PATROL_CAR':       '10033000001204020000',  // friend patrol boat (RMP Marine Police)
+
+      // ===== AIR (Symbol Set 01 = Air) =====
+      'RMAF_FIGHTER':         '10030100001101020000',  // friend fighter
+      'RMAF_HELICOPTER':      '10030100001102000000',  // friend rotary wing
+      'RMAF_TRANSPORT':       '10030100001101060000',  // friend cargo/transport
+      'RMP_HELICOPTER':       '10030100001102030000',  // friend utility helicopter
+      'CIVILIAN_COMMERCIAL':  '10040100001200000000',  // neutral civilian air
+      'CIVILIAN_LIGHT':       '10040100001201000000',  // neutral civilian fixed wing
+
+      // ===== GROUND UNITS (Symbol Set 10 = Land Unit) =====
+      'RMP_TACTICAL_TEAM':    '10031000001211000000',  // friend special operations forces
+      'MIL_INFANTRY_SQUAD':   '10031000001201000000',  // friend infantry
+      'CI_OFFICER':           '10031000001400000000',  // friend law enforcement
+      'CI_IMMIGRATION_TEAM':  '10031000001400000000',  // friend law enforcement
+      'RMP_OFFICER':          '10031000001400000000',  // friend law enforcement
+      'HOSTILE_PERSONNEL':    '10061000001201000000',  // hostile infantry
+      'CIVILIAN_TOURIST':     '10041000001100000000',  // neutral civilian
+
+      // ===== GROUND EQUIPMENT (Symbol Set 15 = Land Equipment) =====
+      'MIL_APC':              '10031500001201010000',  // friend APC
+      'MIL_VEHICLE':          '10031500001202000000'   // friend wheeled vehicle
     },
 
-    defaultSidc: '10030000001200000000',
+    defaultSidc: '10033000001100000000',
 
     speeds: [1, 2, 5, 10, 60]
   };

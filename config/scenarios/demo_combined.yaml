@@ -168,7 +168,7 @@ scenario:
       type: MMEA_PATROL
       callsign: "KM Semporna"
       agency: MMEA
-      initial_position: { lat: 5.84, lon: 118.07 }
+      initial_position: { lat: 5.84, lon: 118.12 }  # Sandakan Harbor
       behavior: "patrol"
       patrol_area: "esszone_sector_2_sandakan"
 
@@ -176,7 +176,7 @@ scenario:
       type: MMEA_FAST_INTERCEPT
       callsign: "KM Penggalang 7"
       agency: MMEA
-      initial_position: { lat: 4.48, lon: 118.61 }
+      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
       behavior: "standby"
 
     - id: "MMEA-PV-102"
@@ -191,7 +191,7 @@ scenario:
       type: MIL_NAVAL
       callsign: "KD G2000 Alpha"
       agency: MIL
-      initial_position: { lat: 5.84, lon: 118.10 }
+      initial_position: { lat: 5.84, lon: 118.12 }  # MAWILLA 2 Sandakan Harbor
       behavior: "standby"
       metadata:
         vessel_type: "G2000 Mk II Fast Interceptor Craft"
@@ -215,14 +215,14 @@ scenario:
       type: RMAF_HELICOPTER
       callsign: "TUDM EC725 Sandakan"
       agency: RMAF
-      initial_position: { lat: 5.04, lon: 118.33 }
+      initial_position: { lat: 5.0318, lon: 118.3210 }  # Lahad Datu Airport apron
       behavior: "standby"
 
     - id: "RMP-MP-101"
       type: RMP_PATROL_CAR
       callsign: "PDRM Marine 01"
       agency: RMP
-      initial_position: { lat: 4.48, lon: 118.61 }
+      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
       behavior: "standby"
       metadata:
         vessel_type: "Rigid Hull Fender Boat"
@@ -232,14 +232,14 @@ scenario:
       type: RMP_PATROL_CAR
       callsign: "PDRM Marine 02"
       agency: RMP
-      initial_position: { lat: 5.84, lon: 118.07 }
+      initial_position: { lat: 5.84, lon: 118.12 }  # Sandakan Harbor
       behavior: "standby"
 
     - id: "CI-TEAM-101"
       type: CI_OFFICER
       callsign: "Customs Boarding Team A"
       agency: CI
-      initial_position: { lat: 5.84, lon: 118.07 }
+      initial_position: { lat: 5.84, lon: 118.12 }  # Sandakan Harbor
       behavior: "standby"
       metadata:
         unit_size: 4
@@ -248,7 +248,7 @@ scenario:
       type: CI_IMMIGRATION_TEAM
       callsign: "Immigration Team Sandakan"
       agency: CI
-      initial_position: { lat: 5.84, lon: 118.07 }
+      initial_position: { lat: 5.84, lon: 118.12 }  # Sandakan Harbor
       behavior: "standby"
       metadata:
         unit_size: 6
@@ -304,7 +304,7 @@ scenario:
       type: RMP_PATROL_CAR
       callsign: "PDRM Marine Semporna 01"
       agency: RMP
-      initial_position: { lat: 4.48, lon: 118.61 }
+      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
       behavior: "standby"
       metadata:
         vessel_type: "Rigid Hull Fender Boat"
@@ -333,7 +333,7 @@ scenario:
       type: MIL_NAVAL
       callsign: "KD G2000 Bravo"
       agency: MIL
-      initial_position: { lat: 4.48, lon: 118.61 }
+      initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
       behavior: "standby"
       metadata:
         vessel_type: "G2000 Mk II Fast Interceptor Craft"
@@ -342,7 +342,7 @@ scenario:
       type: MIL_NAVAL
       callsign: "KD G2000 Charlie"
       agency: MIL
-      initial_position: { lat: 5.84, lon: 118.10 }
+      initial_position: { lat: 5.84, lon: 118.12 }  # MAWILLA 2 Sandakan Harbor
       behavior: "standby"
       metadata:
         vessel_type: "G2000 Mk II Fast Interceptor Craft"
@@ -351,7 +351,7 @@ scenario:
       type: RMAF_HELICOPTER
       callsign: "TUDM EC725 Hunter"
       agency: RMAF
-      initial_position: { lat: 5.04, lon: 118.33 }
+      initial_position: { lat: 5.0316, lon: 118.3230 }  # Lahad Datu Airport apron
       behavior: "standby"
       metadata:
         aircraft_type: "EC725"
@@ -361,7 +361,7 @@ scenario:
       type: RMAF_HELICOPTER
       callsign: "TUDM Blackhawk 1"
       agency: RMAF
-      initial_position: { lat: 5.04, lon: 118.33 }
+      initial_position: { lat: 5.0314, lon: 118.3250 }  # Lahad Datu Airport apron
       behavior: "standby"
 
     - id: "MIL-INF-201"

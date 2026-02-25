@@ -7,7 +7,7 @@
  * Features:
  * - Smooth position interpolation via SampledPositionProperty
  * - Trail polylines with fading alpha
- * - Entity clustering at high altitude
+ * - Pixel-distance declutter with ring offset (pixelOffset only, no extra entities)
  * - Symbol caching for performance
  */
 
@@ -15,30 +15,38 @@ import ms from 'milsymbol';
 
 const MAX_TRAIL_POINTS = 15;
 const TRAIL_UPDATE_INTERVAL = 3; // Update trail every Nth position update
-const CLUSTER_ALTITUDE = 0; // Cluster above 500km
+
+// === DECLUTTER CONFIG ===
+const OVERLAP_THRESHOLD_PX = 30;  // Entities closer than this (in pixels) get spread
+const SPREAD_RADIUS_PX = 50;      // How far to push them apart (in pixels)
+const DECLUTTER_INTERVAL_MS = 1000; // How often to recalculate
+const MIN_SPEED_TO_SKIP = 1.0;     // Don't declutter moving entities (knots)
+const SCALE_DOWN_THRESHOLD = 6;    // Scale down billboards for groups this size or larger
 
 export function initEntityManager(viewer, config) {
   const entities = new Map();
   const trailPositions = new Map();
-  const updateCounters = new Map(); // Track update count per entity for trail throttling
+  const updateCounters = new Map();
   const symbolCache = new Map();
   const clickHandlers = [];
   const doubleClickHandlers = [];
   const filters = { agencies: new Set(), domains: new Set() };
-  let clusterMode = false;
-  const clusterEntities = [];
+
+  // Declutter state
+  const declutterOffsets = new Map(); // entity_id -> { x, y } pixel offset
+  const declutteredIds = new Set();   // entity IDs currently in a declutter group
 
   // === MILSYMBOL ===
   function getSymbolImage(entity) {
-    const sidc = entity.sidc || config.sidcMap[entity.entity_type] || config.defaultSidc;
+    const sidc = config.sidcMap[entity.entity_type] || config.defaultSidc;
     if (symbolCache.has(sidc)) return symbolCache.get(sidc);
 
     try {
       const symbol = new ms.Symbol(sidc, {
-        size: 40,
+        size: 24,
         frame: true,
         fill: true,
-        strokeWidth: 1.5,
+        strokeWidth: 1,
         infoFields: false
       });
       const url = symbol.toDataURL();
@@ -47,7 +55,7 @@ export function initEntityManager(viewer, config) {
     } catch (e) {
       console.warn('Symbol generation failed for SIDC:', sidc, e);
       const fallback = new ms.Symbol(config.defaultSidc, {
-        size: 28, frame: true, fill: true, strokeWidth: 1.5, infoFields: false
+        size: 24, frame: true, fill: true, strokeWidth: 1, infoFields: false
       });
       const url = fallback.toDataURL();
       symbolCache.set(sidc, url);
@@ -76,14 +84,14 @@ export function initEntityManager(viewer, config) {
     const lon = pos.longitude || 0;
     const alt = pos.altitude_m || 0;
 
-    // Use SampledPositionProperty for smooth interpolation
     const sampledPosition = new Cesium.SampledPositionProperty();
     sampledPosition.setInterpolationOptions({
       interpolationDegree: 1,
       interpolationAlgorithm: Cesium.LinearApproximation
     });
+    sampledPosition.forwardExtrapolationType = Cesium.ExtrapolationType.HOLD;
+    sampledPosition.backwardExtrapolationType = Cesium.ExtrapolationType.HOLD;
 
-    // Add initial sample
     const now = entityData.timestamp
       ? Cesium.JulianDate.fromIso8601(entityData.timestamp)
       : viewer.clock.currentTime;
@@ -98,6 +106,7 @@ export function initEntityManager(viewer, config) {
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
         scale: 1.0,
         rotation: 0,
+        pixelOffset: new Cesium.Cartesian2(0, 0),
         disableDepthTestDistance: Number.POSITIVE_INFINITY
       },
       label: {
@@ -114,7 +123,6 @@ export function initEntityManager(viewer, config) {
       }
     });
 
-    // Track trail with fading alpha
     trailPositions.set(id, [{ lat, lon, alt }]);
     updateCounters.set(id, 0);
 
@@ -155,16 +163,11 @@ export function initEntityManager(viewer, config) {
     const lon = pos.longitude || 0;
     const alt = pos.altitude_m || 0;
 
-    // Add position sample for smooth interpolation
     const time = entityData.timestamp
       ? Cesium.JulianDate.fromIso8601(entityData.timestamp)
       : viewer.clock.currentTime;
     entry.sampledPosition.addSample(time, Cesium.Cartesian3.fromDegrees(lon, lat, alt));
 
-    // Update heading rotation
-    // rotation removed 
-
-    // Regenerate symbol only if type/status changed
     if (entityData.entity_type !== entry.data.entity_type ||
         entityData.status !== entry.data.status) {
       entry.cesiumEntity.billboard.image = getSymbolImage(entityData);
@@ -172,7 +175,6 @@ export function initEntityManager(viewer, config) {
 
     entry.cesiumEntity.label.text = entityData.callsign || id;
 
-    // Throttled trail update (every Nth update)
     const count = (updateCounters.get(id) || 0) + 1;
     updateCounters.set(id, count);
     if (count % TRAIL_UPDATE_INTERVAL === 0) {
@@ -193,6 +195,8 @@ export function initEntityManager(viewer, config) {
       entities.delete(id);
       trailPositions.delete(id);
       updateCounters.delete(id);
+      declutterOffsets.delete(id);
+      declutteredIds.delete(id);
     }
   }
 
@@ -216,95 +220,138 @@ export function initEntityManager(viewer, config) {
     const hidden = filters.agencies.has(entry.data.agency) ||
                    filters.domains.has(entry.data.domain);
 
-    entry.cesiumEntity.show = !hidden && !clusterMode;
-    entry.cesiumTrail.show = !hidden && !clusterMode;
+    entry.cesiumEntity.show = !hidden;
+    entry.cesiumTrail.show = !hidden;
     entry.visible = !hidden;
   }
 
-  // === CLUSTERING ===
-  function updateClustering() {
-    const cameraHeight = viewer.camera.positionCartographic.height;
-    const shouldCluster = cameraHeight > CLUSTER_ALTITUDE;
+  // === PIXEL-DISTANCE DECLUTTER WITH RING OFFSET ===
 
-    if (shouldCluster === clusterMode) return;
-    clusterMode = shouldCluster;
+  function declutterEntities() {
+    const scene = viewer.scene;
+    const screenPositions = [];
 
-    if (clusterMode) {
-      // Hide individual entities, show clusters
-      entities.forEach((entry) => {
-        entry.cesiumEntity.show = false;
-        entry.cesiumTrail.show = false;
-      });
-      buildClusters();
-    } else {
-      // Show individual entities, remove clusters
-      clearClusters();
-      entities.forEach((_, id) => applyVisibility(id));
-    }
-  }
-
-  function buildClusters() {
-    clearClusters();
-    const gridSize = 0.5; // degrees
-    const grid = new Map();
-
-    entities.forEach((entry) => {
+    // Step 1: Project all entities to screen space
+    entities.forEach((entry, id) => {
       if (!entry.visible) return;
-      const pos = entry.data.position || {};
-      const gridKey = `${Math.floor((pos.latitude || 0) / gridSize)}_${Math.floor((pos.longitude || 0) / gridSize)}`;
-      if (!grid.has(gridKey)) {
-        grid.set(gridKey, { lat: 0, lon: 0, count: 0, agencies: {} });
-      }
-      const cell = grid.get(gridKey);
-      cell.lat += (pos.latitude || 0);
-      cell.lon += (pos.longitude || 0);
-      cell.count++;
-      const agency = entry.data.agency || 'UNKNOWN';
-      cell.agencies[agency] = (cell.agencies[agency] || 0) + 1;
-    });
 
-    grid.forEach((cell, key) => {
-      if (cell.count === 0) return;
-      const lat = cell.lat / cell.count;
-      const lon = cell.lon / cell.count;
-
-      // Dominant agency color
-      const dominant = Object.entries(cell.agencies).sort((a, b) => b[1] - a[1])[0];
-      const color = getAgencyColor(dominant ? dominant[0] : 'UNKNOWN');
-
-      const clusterEntity = viewer.entities.add({
-        id: `cluster-${key}`,
-        position: Cesium.Cartesian3.fromDegrees(lon, lat, 0),
-        point: {
-          pixelSize: Math.min(12 + cell.count * 2, 40),
-          color: Cesium.Color.fromCssColorString(color).withAlpha(0.8),
-          outlineColor: Cesium.Color.WHITE,
-          outlineWidth: 1,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY
-        },
-        label: {
-          text: String(cell.count),
-          font: '11px IBM Plex Mono',
-          fillColor: Cesium.Color.WHITE,
-          outlineColor: Cesium.Color.BLACK,
-          outlineWidth: 2,
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-          verticalOrigin: Cesium.VerticalOrigin.CENTER,
-          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY
+      // Skip moving entities — they'll separate naturally
+      const speed = entry.data.speed_knots || 0;
+      if (speed > MIN_SPEED_TO_SKIP) {
+        // Reset any existing offset
+        if (declutterOffsets.has(id)) {
+          entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
+          entry.cesiumEntity.billboard.scale = 1.0;
+          entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
+          entry.cesiumEntity.label.show = true;
+          declutterOffsets.delete(id);
+          declutteredIds.delete(id);
         }
-      });
-      clusterEntities.push(clusterEntity);
+        return;
+      }
+
+      const pos = entry.data.position;
+      if (!pos) return;
+
+      const cartesian = Cesium.Cartesian3.fromDegrees(
+        pos.longitude, pos.latitude, pos.altitude_m || 0
+      );
+      const screenPos = Cesium.SceneTransforms.worldToWindowCoordinates(scene, cartesian);
+
+      if (screenPos) {
+        screenPositions.push({ id, screenPos, entry });
+      }
+    });
+
+    // Step 2: Find overlapping groups
+    const groups = findOverlapGroups(screenPositions, OVERLAP_THRESHOLD_PX);
+
+    // Step 3: Reset offsets for ungrouped entities
+    const groupedIds = new Set();
+    groups.forEach(group => group.forEach(item => groupedIds.add(item.id)));
+
+    declutterOffsets.forEach((_, id) => {
+      if (!groupedIds.has(id)) {
+        const entry = entities.get(id);
+        if (entry && entry.cesiumEntity.billboard) {
+          entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
+          entry.cesiumEntity.billboard.scale = 1.0;
+          entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
+          entry.cesiumEntity.label.show = true;
+        }
+        declutterOffsets.delete(id);
+        declutteredIds.delete(id);
+      }
+    });
+
+    // Step 4: Apply ring offsets to grouped entities
+    groups.forEach(group => {
+      if (group.length <= 1) return;
+
+      const n = group.length;
+      const scaleDown = n >= SCALE_DOWN_THRESHOLD ? 0.8 : 1.0;
+
+      for (let i = 0; i < n; i++) {
+        const angle = (2 * Math.PI * i) / n - Math.PI / 2; // Start from top
+        const offsetX = Math.cos(angle) * SPREAD_RADIUS_PX;
+        const offsetY = Math.sin(angle) * SPREAD_RADIUS_PX;
+
+        const item = group[i];
+        const entry = entities.get(item.id);
+        if (entry && entry.cesiumEntity.billboard) {
+          entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(offsetX, offsetY);
+          entry.cesiumEntity.billboard.scale = scaleDown;
+          // Hide labels in declutter groups to reduce overlap
+          entry.cesiumEntity.label.show = false;
+          declutterOffsets.set(item.id, { x: offsetX, y: offsetY });
+          declutteredIds.add(item.id);
+        }
+      }
     });
   }
 
-  function clearClusters() {
-    clusterEntities.forEach(e => viewer.entities.remove(e));
-    clusterEntities.length = 0;
+  function findOverlapGroups(items, threshold) {
+    const visited = new Set();
+    const groups = [];
+
+    for (let i = 0; i < items.length; i++) {
+      if (visited.has(i)) continue;
+
+      const group = [items[i]];
+      visited.add(i);
+
+      for (let j = i + 1; j < items.length; j++) {
+        if (visited.has(j)) continue;
+
+        // Check distance to ANY member of the group
+        const closeToGroup = group.some(member => {
+          const dx = member.screenPos.x - items[j].screenPos.x;
+          const dy = member.screenPos.y - items[j].screenPos.y;
+          return Math.sqrt(dx * dx + dy * dy) < threshold;
+        });
+
+        if (closeToGroup) {
+          group.push(items[j]);
+          visited.add(j);
+        }
+      }
+
+      if (group.length > 1) {
+        groups.push(group);
+      }
+    }
+
+    return groups;
   }
 
-  // Check clustering every 2 seconds
-  // setInterval(updateClustering, 2000);
+  // Run declutter periodically
+  setInterval(declutterEntities, DECLUTTER_INTERVAL_MS);
+
+  // Also run on camera move end
+  viewer.camera.moveEnd.addEventListener(declutterEntities);
+
+  // Initial declutter after entities load
+  setTimeout(declutterEntities, 2000);
 
   // === CLICK EVENTS ===
   function fireClick(entityData) {
@@ -320,6 +367,7 @@ export function initEntityManager(viewer, config) {
     loadSnapshot(entityList) {
       entities.forEach((_, id) => removeEntity(id));
       entityList.forEach(e => addOrUpdateEntity(e));
+      setTimeout(declutterEntities, 500);
     },
     updateEntity: addOrUpdateEntity,
     removeEntity,
