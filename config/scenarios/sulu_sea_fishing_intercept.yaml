@@ -172,7 +172,7 @@ scenario:
 
     # === RMN NAVAL ASSETS ===
     - id: "RMN-FIC-101"
-      type: MIL_NAVAL
+      type: MIL_NAVAL_FIC
       callsign: "KD G2000 Alpha"
       agency: MIL
       initial_position: { lat: 5.84, lon: 118.12 }  # MAWILLA 2 Sandakan Harbor
@@ -191,7 +191,7 @@ scenario:
 
     # === RMAF AIR ASSETS ===
     - id: "RMAF-MPA-101"
-      type: RMAF_TRANSPORT
+      type: RMAF_MPA
       callsign: "TUDM MPA Beechcraft"
       agency: RMAF
       initial_position: { lat: 5.30, lon: 115.25 }  # RMAF Labuan

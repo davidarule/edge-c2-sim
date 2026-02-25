@@ -155,7 +155,7 @@ scenario:
 
     # === RMN NAVAL ASSETS ===
     - id: "RMN-FIC-201"
-      type: MIL_NAVAL
+      type: MIL_NAVAL_FIC
       callsign: "KD G2000 Bravo"
       agency: MIL
       initial_position: { lat: 4.48, lon: 118.63 }  # Semporna Jetty
@@ -165,7 +165,7 @@ scenario:
         speed_max_knots: 35
 
     - id: "RMN-FIC-202"
-      type: MIL_NAVAL
+      type: MIL_NAVAL_FIC
       callsign: "KD G2000 Charlie"
       agency: MIL
       initial_position: { lat: 5.84, lon: 118.12 }  # MAWILLA 2 Sandakan Harbor
@@ -221,7 +221,7 @@ scenario:
         note: "Troop transport — can insert GOF team"
 
     - id: "RMAF-MPA-201"
-      type: RMAF_TRANSPORT
+      type: RMAF_MPA
       callsign: "TUDM MPA Eagle"
       agency: RMAF
       initial_position: { lat: 5.30, lon: 115.25 }  # Labuan

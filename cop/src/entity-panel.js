@@ -107,8 +107,9 @@ export function initEntityPanel(containerId, entityManager, viewer) {
 
   function buildMetadataSection(entity) {
     const meta = entity.metadata || {};
-    const entries = Object.entries(meta).filter(([k]) =>
-      !['background', 'ais_active', 'vessel_type_code'].includes(k)
+    const entries = Object.entries(meta).filter(([k, v]) =>
+      !['background', 'ais_active', 'vessel_type_code'].includes(k) &&
+      typeof v !== 'object'
     );
     if (entries.length === 0) return '';
 

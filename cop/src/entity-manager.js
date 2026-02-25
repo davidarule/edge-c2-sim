@@ -37,28 +37,61 @@ export function initEntityManager(viewer, config) {
   const declutteredIds = new Set();   // entity IDs currently in a declutter group
 
   // === MILSYMBOL ===
+  const shortTypeMap = {
+    'MIL_NAVAL':           'NAV',
+    'MIL_NAVAL_FIC':       'FIC',
+    'MMEA_PATROL':         'PB',
+    'MMEA_FAST_INTERCEPT': 'FIC',
+    'RMAF_FIGHTER':        'FTR',
+    'RMAF_HELICOPTER':     'RW',
+    'RMAF_TRANSPORT':      'C',
+    'RMAF_MPA':            'MPA',
+    'RMP_HELICOPTER':      'RW',
+    'RMP_PATROL_CAR':      'MP',
+    'RMP_TACTICAL_TEAM':   'SOF',
+    'MIL_INFANTRY_SQUAD':  'INF',
+    'CI_OFFICER':          'CI',
+    'CI_IMMIGRATION_TEAM': 'IMM',
+    'CIVILIAN_FISHING':    'FV',
+    'CIVILIAN_CARGO':      'CGO',
+    'CIVILIAN_TANKER':     'TKR',
+    'CIVILIAN_COMMERCIAL': 'CIV',
+    'SUSPECT_VESSEL':      '?',
+    'HOSTILE_VESSEL':      'HOS',
+    'HOSTILE_PERSONNEL':   'HOS',
+    'MIL_APC':             'APC',
+  };
+
+  function getShortType(entity) {
+    if (entity.metadata?.type_code) return entity.metadata.type_code;
+    return shortTypeMap[entity.entity_type] || '';
+  }
+
   function getSymbolImage(entity) {
     const sidc = config.sidcMap[entity.entity_type] || config.defaultSidc;
-    if (symbolCache.has(sidc)) return symbolCache.get(sidc);
+    const shortType = getShortType(entity);
+    const cacheKey = `${sidc}_${shortType}`;
+    if (symbolCache.has(cacheKey)) return symbolCache.get(cacheKey);
 
     try {
       const symbol = new ms.Symbol(sidc, {
-        size: 24,
+        size: 35,
         frame: true,
         fill: true,
-        strokeWidth: 1,
-        infoFields: false
+        strokeWidth: 1.5,
+        infoFields: true,
+        type: shortType,
       });
       const url = symbol.toDataURL();
-      symbolCache.set(sidc, url);
+      symbolCache.set(cacheKey, url);
       return url;
     } catch (e) {
       console.warn('Symbol generation failed for SIDC:', sidc, e);
       const fallback = new ms.Symbol(config.defaultSidc, {
-        size: 24, frame: true, fill: true, strokeWidth: 1, infoFields: false
+        size: 35, frame: true, fill: true, strokeWidth: 1.5, infoFields: false
       });
       const url = fallback.toDataURL();
-      symbolCache.set(sidc, url);
+      symbolCache.set(cacheKey, url);
       return url;
     }
   }
@@ -179,9 +212,14 @@ export function initEntityManager(viewer, config) {
     updateCounters.set(id, count);
     if (count % TRAIL_UPDATE_INTERVAL === 0) {
       const trail = trailPositions.get(id) || [];
-      trail.push({ lat, lon, alt });
-      if (trail.length > MAX_TRAIL_POINTS) trail.shift();
-      trailPositions.set(id, trail);
+      const lastPoint = trail[trail.length - 1];
+      const dist = lastPoint
+        ? Math.sqrt(Math.pow(lat - lastPoint.lat, 2) + Math.pow(lon - lastPoint.lon, 2))
+        : Infinity;
+      if (dist > 0.0001) {  // ~11 meters — skip if entity hasn't moved
+        trail.push({ lat, lon, alt });
+        if (trail.length > MAX_TRAIL_POINTS) trail.shift();
+      }
     }
 
     entry.data = entityData;
@@ -244,6 +282,7 @@ export function initEntityManager(viewer, config) {
           entry.cesiumEntity.billboard.scale = 1.0;
           entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
           entry.cesiumEntity.label.show = true;
+          entry.cesiumTrail.show = true;
           declutterOffsets.delete(id);
           declutteredIds.delete(id);
         }
@@ -278,6 +317,7 @@ export function initEntityManager(viewer, config) {
           entry.cesiumEntity.billboard.scale = 1.0;
           entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
           entry.cesiumEntity.label.show = true;
+          entry.cesiumTrail.show = true;
         }
         declutterOffsets.delete(id);
         declutteredIds.delete(id);
@@ -301,8 +341,9 @@ export function initEntityManager(viewer, config) {
         if (entry && entry.cesiumEntity.billboard) {
           entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(offsetX, offsetY);
           entry.cesiumEntity.billboard.scale = scaleDown;
-          // Hide labels in declutter groups to reduce overlap
+          // Hide labels and trails in declutter groups to reduce overlap
           entry.cesiumEntity.label.show = false;
+          entry.cesiumTrail.show = false;
           declutterOffsets.set(item.id, { x: offsetX, y: offsetY });
           declutteredIds.add(item.id);
         }

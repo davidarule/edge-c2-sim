@@ -54,39 +54,41 @@ export function initConfig() {
     },
 
     sidcMap: {
-      // ===== MARITIME (Symbol Set 30 = Sea Surface) =====
-      'MMEA_PATROL':          '10033000001204020000',  // friend patrol boat
-      'MMEA_FAST_INTERCEPT':  '10033000001204010000',  // friend patrol coastal
-      'MIL_NAVAL':            '10033000001201030000',  // friend corvette
-      'SUSPECT_VESSEL':       '10053000001400000000',  // suspect civilian vessel
-      'HOSTILE_VESSEL':       '10063000001400000000',  // hostile civilian vessel
-      'CIVILIAN_CARGO':       '10043000001401010000',  // neutral cargo
-      'CIVILIAN_FISHING':     '10043000001402000000',  // neutral fishing
-      'CIVILIAN_TANKER':      '10043000001401020000',  // neutral tanker
-      'CIVILIAN_PASSENGER':   '10043000001401030000',  // neutral passenger
-      'CIVILIAN_BOAT':        '10043000001400000000',  // neutral generic civilian vessel
-      'RMP_PATROL_CAR':       '10033000001204020000',  // friend patrol boat (RMP Marine Police)
+      // ===== MARITIME (Symbol Set 30) =====
+      'MMEA_PATROL':          '10033000001204020000',  // Patrol Coastal, Station Ship
+      'MMEA_FAST_INTERCEPT':  '10033000001204010000',  // Patrol Coastal, Patrol Craft
+      'MIL_NAVAL':            '10033000001201000000',  // Combatant Line generic
+      'MIL_NAVAL_FIC':        '10033000001204010000',  // Patrol Coastal (G2000 Fast Interceptor Craft)
+      'SUSPECT_VESSEL':       '10053000001400000000',  // Suspect, Non-Military
+      'HOSTILE_VESSEL':       '10063000001400000000',  // Hostile, Non-Military
+      'CIVILIAN_CARGO':       '10043000001401010000',  // Neutral, Merchant Cargo
+      'CIVILIAN_FISHING':     '10043000001402000000',  // Neutral, Fishing
+      'CIVILIAN_TANKER':      '10043000001401020000',  // Neutral, Merchant Tanker
+      'CIVILIAN_PASSENGER':   '10043000001401030000',  // Neutral, Merchant Passenger
+      'CIVILIAN_BOAT':        '10043000001400000000',  // Neutral, Non-Military generic
+      'RMP_PATROL_CAR':       '10033000001204020000',  // Patrol Coastal (RMP Marine Police)
 
-      // ===== AIR (Symbol Set 01 = Air) =====
-      'RMAF_FIGHTER':         '10030100001101020000',  // friend fighter
-      'RMAF_HELICOPTER':      '10030100001102000000',  // friend rotary wing
-      'RMAF_TRANSPORT':       '10030100001101060000',  // friend cargo/transport
-      'RMP_HELICOPTER':       '10030100001102030000',  // friend utility helicopter
-      'CIVILIAN_COMMERCIAL':  '10040100001200000000',  // neutral civilian air
-      'CIVILIAN_LIGHT':       '10040100001201000000',  // neutral civilian fixed wing
+      // ===== AIR (Symbol Set 01) =====
+      'RMAF_FIGHTER':         '10030100001101020000',  // Fixed Wing, Fighter/Bomber
+      'RMAF_HELICOPTER':      '10030100001102000000',  // Rotary Wing
+      'RMAF_TRANSPORT':       '10030100001101060000',  // Fixed Wing, C2/Transport
+      'RMAF_MPA':             '10030100001101040000',  // Fixed Wing, Patrol (Beechcraft MPA)
+      'RMP_HELICOPTER':       '10030100001102000000',  // Rotary Wing
+      'CIVILIAN_COMMERCIAL':  '10040100001200000000',  // Neutral, Civilian generic
+      'CIVILIAN_LIGHT':       '10040100001201000000',  // Neutral, Civilian Fixed Wing
 
-      // ===== GROUND UNITS (Symbol Set 10 = Land Unit) =====
-      'RMP_TACTICAL_TEAM':    '10031000001211000000',  // friend special operations forces
-      'MIL_INFANTRY_SQUAD':   '10031000001201000000',  // friend infantry
-      'CI_OFFICER':           '10031000001400000000',  // friend law enforcement
-      'CI_IMMIGRATION_TEAM':  '10031000001400000000',  // friend law enforcement
-      'RMP_OFFICER':          '10031000001400000000',  // friend law enforcement
-      'HOSTILE_PERSONNEL':    '10061000001201000000',  // hostile infantry
-      'CIVILIAN_TOURIST':     '10041000001100000000',  // neutral civilian
+      // ===== GROUND UNITS (Symbol Set 10) =====
+      'RMP_TACTICAL_TEAM':    '10031000001211000000',  // SOF
+      'MIL_INFANTRY_SQUAD':   '10031000001201000000',  // Infantry
+      'RMP_OFFICER':          '10031000001400000000',  // Law Enforcement
+      'HOSTILE_PERSONNEL':    '10061000001201000000',  // Hostile Infantry
+      'CIVILIAN_TOURIST':     '10041000001100000000',  // Neutral Civilian
 
-      // ===== GROUND EQUIPMENT (Symbol Set 15 = Land Equipment) =====
-      'MIL_APC':              '10031500001201010000',  // friend APC
-      'MIL_VEHICLE':          '10031500001202000000'   // friend wheeled vehicle
+      // ===== GROUND EQUIPMENT (Symbol Set 15) =====
+      'MIL_APC':              '10031500001201010000',  // APC
+      'MIL_VEHICLE':          '10031500001201000000',  // Armored Vehicle generic
+      'CI_OFFICER':           '10031500001703000000',  // LE Customs Service
+      'CI_IMMIGRATION_TEAM':  '10031500001703000000',  // LE Customs Service
     },
 
     defaultSidc: '10033000001100000000',
