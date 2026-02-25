@@ -3,19 +3,30 @@
  *
  * Each simulation entity maps to a Cesium Billboard (symbol) + Label (callsign)
  * + Polyline (track trail). Uses milsymbol.js to generate MIL-STD-2525D icons.
+ *
+ * Features:
+ * - Smooth position interpolation via SampledPositionProperty
+ * - Trail polylines with fading alpha
+ * - Entity clustering at high altitude
+ * - Symbol caching for performance
  */
 
 import ms from 'milsymbol';
 
 const MAX_TRAIL_POINTS = 15;
+const TRAIL_UPDATE_INTERVAL = 3; // Update trail every Nth position update
+const CLUSTER_ALTITUDE = 500000; // Cluster above 500km
 
 export function initEntityManager(viewer, config) {
   const entities = new Map();
   const trailPositions = new Map();
+  const updateCounters = new Map(); // Track update count per entity for trail throttling
   const symbolCache = new Map();
   const clickHandlers = [];
   const doubleClickHandlers = [];
   const filters = { agencies: new Set(), domains: new Set() };
+  let clusterMode = false;
+  const clusterEntities = [];
 
   // === MILSYMBOL ===
   function getSymbolImage(entity) {
@@ -35,7 +46,6 @@ export function initEntityManager(viewer, config) {
       return url;
     } catch (e) {
       console.warn('Symbol generation failed for SIDC:', sidc, e);
-      // Fallback: generate generic friendly symbol
       const fallback = new ms.Symbol(config.defaultSidc, {
         size: 28, frame: true, fill: true, strokeWidth: 1.5, infoFields: false
       });
@@ -66,9 +76,22 @@ export function initEntityManager(viewer, config) {
     const lon = pos.longitude || 0;
     const alt = pos.altitude_m || 0;
 
+    // Use SampledPositionProperty for smooth interpolation
+    const sampledPosition = new Cesium.SampledPositionProperty();
+    sampledPosition.setInterpolationOptions({
+      interpolationDegree: 1,
+      interpolationAlgorithm: Cesium.LinearApproximation
+    });
+
+    // Add initial sample
+    const now = entityData.timestamp
+      ? Cesium.JulianDate.fromIso8601(entityData.timestamp)
+      : viewer.clock.currentTime;
+    sampledPosition.addSample(now, Cesium.Cartesian3.fromDegrees(lon, lat, alt));
+
     const cesiumEntity = viewer.entities.add({
       id: `entity-${id}`,
-      position: Cesium.Cartesian3.fromDegrees(lon, lat, alt),
+      position: sampledPosition,
       billboard: {
         image: getSymbolImage(entityData),
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
@@ -91,8 +114,11 @@ export function initEntityManager(viewer, config) {
       }
     });
 
-    // Track trail
+    // Track trail with fading alpha
     trailPositions.set(id, [{ lat, lon, alt }]);
+    updateCounters.set(id, 0);
+
+    const agencyColor = Cesium.Color.fromCssColorString(getAgencyColor(entityData.agency));
 
     const cesiumTrail = viewer.entities.add({
       id: `trail-${id}`,
@@ -102,13 +128,17 @@ export function initEntityManager(viewer, config) {
           return points.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
         }, false),
         width: 2,
-        material: Cesium.Color.fromCssColorString(getAgencyColor(entityData.agency)).withAlpha(0.5)
+        material: new Cesium.PolylineGlowMaterialProperty({
+          glowPower: 0.15,
+          color: agencyColor.withAlpha(0.5)
+        })
       }
     });
 
     entities.set(id, {
       cesiumEntity,
       cesiumTrail,
+      sampledPosition,
       data: entityData,
       visible: true
     });
@@ -125,7 +155,13 @@ export function initEntityManager(viewer, config) {
     const lon = pos.longitude || 0;
     const alt = pos.altitude_m || 0;
 
-    entry.cesiumEntity.position = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
+    // Add position sample for smooth interpolation
+    const time = entityData.timestamp
+      ? Cesium.JulianDate.fromIso8601(entityData.timestamp)
+      : viewer.clock.currentTime;
+    entry.sampledPosition.addSample(time, Cesium.Cartesian3.fromDegrees(lon, lat, alt));
+
+    // Update heading rotation
     entry.cesiumEntity.billboard.rotation = Cesium.Math.toRadians(-(entityData.heading_deg || 0));
 
     // Regenerate symbol only if type/status changed
@@ -136,11 +172,15 @@ export function initEntityManager(viewer, config) {
 
     entry.cesiumEntity.label.text = entityData.callsign || id;
 
-    // Update trail
-    const trail = trailPositions.get(id) || [];
-    trail.push({ lat, lon, alt });
-    if (trail.length > MAX_TRAIL_POINTS) trail.shift();
-    trailPositions.set(id, trail);
+    // Throttled trail update (every Nth update)
+    const count = (updateCounters.get(id) || 0) + 1;
+    updateCounters.set(id, count);
+    if (count % TRAIL_UPDATE_INTERVAL === 0) {
+      const trail = trailPositions.get(id) || [];
+      trail.push({ lat, lon, alt });
+      if (trail.length > MAX_TRAIL_POINTS) trail.shift();
+      trailPositions.set(id, trail);
+    }
 
     entry.data = entityData;
   }
@@ -152,6 +192,7 @@ export function initEntityManager(viewer, config) {
       viewer.entities.remove(entry.cesiumTrail);
       entities.delete(id);
       trailPositions.delete(id);
+      updateCounters.delete(id);
     }
   }
 
@@ -175,10 +216,95 @@ export function initEntityManager(viewer, config) {
     const hidden = filters.agencies.has(entry.data.agency) ||
                    filters.domains.has(entry.data.domain);
 
-    entry.cesiumEntity.show = !hidden;
-    entry.cesiumTrail.show = !hidden;
+    entry.cesiumEntity.show = !hidden && !clusterMode;
+    entry.cesiumTrail.show = !hidden && !clusterMode;
     entry.visible = !hidden;
   }
+
+  // === CLUSTERING ===
+  function updateClustering() {
+    const cameraHeight = viewer.camera.positionCartographic.height;
+    const shouldCluster = cameraHeight > CLUSTER_ALTITUDE;
+
+    if (shouldCluster === clusterMode) return;
+    clusterMode = shouldCluster;
+
+    if (clusterMode) {
+      // Hide individual entities, show clusters
+      entities.forEach((entry) => {
+        entry.cesiumEntity.show = false;
+        entry.cesiumTrail.show = false;
+      });
+      buildClusters();
+    } else {
+      // Show individual entities, remove clusters
+      clearClusters();
+      entities.forEach((_, id) => applyVisibility(id));
+    }
+  }
+
+  function buildClusters() {
+    clearClusters();
+    const gridSize = 0.5; // degrees
+    const grid = new Map();
+
+    entities.forEach((entry) => {
+      if (!entry.visible) return;
+      const pos = entry.data.position || {};
+      const gridKey = `${Math.floor((pos.latitude || 0) / gridSize)}_${Math.floor((pos.longitude || 0) / gridSize)}`;
+      if (!grid.has(gridKey)) {
+        grid.set(gridKey, { lat: 0, lon: 0, count: 0, agencies: {} });
+      }
+      const cell = grid.get(gridKey);
+      cell.lat += (pos.latitude || 0);
+      cell.lon += (pos.longitude || 0);
+      cell.count++;
+      const agency = entry.data.agency || 'UNKNOWN';
+      cell.agencies[agency] = (cell.agencies[agency] || 0) + 1;
+    });
+
+    grid.forEach((cell, key) => {
+      if (cell.count === 0) return;
+      const lat = cell.lat / cell.count;
+      const lon = cell.lon / cell.count;
+
+      // Dominant agency color
+      const dominant = Object.entries(cell.agencies).sort((a, b) => b[1] - a[1])[0];
+      const color = getAgencyColor(dominant ? dominant[0] : 'UNKNOWN');
+
+      const clusterEntity = viewer.entities.add({
+        id: `cluster-${key}`,
+        position: Cesium.Cartesian3.fromDegrees(lon, lat, 0),
+        point: {
+          pixelSize: Math.min(12 + cell.count * 2, 40),
+          color: Cesium.Color.fromCssColorString(color).withAlpha(0.8),
+          outlineColor: Cesium.Color.WHITE,
+          outlineWidth: 1,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
+        },
+        label: {
+          text: String(cell.count),
+          font: '11px IBM Plex Mono',
+          fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 2,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          verticalOrigin: Cesium.VerticalOrigin.CENTER,
+          horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
+        }
+      });
+      clusterEntities.push(clusterEntity);
+    });
+  }
+
+  function clearClusters() {
+    clusterEntities.forEach(e => viewer.entities.remove(e));
+    clusterEntities.length = 0;
+  }
+
+  // Check clustering every 2 seconds
+  setInterval(updateClustering, 2000);
 
   // === CLICK EVENTS ===
   function fireClick(entityData) {

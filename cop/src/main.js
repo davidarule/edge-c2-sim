@@ -64,6 +64,7 @@ async function main() {
     onClock: (clockState) => {
       if (controls) controls.updateClock(clockState);
       updateHeaderClock(clockState);
+      syncCesiumClock(viewer, clockState);
     }
   });
 
@@ -163,6 +164,22 @@ function updateHeaderClock(clockState) {
   if (el && clockState.sim_time) {
     el.textContent = new Date(clockState.sim_time).toISOString().substring(11, 19);
   }
+}
+
+function syncCesiumClock(viewer, clockState) {
+  if (clockState.sim_time) {
+    try {
+      const julianTime = Cesium.JulianDate.fromIso8601(clockState.sim_time);
+      viewer.clock.currentTime = julianTime;
+    } catch (e) { /* ignore parse errors */ }
+  }
+  if (clockState.speed !== undefined) {
+    viewer.clock.multiplier = clockState.speed;
+  }
+  if (clockState.running !== undefined) {
+    viewer.clock.shouldAnimate = clockState.running;
+  }
+  viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER;
 }
 
 main().catch(err => {
