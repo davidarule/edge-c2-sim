@@ -37,35 +37,49 @@ export function initTimeline(containerId, viewer, config) {
   const headerEl = container.querySelector('.timeline-header');
   const events = [];
 
+  // Drag overlay — covers the entire page during drag so Cesium doesn't steal events
+  const dragOverlay = document.createElement('div');
+  dragOverlay.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9999; cursor: ns-resize; display: none;
+  `;
+  document.body.appendChild(dragOverlay);
+
   // Apply height to grid
   function applyHeight(h) {
     const app = document.getElementById('app');
-    // Update the grid-template-rows: header 1fr controls timeline
-    const rows = getComputedStyle(app).gridTemplateRows.split(' ');
-    rows[rows.length - 1] = `${h}px`;
-    app.style.gridTemplateRows = rows.join(' ');
+    const isBuild = app.classList.contains('build-mode');
+    if (isBuild) {
+      app.style.gridTemplateRows = `48px 1fr 0px ${h}px`;
+    } else {
+      app.style.gridTemplateRows = `48px 1fr 40px ${h}px`;
+    }
     currentHeight = h;
+  }
+
+  function updateToggleIcon() {
+    if (isCollapsed || currentHeight <= SIZE_COLLAPSED) {
+      toggleBtn.textContent = '\u25b2';
+      toggleBtn.title = 'Expand';
+    } else {
+      toggleBtn.textContent = '\u25bc';
+      toggleBtn.title = 'Collapse';
+    }
   }
 
   // Toggle expand/collapse
   toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (isCollapsed) {
-      // Restore to default or expanded
       applyHeight(SIZE_DEFAULT);
       isCollapsed = false;
-      toggleBtn.textContent = '\u25b2';
-      toggleBtn.title = 'Expand';
     } else if (currentHeight < SIZE_EXPANDED) {
       applyHeight(SIZE_EXPANDED);
-      toggleBtn.textContent = '\u25bc';
-      toggleBtn.title = 'Collapse';
     } else {
       applyHeight(SIZE_COLLAPSED);
       isCollapsed = true;
-      toggleBtn.textContent = '\u25b2';
-      toggleBtn.title = 'Expand';
     }
+    updateToggleIcon();
   });
 
   // Double-click header to toggle
@@ -73,12 +87,11 @@ export function initTimeline(containerId, viewer, config) {
     if (isCollapsed || currentHeight <= SIZE_COLLAPSED) {
       applyHeight(SIZE_EXPANDED);
       isCollapsed = false;
-      toggleBtn.textContent = '\u25bc';
     } else {
       applyHeight(SIZE_COLLAPSED);
       isCollapsed = true;
-      toggleBtn.textContent = '\u25b2';
     }
+    updateToggleIcon();
   });
 
   // Drag resize
@@ -92,27 +105,33 @@ export function initTimeline(containerId, viewer, config) {
     dragging = true;
     startY = e.clientY;
     startHeight = currentHeight;
-    document.body.style.cursor = 'ns-resize';
+    dragOverlay.style.display = 'block';
     document.body.style.userSelect = 'none';
     e.preventDefault();
   });
 
-  document.addEventListener('mousemove', (e) => {
+  function onMouseMove(e) {
     if (!dragging) return;
     const delta = startY - e.clientY; // drag up = increase height
     const newHeight = Math.max(SIZE_MIN, Math.min(SIZE_MAX, startHeight + delta));
     applyHeight(newHeight);
     isCollapsed = newHeight <= SIZE_COLLAPSED;
-    toggleBtn.textContent = isCollapsed ? '\u25b2' : '\u25bc';
-  });
+    updateToggleIcon();
+  }
 
-  document.addEventListener('mouseup', () => {
+  function onMouseUp() {
     if (dragging) {
       dragging = false;
+      dragOverlay.style.display = 'none';
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     }
-  });
+  }
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+  dragOverlay.addEventListener('mousemove', onMouseMove);
+  dragOverlay.addEventListener('mouseup', onMouseUp);
 
   function addEvent(event) {
     events.push(event);
