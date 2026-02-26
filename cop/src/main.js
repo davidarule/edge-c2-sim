@@ -72,6 +72,21 @@ async function main() {
   const detail = initEntityPanel('sidebar-right', entityManager, viewer);
   const demoMode = initDemoMode(viewer, entityManager);
 
+  // Wire entity list click in PLAY mode sidebar (BUG-015)
+  if (filters && filters.onEntityClick) {
+    filters.onEntityClick((entity) => {
+      detail.show(entity);
+      const pos = entity.position;
+      if (pos) {
+        const alt = entity.domain === 'AIR' ? 20000 : entity.domain === 'MARITIME' ? 5000 : 2000;
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(pos.longitude, pos.latitude, alt),
+          duration: 1.0
+        });
+      }
+    });
+  }
+
   // Connect WebSocket (controls and timeline need ws reference)
   let controls, timeline;
 
@@ -412,8 +427,28 @@ async function main() {
   validationBadge.onClick(() => {
     const results = validation.validate(currentScenario);
     validation.showValidationModal(results, (item) => {
-      // Fix link: select offending entity
-      if (item.entityId) {
+      // Close the validation modal
+      const overlay = document.querySelector('.validation-overlay');
+      if (overlay) overlay.remove();
+
+      // Fix link: handle by code/field (BUG-013)
+      if (item.code === 'E001' || item.field === 'name') {
+        // Switch to Scenario tab and focus the name input
+        orbatPanel.switchTab('scenario');
+        setTimeout(() => {
+          const nameInput = document.querySelector('.scenario-name-input, [data-field="name"]');
+          if (nameInput) nameInput.focus();
+        }, 100);
+      } else if (item.code === 'W001' || item.field === 'description') {
+        orbatPanel.switchTab('scenario');
+        setTimeout(() => {
+          const descInput = document.querySelector('.scenario-desc-input, [data-field="description"]');
+          if (descInput) descInput.focus();
+        }, 100);
+      } else if (item.code === 'E002') {
+        // No entities — switch to scenario tab
+        orbatPanel.switchTab('scenario');
+      } else if (item.entityId) {
         entityPlacer.selectEntity(item.entityId);
         entityPlacer.flyToEntity(item.entityId);
       }

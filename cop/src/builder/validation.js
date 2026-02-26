@@ -521,10 +521,19 @@ function showValidationModal(results, onFix) {
   const header = document.createElement('div');
   header.className = 'validation-modal-header';
 
-  const totalIssues = results.errors.length + results.warnings.length;
-  const titleText = totalIssues === 0
-    ? 'Validation Passed'
-    : `Validation: ${totalIssues} Issue${totalIssues !== 1 ? 's' : ''}`;
+  const errCount = results.errors.length;
+  const warnCount = results.warnings.length;
+  const infoCount = results.info.length;
+  const totalIssues = errCount + warnCount;
+  let titleText;
+  if (totalIssues === 0) {
+    titleText = 'Validation Passed';
+  } else {
+    const parts = [];
+    if (errCount > 0) parts.push(`${errCount} Error${errCount !== 1 ? 's' : ''}`);
+    if (warnCount > 0) parts.push(`${warnCount} Warning${warnCount !== 1 ? 's' : ''}`);
+    titleText = `Validation: ${parts.join(', ')}`;
+  }
 
   header.innerHTML = `
     <span class="validation-modal-title">${escapeHtml(titleText)}</span>

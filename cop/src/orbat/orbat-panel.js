@@ -29,12 +29,14 @@ const PANEL_STYLES = `
     background: #161B22;
   }
   .orbat-tab {
-    flex: 1; padding: 8px 0; text-align: center;
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 0.5px; text-transform: uppercase;
+    flex: 1; padding: 8px 4px; text-align: center;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.3px; text-transform: uppercase;
     color: #484F58; cursor: pointer;
     border-bottom: 2px solid transparent;
     transition: color 0.15s;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; min-width: 0;
   }
   .orbat-tab:hover {
     color: #8B949E;
@@ -361,6 +363,14 @@ export function initOrbatPanel(container, config) {
       <div class="orbat-tree-body"></div>
       <button class="orbat-add-org-btn">+ Add Organisation</button>
     </div>
+    <div class="orbat-content hidden" data-tab-content="layers">
+      <div style="padding: 10px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: #8B949E; text-transform: uppercase; margin-bottom: 8px;">Domains</div>
+        <div class="layers-domain-filters"></div>
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: #8B949E; text-transform: uppercase; margin: 12px 0 8px;">Agencies</div>
+        <div class="layers-agency-filters"></div>
+      </div>
+    </div>
   `;
 
   container.appendChild(panel);
@@ -378,6 +388,7 @@ export function initOrbatPanel(container, config) {
   // ── Tab switching ──
 
   const orbatContent = panel.querySelector('.orbat-content[data-tab-content="orbat"]');
+  const layersContent = panel.querySelector('.orbat-content[data-tab-content="layers"]');
   const tabBar = panel.querySelector('.orbat-tab-bar');
 
   function switchTab(tabName) {
@@ -386,8 +397,9 @@ export function initOrbatPanel(container, config) {
     tabBar.querySelectorAll('.orbat-tab').forEach(t => {
       t.classList.toggle('active', t.dataset.tab === tabName);
     });
-    // Show/hide orbat content
+    // Show/hide tab content panels
     orbatContent.classList.toggle('hidden', tabName !== 'orbat');
+    layersContent.classList.toggle('hidden', tabName !== 'layers');
     // Notify listeners (main.js handles scenario panel visibility)
     for (const cb of tabChangeCallbacks) {
       cb(tabName);
@@ -399,6 +411,41 @@ export function initOrbatPanel(container, config) {
       switchTab(tab.dataset.tab);
     });
   });
+
+  // ── Layers tab: domain & agency filters (BUG-009) ──
+
+  const domainFilterContainer = panel.querySelector('.layers-domain-filters');
+  const agencyFilterContainer = panel.querySelector('.layers-agency-filters');
+
+  if (domainFilterContainer && config.domainLabels) {
+    for (const [key, label] of Object.entries(config.domainLabels)) {
+      const icon = (config.domainIcons && config.domainIcons[key]) || '';
+      const chip = document.createElement('div');
+      chip.className = 'filter-toggle';
+      chip.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 4px 8px; cursor: pointer; border-radius: 3px; margin-bottom: 2px; transition: opacity 0.15s;';
+      chip.innerHTML = `<span style="font-size: 14px">${icon}</span><span style="font-size: 12px; color: #C9D1D9;">${label}</span>`;
+      chip.addEventListener('click', () => {
+        const hidden = chip.classList.toggle('hidden');
+        chip.style.opacity = hidden ? '0.35' : '1';
+      });
+      domainFilterContainer.appendChild(chip);
+    }
+  }
+
+  if (agencyFilterContainer && config.agencyLabels) {
+    for (const [key] of Object.entries(config.agencyLabels)) {
+      const color = (config.agencyColors && config.agencyColors[key]) || '#78909C';
+      const chip = document.createElement('div');
+      chip.className = 'filter-toggle';
+      chip.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 4px 8px; cursor: pointer; border-radius: 3px; margin-bottom: 2px; transition: opacity 0.15s;';
+      chip.innerHTML = `<div style="width:8px; height:8px; border-radius:2px; background:${color}; flex-shrink:0;"></div><span style="font-size: 12px; color: #C9D1D9;">${key}</span>`;
+      chip.addEventListener('click', () => {
+        const hidden = chip.classList.toggle('hidden');
+        chip.style.opacity = hidden ? '0.35' : '1';
+      });
+      agencyFilterContainer.appendChild(chip);
+    }
+  }
 
   // ── Context menu management ──
 

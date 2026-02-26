@@ -25,6 +25,13 @@ export function initAgencyFilter(containerId, entityManager, config) {
       <div class="filter-group filter-collapsible" id="domain-filters"></div>
     </div>
     <div class="stats-section" id="filter-stats"></div>
+    <div class="filter-section" id="filter-section-entities">
+      <div class="filter-section-header" data-target="entity-list">
+        <span class="filter-section-title">Entities</span>
+        <span class="filter-section-chevron">\u25b6</span>
+      </div>
+      <div class="filter-group filter-collapsible collapsed" id="entity-list" style="max-height: 300px; overflow-y: auto;"></div>
+    </div>
   `;
 
   const agencyGroup = document.getElementById('agency-filters');
@@ -81,7 +88,14 @@ export function initAgencyFilter(containerId, entityManager, config) {
     domainGroup.appendChild(toggle);
   }
 
+  const entityListEl = document.getElementById('entity-list');
+
+  // Entity click callbacks (BUG-015)
+  const entityClickCallbacks = [];
+
   // Update counts periodically
+  let lastEntityListHash = '';
+
   function updateCounts() {
     const agencyCounts = entityManager.getCountByAgency();
     const domainCounts = entityManager.getCountByDomain();
@@ -102,10 +116,52 @@ export function initAgencyFilter(containerId, entityManager, config) {
         <span class="stat-value">${total}</span>
       </div>
     `;
+
+    // Update entity list if visible and changed
+    if (entityListEl && !entityListEl.classList.contains('collapsed')) {
+      updateEntityList();
+    }
+  }
+
+  function updateEntityList() {
+    const allEntities = entityManager.getAllEntities();
+    // Simple hash to avoid unnecessary re-renders
+    const hash = allEntities.map(e => e.entity_id).join(',');
+    if (hash === lastEntityListHash) return;
+    lastEntityListHash = hash;
+
+    entityListEl.innerHTML = '';
+    // Sort by agency then callsign
+    const sorted = [...allEntities].sort((a, b) => {
+      const agencyDiff = (a.agency || '').localeCompare(b.agency || '');
+      if (agencyDiff !== 0) return agencyDiff;
+      return (a.callsign || a.entity_id || '').localeCompare(b.callsign || b.entity_id || '');
+    });
+
+    for (const entity of sorted) {
+      const row = document.createElement('div');
+      row.className = 'filter-toggle entity-row';
+      row.dataset.unitId = entity.entity_id;
+      row.style.cssText = 'cursor: pointer; padding: 3px 8px;';
+      const color = config.agencyColors[entity.agency] || '#78909C';
+      row.innerHTML = `
+        <div class="filter-swatch" style="background: ${color}; width: 6px; height: 6px;"></div>
+        <span class="filter-label" style="font-size: 11px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${entity.callsign || entity.entity_id}</span>
+      `;
+      row.addEventListener('click', () => {
+        for (const cb of entityClickCallbacks) {
+          cb(entity);
+        }
+      });
+      entityListEl.appendChild(row);
+    }
   }
 
   setInterval(updateCounts, 1000);
   updateCounts();
 
-  return { updateCounts };
+  return {
+    updateCounts,
+    onEntityClick(fn) { entityClickCallbacks.push(fn); }
+  };
 }
