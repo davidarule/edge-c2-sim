@@ -13,8 +13,8 @@
 
 import { renderSymbol, clearSymbolCache } from './symbol-renderer.js';
 
-const MAX_TRAIL_POINTS = 15;
-const TRAIL_UPDATE_INTERVAL = 3; // Update trail every Nth position update
+const MAX_TRAIL_POINTS = 30;
+const TRAIL_UPDATE_INTERVAL = 2; // Update trail every Nth position update
 const SYMBOL_RENDER_SIZE = 128;  // Render SVGs at high res to avoid blur when scaled
 
 // === DECLUTTER CONFIG ===
@@ -144,11 +144,11 @@ export function initEntityManager(viewer, config) {
           const points = trailPositions.get(id) || [];
           return points.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
         }, false),
-        width: 2,
+        width: 4,
         show: globalTrailsVisible,
         material: new Cesium.PolylineGlowMaterialProperty({
-          glowPower: 0.15,
-          color: agencyColor.withAlpha(0.5)
+          glowPower: 0.2,
+          color: agencyColor.withAlpha(0.7)
         })
       }
     });

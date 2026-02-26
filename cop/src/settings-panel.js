@@ -300,7 +300,7 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
         id: `route-${route.entity_id}`,
         polyline: {
           positions,
-          width: 2,
+          width: 3,
           material: new Cesium.PolylineDashMaterialProperty({
             color,
             dashLength: 12,

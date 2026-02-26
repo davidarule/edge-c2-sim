@@ -15,7 +15,7 @@ export function initOverlayManager(viewer, config) {
       url: '/geodata/areas/esszone_sulu_sea.geojson',
       style: {
         stroke: Cesium.Color.YELLOW.withAlpha(0.8),
-        strokeWidth: 2,
+        strokeWidth: 4,
         fill: Cesium.Color.YELLOW.withAlpha(0.03)
       },
       defaultVisible: false
