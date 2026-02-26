@@ -319,7 +319,7 @@ scenario:
       description: "RMAF dispatches EC725 from Lahad Datu FOB for armed aerial surveillance"
       target: "RMAF-HELI-201"
       action: "deploy"
-      area: "semporna_islands"
+      destination: { lat: 4.47, lon: 118.66 }  # Fly to Pulau Bum Bum
 
     - time: "00:25"
       type: "ORDER"
@@ -332,14 +332,15 @@ scenario:
       type: "ORDER"
       description: "MMEA orders all patrol vessels to enforce sea curfew — no unauthorized vessels to leave Semporna waters"
       targets: ["MMEA-PV-201", "MMEA-FI-201"]
-      action: "patrol"
+      action: "deploy"
+      destination: { lat: 4.55, lon: 118.70 }  # Move to Semporna waters for sea curfew
 
     - time: "00:28"
       type: "ORDER"
       description: "RMN diverts KD Jerong from Lahad Datu patrol to block northern escape route"
       target: "RMN-PV-201"
-      action: "intercept"
-      area: "esszone_sector_4_semporna"
+      action: "deploy"
+      destination: { lat: 4.60, lon: 118.85 }  # Block northern escape route
 
     - time: "00:29"
       type: "ORDER"
@@ -358,7 +359,8 @@ scenario:
       type: "ORDER"
       description: "RMAF MPA launched from Labuan for wide-area maritime surveillance of Sulu Sea approaches"
       target: "RMAF-MPA-201"
-      action: "search_area"
+      action: "deploy"
+      destination: { lat: 4.75, lon: 119.00 }  # Fly to Sulu Sea approaches
 
     - time: "00:35"
       type: "DETECTION"
@@ -375,7 +377,9 @@ scenario:
     - time: "00:40"
       type: "ORDER"
       description: "ESSCOM orders all available intercept assets to pursue — RMAF EC725 tracking from air"
-      action: "pursue"
+      target: "RMAF-HELI-201"
+      action: "intercept"
+      intercept_target: "HOSTILE-001"
 
     - time: "00:42"
       type: "ORDER"

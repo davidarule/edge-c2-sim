@@ -10,6 +10,8 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any
 
+from geopy.distance import geodesic
+
 from simulator.core.entity import EntityStatus
 from simulator.core.entity_store import EntityStore
 from simulator.movement.intercept import InterceptMovement
@@ -109,7 +111,23 @@ class EventEngine:
                 current_pos = entity.position
                 type_def = ENTITY_TYPES.get(entity.entity_type, {})
                 max_speed = type_def.get("speed_range", (10, 20))[1]
-                deploy_speed = max_speed * 0.9
+
+                # Personnel/infantry are transported by vehicle — use realistic speed
+                if max_speed <= 6:
+                    deploy_speed = 25  # Transported by boat/vehicle
+                else:
+                    deploy_speed = max_speed * 0.9
+
+                # Calculate travel time from distance
+                dist_nm = geodesic(
+                    (current_pos.latitude, current_pos.longitude),
+                    (event.destination["lat"], event.destination["lon"]),
+                ).nautical
+                if deploy_speed > 0 and dist_nm > 0:
+                    travel_hours = dist_nm / deploy_speed
+                    travel_td = timedelta(hours=travel_hours)
+                else:
+                    travel_td = timedelta(minutes=30)
 
                 origin_wp = Waypoint(
                     lat=current_pos.latitude,
@@ -120,21 +138,15 @@ class EventEngine:
                 dest_wp = Waypoint(
                     lat=event.destination["lat"],
                     lon=event.destination["lon"],
-                    speed_knots=deploy_speed,
-                    time_offset=timedelta(hours=2),  # Will arrive based on distance
+                    speed_knots=0,
+                    time_offset=travel_td,
                 )
                 new_movement = WaypointMovement([origin_wp, dest_wp], sim_time)
                 self._movements[target_id] = new_movement
                 entity.speed_knots = deploy_speed
 
-        elif action == "search_area":
-            from simulator.movement.patrol import PatrolMovement
-            area_id = event.area
-            if area_id and hasattr(self, '_zones'):
-                pass  # Would need zone lookup — deferred
-            entity.status = EntityStatus.ACTIVE
-
-        elif action == "patrol":
+        elif action in ("search_area", "patrol"):
+            # If no destination provided, just activate — entity keeps current movement
             entity.status = EntityStatus.ACTIVE
 
         elif action in ("lockdown", "secure"):
@@ -148,8 +160,31 @@ class EventEngine:
             entity.status = EntityStatus.ACTIVE
 
         elif action == "escort_to_port":
-            # Handled via escort field, not per-entity
             entity.status = EntityStatus.ACTIVE
+            # All escort entities head to Sandakan port
+            sandakan = {"lat": 5.84, "lon": 118.105}
+            current_pos = entity.position
+            type_def = ENTITY_TYPES.get(entity.entity_type, {})
+            max_speed = type_def.get("speed_range", (10, 20))[1]
+            escort_speed = max_speed * 0.5  # Slow escort speed
+
+            dist_nm = geodesic(
+                (current_pos.latitude, current_pos.longitude),
+                (sandakan["lat"], sandakan["lon"]),
+            ).nautical
+            travel_td = timedelta(hours=dist_nm / escort_speed) if escort_speed > 0 else timedelta(hours=1)
+
+            origin_wp = Waypoint(
+                lat=current_pos.latitude, lon=current_pos.longitude,
+                speed_knots=escort_speed, time_offset=timedelta(0),
+            )
+            dest_wp = Waypoint(
+                lat=sandakan["lat"], lon=sandakan["lon"],
+                speed_knots=0, time_offset=travel_td,
+            )
+            new_movement = WaypointMovement([origin_wp, dest_wp], sim_time)
+            self._movements[target_id] = new_movement
+            entity.speed_knots = escort_speed
 
         else:
             logger.debug(f"Unhandled action '{action}' for {target_id}")

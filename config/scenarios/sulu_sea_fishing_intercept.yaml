@@ -275,8 +275,8 @@ scenario:
       type: "ORDER"
       description: "RMAF dispatches maritime patrol aircraft from Labuan for aerial surveillance"
       target: "RMAF-MPA-101"
-      action: "search_area"
-      area: "esszone_sector_2_sandakan"
+      action: "deploy"
+      destination: { lat: 5.75, lon: 118.85 }  # Fly to fishing fleet area
 
     - time: "00:08"
       type: "ORDER"
@@ -310,12 +310,14 @@ scenario:
       description: "RMP Marine Police boats launched for boarding operations"
       targets: ["RMP-MP-101", "RMP-MP-102"]
       action: "deploy"
+      destination: { lat: 5.65, lon: 118.80 }  # Deploy to fishing fleet area
 
     - time: "00:20"
       type: "ORDER"
       description: "Helicopter dispatched from Lahad Datu FOB for close air support"
       target: "RMAF-HELI-101"
       action: "deploy"
+      destination: { lat: 5.70, lon: 118.80 }  # Fly to fishing fleet area
 
     - time: "00:25"
       type: "ALERT"
@@ -369,8 +371,8 @@ scenario:
     - time: "00:44"
       type: "ORDER"
       description: "ESSCOM directs all seized vessels to be escorted to Sandakan port for processing"
+      targets: ["MMEA-PV-101", "MMEA-PV-102", "RMN-FIC-101", "IFF-001", "IFF-002", "IFF-003", "IFF-004", "IFF-005"]
       action: "escort_to_port"
-      escort: ["MMEA-PV-101", "MMEA-PV-102", "RMN-FIC-101"]
 
     - time: "00:46"
       type: "ORDER"

@@ -137,10 +137,10 @@ class TestFullScenarioExecution:
                     moved += 1
         assert moved > 3
 
-        # 4. IFF-001 stopped after intercept
+        # 4. IFF-001 escorted toward Sandakan after intercept
         iff001 = store.get_entity("IFF-001")
         assert iff001 is not None
-        assert iff001.speed_knots < 2
+        assert iff001.status in (EntityStatus.ACTIVE, EntityStatus.RESPONDING)
 
         # 5. Maritime entities have nav_status
         for e in store.get_entities_by_domain(Domain.MARITIME):
