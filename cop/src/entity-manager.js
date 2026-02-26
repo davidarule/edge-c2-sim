@@ -57,6 +57,9 @@ export function initEntityManager(viewer, config) {
   // Per-entity trail visibility overrides (entity_id -> boolean)
   const entityTrailOverrides = new Map();
 
+  // Snapshot cooldown — suppress trail accumulation right after reset
+  let snapshotCooldown = false;
+
   // Declutter state
   const declutterOffsets = new Map(); // entity_id -> { x, y } pixel offset
   const declutteredIds = new Set();   // entity IDs currently in a declutter group
@@ -194,7 +197,7 @@ export function initEntityManager(viewer, config) {
 
     const count = (updateCounters.get(id) || 0) + 1;
     updateCounters.set(id, count);
-    if (count % TRAIL_UPDATE_INTERVAL === 0) {
+    if (!snapshotCooldown && count % TRAIL_UPDATE_INTERVAL === 0) {
       const trail = trailPositions.get(id) || [];
       const lastPoint = trail[trail.length - 1];
       const dist = lastPoint
@@ -441,17 +444,14 @@ export function initEntityManager(viewer, config) {
   // === API ===
   return {
     loadSnapshot(entityList) {
-      // Remove all existing entities (clears Cesium entities + trail data)
       entities.forEach((_, id) => removeEntity(id));
-      // Also clear any orphaned trail/counter data
       trailPositions.clear();
       updateCounters.clear();
-      declutterOffsets.clear();
-      declutteredIds.clear();
-      // Remove all remaining Cesium entities to ensure clean slate
-      dataSource.entities.removeAll();
-      // Re-add entities from snapshot
       entityList.forEach(e => addOrUpdateEntity(e));
+      // Suppress trail accumulation briefly so first updates after reset
+      // don't draw lines from old positions to new starting positions
+      snapshotCooldown = true;
+      setTimeout(() => { snapshotCooldown = false; }, 3000);
       setTimeout(declutterEntities, 500);
     },
     loadTrailHistory(trailData) {
