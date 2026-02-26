@@ -307,20 +307,50 @@ async def run(
         ws_adapter.set_command_handler("update_sidc", handle_sidc_update)
 
         async def handle_restart(msg):
-            """Reset clock to beginning and re-broadcast snapshot."""
+            """Reset clock to beginning, reload scenario, and re-broadcast snapshot."""
+            nonlocal scenario_state, event_engine
             logger.info("Restart requested by client")
             clock.pause()
             clock.reset()
             # Clear trail and event history
             ws_adapter._trail_history.clear()
             ws_adapter._event_history.clear()
-            # Reset all entities to initial positions
-            if scenario_state:
-                for eid, entity in scenario_state.entities.items():
-                    store.upsert_entity(entity)
-            # Reset event engine
-            if event_engine:
-                event_engine.reset()
+            # Reload scenario from scratch to get clean entities and movements
+            if scenario:
+                fresh = ScenarioLoader().load(scenario)
+                scenario_state = fresh
+                # Clear and repopulate entity store
+                with store._lock:
+                    store._entities.clear()
+                for entity in scenario_state.entities.values():
+                    store.add_entity(entity)
+                # Recreate event engine with fresh movements
+                event_engine = EventEngine(
+                    events=scenario_state.events,
+                    entity_store=store,
+                    movements=scenario_state.movements,
+                    scenario_start=scenario_state.start_time,
+                )
+                # Re-extract planned routes for COP display
+                from simulator.movement.waypoint import WaypointMovement
+                from simulator.movement.patrol import PatrolMovement
+                route_data = {}
+                for eid, mov in scenario_state.movements.items():
+                    if isinstance(mov, WaypointMovement):
+                        route_data[eid] = [
+                            {"lat": wp.lat, "lon": wp.lon, "alt_m": wp.alt_m}
+                            for wp in mov.waypoints
+                        ]
+                    elif isinstance(mov, PatrolMovement):
+                        try:
+                            if hasattr(mov, '_waypoint_movement') and mov._waypoint_movement:
+                                route_data[eid] = [
+                                    {"lat": wp.lat, "lon": wp.lon, "alt_m": wp.alt_m}
+                                    for wp in mov._waypoint_movement.waypoints
+                                ]
+                        except Exception:
+                            pass
+                ws_adapter.set_route_data(route_data)
             # Broadcast fresh snapshot so COP clients clear stale trail data
             entities = store.get_all_entities()
             snapshot = json.dumps({
@@ -333,6 +363,7 @@ async def run(
                 routes_msg = json.dumps({"type": "routes", "routes": ws_adapter._route_data})
                 await ws_adapter._broadcast(routes_msg)
             clock.start()
+            logger.info("Scenario reset complete")
 
         ws_adapter.set_command_handler("restart", handle_restart)
         ws_adapter.set_command_handler("reset", handle_restart)
