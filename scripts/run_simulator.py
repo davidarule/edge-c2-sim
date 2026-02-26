@@ -299,6 +299,17 @@ async def run(
             # Reset event engine
             if event_engine:
                 event_engine.reset()
+            # Broadcast fresh snapshot so COP clients clear stale trail data
+            entities = store.get_all_entities()
+            snapshot = json.dumps({
+                "type": "snapshot",
+                "entities": [e.to_dict() for e in entities],
+            })
+            await ws_adapter._broadcast(snapshot)
+            # Re-send routes if available
+            if ws_adapter._route_data:
+                routes_msg = json.dumps({"type": "routes", "routes": ws_adapter._route_data})
+                await ws_adapter._broadcast(routes_msg)
             clock.start()
 
         ws_adapter.set_command_handler("restart", handle_restart)

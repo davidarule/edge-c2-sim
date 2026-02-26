@@ -37,9 +37,11 @@ class InterceptMovement:
         self._last_heading = 0.0
         self._last_lat: float | None = None
         self._last_lon: float | None = None
+        self._last_alt: float = 0.0
+        self._last_sim_time: datetime | None = None
 
     def get_state(self, sim_time: datetime) -> MovementState:
-        """Calculate intercept heading toward target. Returns full speed toward target."""
+        """Calculate intercept course and advance pursuer position toward target."""
         target = self._store.get_entity(self._target_id)
         pursuer = self._store.get_entity(self._pursuer_id) if self._pursuer_id else None
 
@@ -50,7 +52,7 @@ class InterceptMovement:
         elif self._last_lat is not None:
             p_lat = self._last_lat
             p_lon = self._last_lon
-            p_alt = 0.0
+            p_alt = self._last_alt
         else:
             # No position info yet — return zero state
             return MovementState(
@@ -59,7 +61,9 @@ class InterceptMovement:
             )
 
         if target is None:
-            # Target removed — hold current heading and position
+            # Target removed — hold position
+            self._last_lat = p_lat
+            self._last_lon = p_lon
             return MovementState(
                 lat=p_lat, lon=p_lon, alt_m=p_alt,
                 heading_deg=self._last_heading,
@@ -78,6 +82,7 @@ class InterceptMovement:
             self._last_lon = p_lon
             heading = _initial_bearing(p_lat, p_lon, t_lat, t_lon)
             self._last_heading = heading
+            self._last_sim_time = sim_time
             return MovementState(
                 lat=p_lat, lon=p_lon, alt_m=p_alt,
                 heading_deg=heading, speed_knots=0.0, course_deg=heading,
@@ -86,31 +91,48 @@ class InterceptMovement:
         # Lead pursuit: project target position forward
         aim_lat, aim_lon = t_lat, t_lon
         if self._lead_pursuit and target.speed_knots > 0:
-            # Estimate time to intercept
             closing_speed_knots = max(self._speed - target.speed_knots * 0.5, 1.0)
             dist_nm = dist_m / 1852.0
             time_to_intercept_h = dist_nm / closing_speed_knots
             time_to_intercept_s = time_to_intercept_h * 3600
 
-            # Project target forward
             target_speed_ms = target.speed_knots * 0.514444
             target_course_rad = math.radians(target.course_deg)
             dx = target_speed_ms * time_to_intercept_s * math.sin(target_course_rad)
             dy = target_speed_ms * time_to_intercept_s * math.cos(target_course_rad)
 
-            # Convert meters offset to lat/lon
             aim_lat = t_lat + dy / 111_111.0
             aim_lon = t_lon + dx / (111_111.0 * math.cos(math.radians(t_lat)))
 
         heading = _initial_bearing(p_lat, p_lon, aim_lat, aim_lon)
         self._last_heading = heading
 
-        # Move pursuer toward target
-        speed_ms = self._speed * 0.514444  # knots to m/s
-        # We don't move position here — the main loop handles it via
-        # the returned heading/speed. But for entities using this directly:
+        # Calculate time delta and advance pursuer position
+        if self._last_sim_time is not None:
+            dt_s = (sim_time - self._last_sim_time).total_seconds()
+        else:
+            dt_s = 0.0
+
+        if dt_s > 0:
+            speed_ms = self._speed * 0.514444  # knots to m/s
+            move_m = speed_ms * dt_s
+
+            # Don't overshoot the target
+            if move_m > dist_m:
+                move_m = dist_m
+
+            heading_rad = math.radians(heading)
+            dlat = (move_m * math.cos(heading_rad)) / 111_111.0
+            dlon = (move_m * math.sin(heading_rad)) / (
+                111_111.0 * math.cos(math.radians(p_lat))
+            )
+            p_lat += dlat
+            p_lon += dlon
+
         self._last_lat = p_lat
         self._last_lon = p_lon
+        self._last_alt = p_alt
+        self._last_sim_time = sim_time
 
         return MovementState(
             lat=p_lat, lon=p_lon, alt_m=p_alt,
