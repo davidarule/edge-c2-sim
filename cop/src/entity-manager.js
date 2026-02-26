@@ -13,9 +13,13 @@
 
 import { renderSymbol, clearSymbolCache } from './symbol-renderer.js';
 
-const MAX_TRAIL_POINTS = 30;
 const TRAIL_UPDATE_INTERVAL = 2; // Update trail every Nth position update
 const SYMBOL_RENDER_SIZE = 128;  // Render SVGs at high res to avoid blur when scaled
+const TRAIL_WIDTH = 6;           // Trail polyline width in pixels
+
+// Trail duration options in hours (slider stops)
+const TRAIL_DURATIONS = [1, 4, 12, 24];
+const DEFAULT_TRAIL_DURATION_H = 4;
 
 // === DECLUTTER CONFIG ===
 const OVERLAP_THRESHOLD_PX = 30;      // Entities closer than this (in pixels) get spread
@@ -44,6 +48,7 @@ export function initEntityManager(viewer, config) {
   let globalIconScale = globalIconSizePx / SYMBOL_RENDER_SIZE;
   let globalLabelsVisible = true;
   let globalTrailsVisible = true;
+  let globalTrailDurationH = DEFAULT_TRAIL_DURATION_H;
   let clusteringEnabled = false;
 
   // Per-entity SIDC overrides (entity_id -> sidc)
@@ -135,7 +140,8 @@ export function initEntityManager(viewer, config) {
       }
     });
 
-    trailPositions.set(id, [{ lat, lon, alt }]);
+    const ts = entityData.timestamp ? new Date(entityData.timestamp).getTime() : Date.now();
+    trailPositions.set(id, [{ lat, lon, alt, ts }]);
     updateCounters.set(id, 0);
 
     const agencyColor = Cesium.Color.fromCssColorString(getAgencyColor(entityData.agency));
@@ -147,11 +153,11 @@ export function initEntityManager(viewer, config) {
           const points = trailPositions.get(id) || [];
           return points.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
         }, false),
-        width: 4,
+        width: TRAIL_WIDTH,
         show: globalTrailsVisible,
         material: new Cesium.PolylineGlowMaterialProperty({
-          glowPower: 0.2,
-          color: agencyColor.withAlpha(0.7)
+          glowPower: 0.15,
+          color: agencyColor.withAlpha(0.85)
         })
       }
     });
@@ -197,8 +203,13 @@ export function initEntityManager(viewer, config) {
         ? Math.sqrt(Math.pow(lat - lastPoint.lat, 2) + Math.pow(lon - lastPoint.lon, 2))
         : Infinity;
       if (dist > 0.0001) {  // ~11 meters — skip if entity hasn't moved
-        trail.push({ lat, lon, alt });
-        if (trail.length > MAX_TRAIL_POINTS) trail.shift();
+        const ts = entityData.timestamp ? new Date(entityData.timestamp).getTime() : Date.now();
+        trail.push({ lat, lon, alt, ts });
+        // Prune points older than trail duration
+        const cutoff = ts - globalTrailDurationH * 3600 * 1000;
+        while (trail.length > 2 && trail[0].ts < cutoff) {
+          trail.shift();
+        }
       }
     }
 
@@ -517,6 +528,20 @@ export function initEntityManager(viewer, config) {
           entry.cesiumEntity.billboard.image = getSymbolImage(entry.data);
         }
       });
+    },
+    setTrailDuration(hours) {
+      globalTrailDurationH = hours;
+      // Prune existing trails to new duration
+      const now = Date.now();
+      const cutoff = now - hours * 3600 * 1000;
+      trailPositions.forEach((trail) => {
+        while (trail.length > 2 && trail[0].ts < cutoff) {
+          trail.shift();
+        }
+      });
+    },
+    getTrailDuration() {
+      return globalTrailDurationH;
     },
     setEntityTrailVisible(entityId, visible) {
       if (visible === null || visible === undefined) {

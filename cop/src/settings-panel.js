@@ -98,6 +98,16 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
             <span>Show Trails</span>
           </label>
         </div>
+        <div class="settings-row" style="flex-direction: column; align-items: stretch;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span>Trail Length</span>
+            <span id="trail-duration-val" style="color: #8B949E; font-family: 'IBM Plex Mono', monospace;">4h</span>
+          </div>
+          <input id="slider-trail-duration" type="range" min="0" max="3" step="1" value="1" class="settings-slider">
+          <div style="display: flex; justify-content: space-between; margin-top: 2px; font-size: 9px; color: #484F58;">
+            <span>1h</span><span>4h</span><span>12h</span><span>24h</span>
+          </div>
+        </div>
       </div>
 
       <!-- CLUSTERING -->
@@ -207,6 +217,17 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
   panel.querySelector('#chk-trails').addEventListener('change', (e) => {
     trailsVisible = e.target.checked;
     entityManager.setTrailsVisible(trailsVisible);
+  });
+
+  // Trail duration slider
+  const trailDurations = [1, 4, 12, 24];
+  const sliderTrailDuration = panel.querySelector('#slider-trail-duration');
+  const trailDurationVal = panel.querySelector('#trail-duration-val');
+  sliderTrailDuration.addEventListener('input', () => {
+    const idx = parseInt(sliderTrailDuration.value, 10);
+    const hours = trailDurations[idx];
+    trailDurationVal.textContent = `${hours}h`;
+    entityManager.setTrailDuration(hours);
   });
 
   // Clustering
