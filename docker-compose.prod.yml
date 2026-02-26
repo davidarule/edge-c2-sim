@@ -84,6 +84,8 @@ services:
       args:
         - VITE_CESIUM_ION_TOKEN=${CESIUM_ION_TOKEN}
         - VITE_WS_URL=wss://ec2sim.brumbiesoft.org/ws
+    volumes:
+      - ./geodata:/geodata:ro
     networks:
       - edge_c2_net
     restart: unless-stopped
