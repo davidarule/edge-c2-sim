@@ -1,0 +1,64 @@
+EC2 Simulator — UI Bug Report
+Assessment Date: 2026-02-26 Application: ec2sim.brumbiesoft.org — Edge C2 Common Operating Picture Tester: Claude Sonnet 4.6 (automated browser assessment)
+BUG-001 · Ground Domain Counter Permanently Shows 0
+Severity: High Component: Left panel — Domains filter (PLAY mode) Observed: The count-domain-GROUND_VEHICLE element always shows 0 even though entities typed RMP_PATROL_CAR, RMP_TACTICAL_TEAM, and MIL_INFANTRY_SQUAD are present in the ORBAT and should be classified as ground domain. The count is correct at start (shows 8) but drops to 0 when the simulation runs and entities begin moving. Expected: Ground count should reflect active entities with a ground domain classification at all sim times. Reproduction: Start sim, press PLAY, let it advance past 08:15, observe Ground counter.
+BUG-002 · FOLLOW Mode Cannot Be Toggled Off
+Severity: High Component: Entity detail panel ? FOLLOW button Observed: Clicking FOLLOW activates camera lock on the entity (button highlights). Clicking FOLLOW a second time does not deactivate it — the camera remains locked. The only way to escape follow is to close the entity panel entirely, but even then the camera stays in follow mode. The camera then tracks indefinitely, zooming in to near-surface level (< 100m) when combined with scrolling. Expected: FOLLOW should toggle off on second click, restoring free camera control. Related: After closing the entity panel, FOLLOW state is retained and the camera continues to track, but the UI no longer shows any indicator that follow mode is active.
+BUG-003 · Entity Hover Tooltip Persists After Panel Close
+Severity: Medium Component: Map — entity popup tooltip Observed: After clicking an entity on the map (opening the entity detail panel), the hover tooltip (showing callsign, type, speed, heading) remains pinned to the entity's position permanently — even after CLOSE is clicked on the entity panel. It only disappears if you click elsewhere on the map or pan away. Expected: Closing the entity panel should dismiss the associated tooltip/popup.
+BUG-004 · ? RESET Button Does Not Reset Simulation
+Severity: High Component: Bottom playback bar ? RESET button (#btn-reset, class ctrl-btn danger) Observed: Clicking RESET does not reset the simulation time back to 08:00. The sim time continues from wherever it currently is. The progress bar is also unaffected. Expected: RESET should stop the simulation, clear entity positions to their initial state, reset the sim clock to 08:00, and clear the event timeline to the original 47 events. Currently only "Restart Simulator" in Settings appears to reset the clock, and even that does not clear the event timeline (see BUG-005).
+BUG-005 · Event Timeline Accumulates Duplicate Events After Restart
+Severity: Medium Component: Event Timeline — timeline-events container Observed: After "Restart Simulator" is triggered from Settings, the event timeline counter grows (e.g. 47 ? 102 ? 115 ? 128 events) because new events from the restarted simulation are appended to the old ones. This results in duplicate chronological entries. Expected: Restarting the simulation should clear the event timeline and begin fresh from the initial 47 scripted events.
+BUG-006 · BUILD Mode Left Panel — Scenario and ORBAT Tabs Share the Same Pane
+Severity: High Component: BUILD mode — left sidebar panel / tab navigation Observed: In BUILD mode, the left panel contains three tabs: SCENARIO, ORBAT, LAYERS. Only ORBAT is functional (class orbat-tab active). SCENARIO and LAYERS have class orbat-tab placeholder and do not respond to clicks. More critically, the SCENARIO panel content (New/Load YAML/Save YAML, ENTITIES section) is rendered directly below the ORBAT panel content in the same scrollable container — both are visible simultaneously rather than switching. The orbat-tree-body is squashed to only 4px visible height because the SCENARIO panel content below it takes up the remaining space. Expected: Clicking SCENARIO tab should show scenario content only. Clicking ORBAT should show the ORBAT tree only. Clicking LAYERS should show the layers panel. Each tab should exclusively display its own content.
+BUG-007 · BUILD Mode — SCENARIO and LAYERS Tabs Are Non-Functional Placeholders
+Severity: High Component: BUILD mode — .orbat-tab-bar tabs Observed: The SCENARIO tab (text "Scenario") and LAYERS tab (text "Layers") both carry the CSS class orbat-tab placeholder. Clicking them has no effect — the ORBAT tab remains active and content does not change. There is no click handler attached to placeholder tabs. Expected: All three tabs should be fully functional, showing their respective panels on click.
+BUG-008 · BUILD Mode Left Panel — "Scenario" and "Layers" Tab Labels Are Clipped
+Severity: Low Component: BUILD mode — tab bar layout Observed: The left sidebar panel (~255px wide) is not wide enough to display all three tab labels in full. "SCENARIO" is clipped to "ENARIO" (the "SC" is hidden behind the left edge). "LAYERS" is partially clipped on the right edge. Expected: Tab labels should either truncate gracefully with ellipsis or the panel should be slightly wider to accommodate all three labels.
+BUG-009 · BUILD Mode Domain Filter — Ground and Personnel Are Missing
+Severity: Medium Component: Left panel — Domains filter section (BUILD mode) Observed: In BUILD mode, the Domains section only shows Maritime and Air. The Ground (??) and Personnel (??) domain filter chips are absent. In PLAY mode, all four domain filters (Maritime, Air, Ground, Personnel) display correctly. Expected: All four domain domain filter chips should appear in BUILD mode, consistent with PLAY mode.
+BUG-010 · Entity Detail Panel — LAST AIS TIME Shows Raw ISO 8601 Timestamp
+Severity: Medium Component: Entity detail panel ? Maritime Data section Observed: The LAST AIS TIME field displays a raw ISO 8601 timestamp: 2026-04-15T11:59:15.368899+00:00. This is not human-readable. Expected: Format as a human-readable local sim time, e.g. 11:59:15 or 15 Apr 2026 11:59 UTC.
+BUG-011 · Entity Detail Panel — NAV STATUS Shows Numeric Code Instead of Description
+Severity: Low Component: Entity detail panel ? Maritime Data section Observed: NAV STATUS displays the raw integer value 0 rather than its AIS navigational status description. Expected: Map AIS Nav Status codes to their descriptions. Code 0 = "Under Way Using Engine". Full mapping: 0=Under Way Using Engine, 1=At Anchor, 2=Not Under Command, 3=Restricted Maneuverability, 5=Moored, 8=Under Way Sailing, 15=Undefined.
+BUG-012 · Measure Mode Toast Persists When Switching to PLAY Mode
+Severity: Medium Component: Map toolbar — mode toast notification / mode state Observed: When Measure mode is active in BUILD mode and the user switches to PLAY mode (via the top PLAY button), the "Measure mode — click on map. ESC to cancel." toast continues to display over the map in PLAY mode. Pressing ESC clears it, but no other action does. Expected: Switching from BUILD to PLAY mode should deactivate any active BUILD tool mode and dismiss its toast notification.
+BUG-013 · Validation Dialog — "Fix" Button for E001 Does Not Navigate to Fix Location
+Severity: Medium Component: BUILD mode — Validation dialog ? Fix buttons Observed: Clicking the "Fix" button next to error E001 ("Scenario has no name") does nothing — the dialog remains open and unchanged. The fix should navigate the user to the Scenario name input field (e.g. close the dialog and scroll/focus the scenario name field). Expected: "Fix" buttons should close the dialog and focus the relevant input (E001 ? scenario name field, W001 ? scenario description field, E002 ? "From ORBAT" or "+ Manual" entity addition).
+BUG-014 · Validation Dialog Title Count Inconsistency
+Severity: Low Component: BUILD mode — Validation dialog header Observed: The dialog title says "Validation: 3 Issues" when there are ERRORS (2) + WARNINGS (1) + INFO (2) = 5 total entries shown. The count "3" appears to refer to Errors + Warnings only, excluding Info. Expected: Either the title should say "Validation: 5 Items" (counting all), or it should be labelled "Validation: 3 Errors & Warnings" to make clear why INFO items are excluded from the count.
+BUG-015 · Clicking ORBAT Entity Row in PLAY Mode Does Not Open Entity Panel or Fly to Entity
+Severity: Medium Component: PLAY mode — ORBAT sidebar entity rows Observed: Clicking on an entity name in the ORBAT list (e.g. "PDRM Marine 01") in PLAY mode does not open the entity detail panel and does not fly the camera to the entity. The rows have data-unit-id attributes but no onclick handlers attached. A dispatched JS click event briefly opens the entity panel then immediately closes it. Expected: Clicking an entity row in the ORBAT should select that entity, open its detail panel on the right, and optionally fly the camera to it.
+BUG-016 · BUILD Mode — ORBAT Tree Body Squashed to 4px
+Severity: High Component: BUILD mode — ORBAT panel layout Observed: The .orbat-tree-body (which contains all the org group rows and asset rows) has a computed clientHeight of only 4px despite a scrollHeight of 165px+. This renders it practically invisible. The cause is that the adjacent SCENARIO panel content below it consumes all remaining flex/grid space. Expected: The ORBAT tree should have sufficient height to be scrollable and visible, occupying the full available panel height when the ORBAT tab is selected.
+BUG-017 · Show Trails Setting Checkbox State vs Initial Behavior
+Severity: Low Component: Settings panel ? Show Trails checkbox Observed: On initial load the "Show Trails" checkbox is checked (true) but trails are not visible until the simulation runs for some time. This is expected behavior but could be confusing. No defect per se, but worth noting.
+WORKS CORRECTLY — Summary of Controls That Function As Expected
+The following controls were confirmed working:
+* PLAY / BUILD mode toggle — correctly switches UI layout, tools, and bottom bar
+* ? PLAY / ? PAUSE button — toggles simulation running/paused
+* Speed buttons (1x / 2x / 5x / 10x / 60x) — correctly set and highlight active speed in PLAY mode
+* BUILD speed buttons (1x / 2x / 5x / 10x) — function correctly (60x intentionally absent in BUILD)
+* Agency filter chips (RMP, MMEA, CI, RMAF, MIL, CIVILIAN) — toggle correctly, update domain counts, filter map entities
+* Domain filter chips (Maritime, Air, Personnel) — toggle correctly and filter map entities
+* Agency/Domain section collapse/expand (?/?) — works correctly
+* DEMO MODE button — toggles correctly, hides entity icons when active
+* FLY TO button (entity panel) — flies camera to selected entity
+* CLOSE button (entity panel) — closes the detail panel
+* TRAIL button (entity panel) — toggles entity trail display
+* Settings icon (?) — opens Settings panel
+* Settings: Icon Size slider — resizes entity icons in real time
+* Settings: Show Labels checkbox — toggles entity callsign labels
+* Settings: ESSZONE Boundary overlay — correctly renders boundary polygons on map
+* Settings: Enable Clustering — correctly clusters entities into numbered groups
+* Settings: Trail Length slider — adjusts trail window duration
+* Settings: Restart Simulator — resets sim clock (but does not clear event timeline — see BUG-005)
+* BUILD map tools (Select / Place / Route / Area / Measure) — all toggle correctly with highlight
+* Measure mode ESC cancellation — ESC key cancels measure mode and dismisses toast
+* Event Timeline Expand/Collapse — opens and closes the timeline panel
+* Event Timeline scrolling — vertical scroll of event list works
+* Map zoom (scroll wheel) — zooms in/out when cursor is over map area
+
+Implementation Priority
+PriorityBug IDsCritical / Fix FirstBUG-002, BUG-004, BUG-006, BUG-007, BUG-016HighBUG-001, BUG-005, BUG-009, BUG-015MediumBUG-003, BUG-010, BUG-012, BUG-013Low / PolishBUG-008, BUG-011, BUG-014

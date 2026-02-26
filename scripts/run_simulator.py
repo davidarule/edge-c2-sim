@@ -302,6 +302,7 @@ async def run(
             clock.start()
 
         ws_adapter.set_command_handler("restart", handle_restart)
+        ws_adapter.set_command_handler("reset", handle_restart)
         print(f"WebSocket server on ws://0.0.0.0:{port}")
 
     if "console" in transport_names:

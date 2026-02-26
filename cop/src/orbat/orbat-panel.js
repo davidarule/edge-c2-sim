@@ -32,15 +32,24 @@ const PANEL_STYLES = `
     flex: 1; padding: 8px 0; text-align: center;
     font-size: 11px; font-weight: 600;
     letter-spacing: 0.5px; text-transform: uppercase;
-    color: #484F58; cursor: default;
+    color: #484F58; cursor: pointer;
     border-bottom: 2px solid transparent;
     transition: color 0.15s;
   }
-  .orbat-tab.active {
-    color: #58A6FF; border-bottom-color: #58A6FF; cursor: pointer;
+  .orbat-tab:hover {
+    color: #8B949E;
   }
-  .orbat-tab.placeholder {
-    opacity: 0.4;
+  .orbat-tab.active {
+    color: #58A6FF; border-bottom-color: #58A6FF;
+  }
+
+  /* Tab content wrapper */
+  .orbat-content {
+    display: flex; flex-direction: column;
+    flex: 1; overflow: hidden;
+  }
+  .orbat-content.hidden {
+    display: none;
   }
 
   /* ORBAT selector */
@@ -312,10 +321,12 @@ export function initOrbatPanel(container, config) {
   let searchQuery = '';
   let selectedUnitId = null;
   let visible = false;
+  let activeTab = 'orbat';
 
   // Callbacks
   const assetSelectCallbacks = [];
   const assetActionCallbacks = [];
+  const tabChangeCallbacks = [];
 
   // Hidden file input for CSV/JSON import
   const fileInput = document.createElement('input');
@@ -331,23 +342,25 @@ export function initOrbatPanel(container, config) {
 
   panel.innerHTML = `
     <div class="orbat-tab-bar">
-      <div class="orbat-tab placeholder">Scenario</div>
-      <div class="orbat-tab active">ORBAT</div>
-      <div class="orbat-tab placeholder">Layers</div>
+      <div class="orbat-tab" data-tab="scenario">Scenario</div>
+      <div class="orbat-tab active" data-tab="orbat">ORBAT</div>
+      <div class="orbat-tab" data-tab="layers">Layers</div>
     </div>
-    <div class="orbat-selector-row">
-      <select class="orbat-selector"></select>
+    <div class="orbat-content" data-tab-content="orbat">
+      <div class="orbat-selector-row">
+        <select class="orbat-selector"></select>
+      </div>
+      <div class="orbat-actions-row">
+        <button class="orbat-action-btn orbat-btn-import">Import CSV</button>
+        <button class="orbat-action-btn orbat-btn-export" style="position:relative;">Export \u25BE</button>
+        <button class="orbat-action-btn orbat-btn-add" style="margin-left:auto;">+ Add</button>
+      </div>
+      <div class="orbat-search-row">
+        <input class="orbat-search-input" type="text" placeholder="Search assets...">
+      </div>
+      <div class="orbat-tree-body"></div>
+      <button class="orbat-add-org-btn">+ Add Organisation</button>
     </div>
-    <div class="orbat-actions-row">
-      <button class="orbat-action-btn orbat-btn-import">Import CSV</button>
-      <button class="orbat-action-btn orbat-btn-export" style="position:relative;">Export \u25BE</button>
-      <button class="orbat-action-btn orbat-btn-add" style="margin-left:auto;">+ Add</button>
-    </div>
-    <div class="orbat-search-row">
-      <input class="orbat-search-input" type="text" placeholder="Search assets...">
-    </div>
-    <div class="orbat-tree-body"></div>
-    <button class="orbat-add-org-btn">+ Add Organisation</button>
   `;
 
   container.appendChild(panel);
@@ -361,6 +374,31 @@ export function initOrbatPanel(container, config) {
   const searchInput = panel.querySelector('.orbat-search-input');
   const treeBody = panel.querySelector('.orbat-tree-body');
   const addOrgBtn = panel.querySelector('.orbat-add-org-btn');
+
+  // ── Tab switching ──
+
+  const orbatContent = panel.querySelector('.orbat-content[data-tab-content="orbat"]');
+  const tabBar = panel.querySelector('.orbat-tab-bar');
+
+  function switchTab(tabName) {
+    activeTab = tabName;
+    // Update tab active states
+    tabBar.querySelectorAll('.orbat-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === tabName);
+    });
+    // Show/hide orbat content
+    orbatContent.classList.toggle('hidden', tabName !== 'orbat');
+    // Notify listeners (main.js handles scenario panel visibility)
+    for (const cb of tabChangeCallbacks) {
+      cb(tabName);
+    }
+  }
+
+  tabBar.querySelectorAll('.orbat-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      switchTab(tab.dataset.tab);
+    });
+  });
 
   // ── Context menu management ──
 
@@ -859,6 +897,26 @@ export function initOrbatPanel(container, config) {
       if (typeof callback === 'function') {
         assetActionCallbacks.push(callback);
       }
+    },
+
+    /**
+     * Register a callback for tab changes.
+     * @param {function(tabName)} callback — tabName: 'scenario' | 'orbat' | 'layers'
+     */
+    onTabChange(callback) {
+      if (typeof callback === 'function') {
+        tabChangeCallbacks.push(callback);
+      }
+    },
+
+    /** Get active tab name. */
+    getActiveTab() {
+      return activeTab;
+    },
+
+    /** Programmatically switch to a tab. */
+    switchTab(tabName) {
+      switchTab(tabName);
     }
   };
 }

@@ -219,7 +219,7 @@ scenario:
       behavior: "standby"
 
     - id: "RMP-MP-101"
-      type: RMP_PATROL_CAR
+      type: RMP_PATROL_BOAT
       callsign: "PDRM Marine 01"
       agency: RMP
       initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
@@ -229,7 +229,7 @@ scenario:
         equipment: ["FLIR", "NVG", "boarding_kit"]
 
     - id: "RMP-MP-102"
-      type: RMP_PATROL_CAR
+      type: RMP_PATROL_BOAT
       callsign: "PDRM Marine 02"
       agency: RMP
       initial_position: { lat: 5.84, lon: 118.105 }  # Sandakan Harbor
@@ -303,7 +303,7 @@ scenario:
 
     # Part 2 additional forces
     - id: "RMP-MP-201"
-      type: RMP_PATROL_CAR
+      type: RMP_PATROL_BOAT
       callsign: "PDRM Marine Semporna 01"
       agency: RMP
       initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty

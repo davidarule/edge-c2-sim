@@ -85,7 +85,8 @@ export function initEntityPanel(containerId, entityManager, viewer) {
     document.getElementById('btn-follow').addEventListener('click', () => {
       const cesiumEntity = entityManager.getCesiumEntity(entity.entity_id);
       if (cesiumEntity) {
-        if (following) {
+        // Use viewer.trackedEntity as source of truth to avoid state desync
+        if (viewer.trackedEntity) {
           viewer.trackedEntity = undefined;
           following = false;
         } else {
@@ -158,6 +159,34 @@ export function initEntityPanel(containerId, entityManager, viewer) {
     viewer.trackedEntity = undefined;
     app.classList.remove('detail-open');
     container.innerHTML = '';
+    // Dismiss any visible tooltip (BUG-003)
+    const tooltip = document.getElementById('tooltip');
+    if (tooltip) tooltip.classList.remove('visible');
+  }
+
+  // AIS navigational status code to description mapping (BUG-011)
+  const NAV_STATUS_LABELS = {
+    0: 'Under Way Using Engine', 1: 'At Anchor', 2: 'Not Under Command',
+    3: 'Restricted Maneuverability', 4: 'Constrained by Draught',
+    5: 'Moored', 6: 'Aground', 7: 'Engaged in Fishing',
+    8: 'Under Way Sailing', 9: 'Reserved (HSC)', 10: 'Reserved (WIG)',
+    11: 'Power-driven Towing Astern', 12: 'Power-driven Pushing/Towing',
+    13: 'Reserved', 14: 'AIS-SART / MOB / EPIRB', 15: 'Undefined'
+  };
+
+  function formatMetadataValue(key, value) {
+    // BUG-011: Map nav_status numeric codes to descriptions
+    if (key === 'nav_status' && typeof value === 'number') {
+      return NAV_STATUS_LABELS[value] || `Status ${value}`;
+    }
+    // BUG-010: Format ISO 8601 timestamps to readable time
+    if (key === 'last_ais_time' || key === 'last_update') {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) {
+        return d.toISOString().substring(11, 19) + ' UTC';
+      }
+    }
+    return value;
   }
 
   function buildMetadataSection(entity) {
@@ -175,7 +204,7 @@ export function initEntityPanel(containerId, entityManager, viewer) {
                   domain === 'PERSONNEL' ? 'Personnel Data' : 'Metadata';
 
     const rows = entries.slice(0, 8).map(([k, v]) =>
-      `<div class="detail-row"><span class="detail-key">${k.replace(/_/g, ' ').toUpperCase()}</span><span class="detail-value">${v}</span></div>`
+      `<div class="detail-row"><span class="detail-key">${k.replace(/_/g, ' ').toUpperCase()}</span><span class="detail-value">${formatMetadataValue(k, v)}</span></div>`
     ).join('');
 
     return `<div class="detail-section"><div class="detail-section-title">${title}</div>${rows}</div>`;

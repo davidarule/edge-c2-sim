@@ -80,6 +80,8 @@ async function main() {
   const ws = connectWebSocket(config.wsUrl, {
     onSnapshot: (entities) => {
       entityManager.loadSnapshot(entities);
+      // Clear timeline on snapshot (reset/restart/reconnect) to prevent duplicates (BUG-005)
+      if (timeline) timeline.clearEvents();
       console.log(`Snapshot loaded: ${entities.length} entities`);
     },
     onEntityUpdate: (entity) => entityManager.updateEntity(entity),
@@ -187,6 +189,16 @@ async function main() {
 
   // Scenario panel (left sidebar in BUILD mode, under Scenario tab)
   const scenarioPanel = initScenarioPanel(builderLeft, config);
+
+  // Wire tab switching between ORBAT, Scenario, and Layers panels (BUG-006/007/016)
+  orbatPanel.onTabChange((tabName) => {
+    if (tabName === 'scenario') {
+      scenarioPanel.show();
+      scenarioPanel.setScenario(currentScenario);
+    } else {
+      scenarioPanel.hide();
+    }
+  });
 
   // Wire scenario panel actions
   scenarioPanel.onAction((action, data) => {
@@ -344,8 +356,13 @@ async function main() {
       if (mode === 'BUILD') {
         orbatPanel.show();
         orbatPanel.refresh();
-        scenarioPanel.show();
-        scenarioPanel.setScenario(currentScenario);
+        // Show scenario panel only if its tab is active (BUG-006/007/016)
+        if (orbatPanel.getActiveTab() === 'scenario') {
+          scenarioPanel.show();
+          scenarioPanel.setScenario(currentScenario);
+        } else {
+          scenarioPanel.hide();
+        }
         entityPlacer.setEntities(currentScenario.entities);
         entityPlacer.refresh();
         routeEditor.setEntities(currentScenario.entities);

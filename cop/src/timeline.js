@@ -228,9 +228,15 @@ export function initTimeline(containerId, viewer, config) {
     setTimeout(() => toast.remove(), 5000);
   }
 
+  function clearEvents() {
+    events.length = 0;
+    eventsContainer.innerHTML = '';
+    countEl.textContent = '';
+  }
+
   function getEventCount() {
     return events.length;
   }
 
-  return { addEvent, getEventCount };
+  return { addEvent, clearEvents, getEventCount };
 }

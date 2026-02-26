@@ -107,7 +107,7 @@ scenario:
 
     # === RMP MARINE POLICE (First responders) ===
     - id: "RMP-MP-201"
-      type: RMP_PATROL_CAR
+      type: RMP_PATROL_BOAT
       callsign: "PDRM Marine Semporna 01"
       agency: RMP
       initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
@@ -117,7 +117,7 @@ scenario:
         equipment: ["FLIR", "NVG", "boarding_kit", "M4_rifle"]
 
     - id: "RMP-MP-202"
-      type: RMP_PATROL_CAR
+      type: RMP_PATROL_BOAT
       callsign: "PDRM Marine Semporna 02"
       agency: RMP
       initial_position: { lat: 4.48, lon: 118.608 }  # Semporna Jetty
@@ -126,7 +126,7 @@ scenario:
         vessel_type: "Rigid Hull Fender Boat"
 
     - id: "RMP-MP-203"
-      type: RMP_PATROL_CAR
+      type: RMP_PATROL_BOAT
       callsign: "PDRM Marine Semporna 03"
       agency: RMP
       initial_position: { lat: 4.50, lon: 118.608 }  # Semporna patrol area

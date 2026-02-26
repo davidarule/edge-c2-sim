@@ -166,6 +166,8 @@ export function initBuilderMode(opts) {
     } else {
       app.classList.remove('build-mode');
       app.classList.remove('detail-open');
+      // Dismiss any active build tool toasts (BUG-012)
+      document.querySelectorAll('.mode-toast').forEach(t => t.classList.remove('visible'));
       listeners.forEach(fn => fn('PLAY'));
       if (opts.onModeChange) opts.onModeChange('PLAY');
     }
