@@ -49,6 +49,9 @@ export function initEntityManager(viewer, config) {
   // Per-entity SIDC overrides (entity_id -> sidc)
   const entitySidcOverrides = new Map();
 
+  // Per-entity trail visibility overrides (entity_id -> boolean)
+  const entityTrailOverrides = new Map();
+
   // Declutter state
   const declutterOffsets = new Map(); // entity_id -> { x, y } pixel offset
   const declutteredIds = new Set();   // entity IDs currently in a declutter group
@@ -235,9 +238,13 @@ export function initEntityManager(viewer, config) {
     const hidden = filters.agencies.has(entry.data.agency) ||
                    filters.domains.has(entry.data.domain);
 
+    // Per-entity trail override takes precedence over global toggle
+    const trailOverride = entityTrailOverrides.get(id);
+    const trailVisible = trailOverride !== undefined ? trailOverride : globalTrailsVisible;
+
     entry.cesiumEntity.show = !hidden;
     entry.cesiumEntity.label.show = !hidden && globalLabelsVisible;
-    entry.cesiumTrail.show = !hidden && globalTrailsVisible;
+    entry.cesiumTrail.show = !hidden && trailVisible;
     entry.visible = !hidden;
   }
 
@@ -254,6 +261,11 @@ export function initEntityManager(viewer, config) {
     return SPREAD_RADIUS_PX_MAX * (1 - t);
   }
 
+  function getTrailVisibleForEntity(id) {
+    const override = entityTrailOverrides.get(id);
+    return override !== undefined ? override : globalTrailsVisible;
+  }
+
   function resetAllDeclutter() {
     declutterOffsets.forEach((_, id) => {
       const entry = entities.get(id);
@@ -262,7 +274,7 @@ export function initEntityManager(viewer, config) {
         entry.cesiumEntity.billboard.scale = globalIconScale;
         entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
         entry.cesiumEntity.label.show = globalLabelsVisible && entry.visible;
-        entry.cesiumTrail.show = globalTrailsVisible && entry.visible;
+        entry.cesiumTrail.show = getTrailVisibleForEntity(id) && entry.visible;
       }
     });
     declutterOffsets.clear();
@@ -276,7 +288,7 @@ export function initEntityManager(viewer, config) {
       entry.cesiumEntity.billboard.scale = globalIconScale;
       entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
       entry.cesiumEntity.label.show = globalLabelsVisible && entry.visible;
-      entry.cesiumTrail.show = globalTrailsVisible && entry.visible;
+      entry.cesiumTrail.show = getTrailVisibleForEntity(id) && entry.visible;
     }
     declutterOffsets.delete(id);
     declutteredIds.delete(id);
@@ -477,8 +489,10 @@ export function initEntityManager(viewer, config) {
     },
     setTrailsVisible(visible) {
       globalTrailsVisible = visible;
-      entities.forEach((entry) => {
-        entry.cesiumTrail.show = visible && entry.visible;
+      entities.forEach((entry, id) => {
+        const trailOverride = entityTrailOverrides.get(id);
+        const show = trailOverride !== undefined ? trailOverride : visible;
+        entry.cesiumTrail.show = show && entry.visible;
       });
     },
     updateSidcForEntity(entityId, newSidc) {
@@ -503,6 +517,21 @@ export function initEntityManager(viewer, config) {
           entry.cesiumEntity.billboard.image = getSymbolImage(entry.data);
         }
       });
+    },
+    setEntityTrailVisible(entityId, visible) {
+      if (visible === null || visible === undefined) {
+        entityTrailOverrides.delete(entityId);  // Reset to global
+      } else {
+        entityTrailOverrides.set(entityId, visible);
+      }
+      const entry = entities.get(entityId);
+      if (entry) {
+        entry.cesiumTrail.show = visible !== false && entry.visible;
+      }
+    },
+    getEntityTrailVisible(entityId) {
+      const override = entityTrailOverrides.get(entityId);
+      return override !== undefined ? override : globalTrailsVisible;
     },
     setClusteringEnabled(enabled) {
       clusteringEnabled = enabled;

@@ -90,8 +90,8 @@ scenario:
         - { lat: 5.77, lon: 118.83, speed: 4, time: "00:00" }
         - { lat: 5.72, lon: 118.78, speed: 3, time: "00:10" }
         - { lat: 5.67, lon: 118.73, speed: 3, time: "00:20" }
-        - { lat: 5.60, lon: 118.65, speed: 9, time: "00:30" }
-        - { lat: 5.55, lon: 118.60, speed: 0, time: "00:40" }
+        - { lat: 5.60, lon: 118.73, speed: 9, time: "00:30" }
+        - { lat: 5.55, lon: 118.75, speed: 0, time: "00:40" }
       metadata:
         ais_active: false
         flag: "VNM"

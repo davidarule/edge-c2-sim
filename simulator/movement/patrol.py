@@ -6,6 +6,7 @@ between waypoints at a speed within its type's range, with configurable
 dwell time at each point. Creates natural-looking patrol behavior.
 """
 
+import logging
 import random
 from datetime import datetime, timedelta
 
@@ -14,6 +15,8 @@ from shapely.geometry import Polygon, Point
 from simulator.movement.waypoint import (
     MovementState, Waypoint, WaypointMovement, _initial_bearing,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class PatrolMovement:
@@ -26,24 +29,38 @@ class PatrolMovement:
         dwell_time_range_s: tuple[int, int] = (30, 120),
         seed: int | None = None,
         scenario_start: datetime | None = None,
+        domain: str | None = None,
     ) -> None:
         self._polygon = polygon
         self._speed_range = speed_range_knots
         self._dwell_range = dwell_time_range_s
         self._rng = random.Random(seed)
         self._scenario_start = scenario_start or datetime.now()
+        self._domain = domain  # Used for terrain validation
         self._waypoint_movement: WaypointMovement | None = None
         self._generate_waypoints(timedelta(0))
 
     def _random_point_in_polygon(self) -> tuple[float, float]:
-        """Generate a random point inside the polygon using rejection sampling."""
+        """Generate a random point inside the polygon using rejection sampling.
+        Also validates terrain if domain is set (maritime -> water, ground -> land)."""
+        from simulator.movement.terrain import validate_position
+
         minx, miny, maxx, maxy = self._polygon.bounds
         for _ in range(1000):
             lat = self._rng.uniform(miny, maxy)
             lon = self._rng.uniform(minx, maxx)
             if self._polygon.contains(Point(lon, lat)):
+                # Terrain check: skip points on wrong terrain
+                if self._domain and not validate_position(lat, lon, self._domain):
+                    continue
                 return lat, lon
-        # Fallback to centroid
+        # Fallback: try without terrain check
+        for _ in range(100):
+            lat = self._rng.uniform(miny, maxy)
+            lon = self._rng.uniform(minx, maxx)
+            if self._polygon.contains(Point(lon, lat)):
+                return lat, lon
+        # Last resort: centroid
         c = self._polygon.centroid
         return c.y, c.x
 

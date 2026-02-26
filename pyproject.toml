@@ -13,6 +13,7 @@ dependencies = [
     "click>=8.1",
     "uvicorn>=0.27",
     "python-jose[cryptography]>=3.3",
+    "global-land-mask>=1.0.0",
 ]
 
 [project.optional-dependencies]

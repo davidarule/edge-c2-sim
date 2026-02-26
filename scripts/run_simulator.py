@@ -23,6 +23,7 @@ from simulator.domains.ground_vehicle import GroundVehicleSimulator
 from simulator.domains.maritime import MaritimeSimulator
 from simulator.domains.personnel import PersonnelSimulator
 from simulator.movement.noise import PositionNoise
+from simulator.movement.terrain import validate_position, find_nearest_valid_point
 from simulator.scenario.event_engine import EventEngine
 from simulator.scenario.loader import ScenarioLoader, ScenarioState
 from simulator.transport.console_adapter import ConsoleAdapter
@@ -75,10 +76,20 @@ async def simulation_loop(
                 noise_cache[domain_key] = PositionNoise.for_domain(domain_key)
             noisy_state = noise_cache[domain_key].apply(state)
 
+            # Terrain validation: ensure entity is on correct surface
+            final_lat = noisy_state.lat
+            final_lon = noisy_state.lon
+            skip_terrain = entity.metadata.get("skip_terrain_check", False)
+            if not skip_terrain and domain_key in ("MARITIME", "GROUND_VEHICLE", "PERSONNEL"):
+                if not validate_position(final_lat, final_lon, domain_key):
+                    fix = find_nearest_valid_point(final_lat, final_lon, domain_key)
+                    if fix:
+                        final_lat, final_lon = fix
+
             # Update entity position
             entity.update_position(
-                latitude=noisy_state.lat,
-                longitude=noisy_state.lon,
+                latitude=final_lat,
+                longitude=final_lon,
                 altitude_m=noisy_state.alt_m,
                 heading_deg=noisy_state.heading_deg,
                 speed_knots=noisy_state.speed_knots,

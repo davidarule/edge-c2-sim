@@ -284,6 +284,9 @@ class ScenarioLoader:
                 if movement:
                     movements[entity.entity_id] = movement
 
+        # Validate terrain for waypoint-based movements
+        self._validate_terrain(entities, movements, start)
+
         # Parse events
         events = self._parse_events(scenario.get("events", []))
 
@@ -303,6 +306,63 @@ class ScenarioLoader:
             events=events,
             start_time=start,
         )
+
+    def _validate_terrain(
+        self, entities: dict, movements: dict, start: datetime,
+    ) -> None:
+        """Validate waypoints against terrain and fix invalid ones.
+        Entities with metadata 'skip_terrain_check: true' are excluded."""
+        try:
+            from simulator.movement.terrain import validate_position, find_nearest_valid_point
+        except ImportError:
+            logger.debug("Terrain validation unavailable (global-land-mask not installed)")
+            return
+
+        fix_count = 0
+        for eid, movement in movements.items():
+            entity = entities.get(eid)
+            if not entity:
+                continue
+            # Skip if entity opts out of terrain check (e.g. amphibious ops, beach landings)
+            if entity.metadata.get("skip_terrain_check"):
+                continue
+            domain = entity.domain.value
+            if domain == "AIR":
+                continue
+
+            if isinstance(movement, WaypointMovement):
+                wps = movement.waypoints
+                for i, wp in enumerate(wps):
+                    if not validate_position(wp.lat, wp.lon, domain):
+                        fix = find_nearest_valid_point(wp.lat, wp.lon, domain)
+                        if fix:
+                            logger.warning(
+                                f"Terrain fix [{eid}] wp{i}: "
+                                f"({wp.lat:.4f},{wp.lon:.4f})->({fix[0]:.4f},{fix[1]:.4f}) "
+                                f"[{domain}]"
+                            )
+                            # Create corrected waypoint
+                            wps[i] = Waypoint(
+                                lat=fix[0], lon=fix[1], alt_m=wp.alt_m,
+                                speed_knots=wp.speed_knots,
+                                time_offset=wp.time_offset,
+                                metadata_overrides=wp.metadata_overrides,
+                            )
+                            fix_count += 1
+                        else:
+                            logger.warning(
+                                f"Terrain INVALID [{eid}] wp{i}: "
+                                f"({wp.lat:.4f},{wp.lon:.4f}) — no fix found [{domain}]"
+                            )
+                if fix_count > 0:
+                    # Rebuild movement with corrected waypoints
+                    movements[eid] = WaypointMovement(wps, start)
+                    # Update entity initial position
+                    state = movements[eid].get_state(start)
+                    entity.position = Position(state.lat, state.lon)
+
+        if fix_count > 0:
+            logger.info(f"Terrain validation: {fix_count} waypoints corrected")
 
     def _parse_scenario_entity(
         self, entry: dict, start: datetime,
@@ -371,6 +431,7 @@ class ScenarioLoader:
                     speed_range_knots=speed_range,
                     seed=hash(entity_id) & 0xFFFFFFFF,
                     scenario_start=start,
+                    domain=domain.value,
                 )
                 entity.speed_knots = sum(speed_range) / 2
             else:
@@ -434,6 +495,7 @@ class ScenarioLoader:
                     speed_range_knots=speed_range,
                     seed=(hash(eid) & 0xFFFFFFFF),
                     scenario_start=start,
+                    domain=domain.value,
                 )
 
                 # Set initial position from first patrol waypoint

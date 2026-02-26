@@ -67,7 +67,7 @@ export function initEntityPanel(containerId, entityManager, viewer) {
         <div class="entity-detail-actions">
           <button class="detail-action-btn" id="btn-flyto">FLY TO</button>
           <button class="detail-action-btn ${following ? 'active' : ''}" id="btn-follow">FOLLOW</button>
-          <button class="detail-action-btn" id="btn-track">TRACK</button>
+          <button class="detail-action-btn ${entityManager.getEntityTrailVisible(entity.entity_id) ? 'active' : ''}" id="btn-trail">TRAIL</button>
           <button class="detail-action-btn" id="btn-close">CLOSE</button>
         </div>
       </div>
@@ -94,6 +94,12 @@ export function initEntityPanel(containerId, entityManager, viewer) {
         }
         document.getElementById('btn-follow').classList.toggle('active', following);
       }
+    });
+
+    document.getElementById('btn-trail').addEventListener('click', () => {
+      const current = entityManager.getEntityTrailVisible(entity.entity_id);
+      entityManager.setEntityTrailVisible(entity.entity_id, !current);
+      document.getElementById('btn-trail').classList.toggle('active', !current);
     });
 
     document.getElementById('btn-close').addEventListener('click', () => hide());
