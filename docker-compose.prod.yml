@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # --- Nginx Reverse Proxy ---
   nginx:
@@ -43,7 +41,7 @@ services:
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8080/auth/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/auth/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -68,10 +66,11 @@ services:
         --speed ${SIM_SPEED:-1}
         --transport ws,console
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8766/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8766/health')"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 15s
     networks:
       - edge_c2_net
     restart: unless-stopped

@@ -27,6 +27,7 @@ from simulator.scenario.event_engine import EventEngine
 from simulator.scenario.loader import ScenarioLoader, ScenarioState
 from simulator.transport.console_adapter import ConsoleAdapter
 from simulator.transport.websocket_adapter import WebSocketAdapter
+from scripts.health_server import HealthServer
 
 logging.basicConfig(
     level=logging.INFO,
@@ -294,6 +295,13 @@ async def run(
     for adapter in adapters:
         await adapter.connect()
 
+    # Start health server
+    health = HealthServer(port=8766)
+    health.scenario_name = scenario or "none"
+    health.speed = speed
+    health.entity_count = store.count
+    await health.start()
+
     # Start clock
     clock.start()
     print(f"\nSimulation starting at {start_time.isoformat()} (speed: {speed}x)")
@@ -335,6 +343,7 @@ async def run(
 
     for adapter in adapters:
         await adapter.disconnect()
+    await health.stop()
     print("Simulator stopped")
 
 
