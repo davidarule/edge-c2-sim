@@ -60,8 +60,10 @@ services:
       - ./config:/app/config
       - ./geodata:/app/geodata
       - ./logs:/app/logs
+      - ./scripts:/app/scripts
+      - ./simulator:/app/simulator
     command: >
-      edge-c2-sim
+      python -m scripts.run_simulator
         --scenario ${SCENARIO:-config/scenarios/demo_combined.yaml}
         --speed ${SIM_SPEED:-1}
         --transport ws,console
