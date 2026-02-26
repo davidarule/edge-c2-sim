@@ -112,9 +112,11 @@ async def simulation_loop(
         # Process events
         fired_events = event_engine.tick(sim_time)
         for event in fired_events:
+            event_dict = event.to_dict()
+            event_dict["time"] = sim_time.isoformat()
             for adapter in adapters:
                 try:
-                    await adapter.push_event(event.to_dict())
+                    await adapter.push_event(event_dict)
                 except Exception as e:
                     logger.debug(f"Event push error: {e}")
 

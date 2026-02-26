@@ -1,21 +1,118 @@
 /**
  * Event timeline — bottom panel with scrollable event log.
+ * Resizable via drag handle, with expand/collapse toggle.
  */
 
 export function initTimeline(containerId, viewer, config) {
   const container = document.getElementById(containerId);
   if (!container) return {};
 
+  // Size presets
+  const SIZE_COLLAPSED = 28;   // header only
+  const SIZE_DEFAULT = 120;
+  const SIZE_EXPANDED = 350;
+  const SIZE_MIN = 28;
+  const SIZE_MAX = 500;
+
+  let currentHeight = SIZE_DEFAULT;
+  let isCollapsed = false;
+
   container.innerHTML = `
     <div class="timeline-header">
-      <span class="timeline-title">Event Timeline</span>
-      <div class="timeline-drag-handle"></div>
+      <div style="display: flex; align-items: center;">
+        <span class="timeline-title">Event Timeline</span>
+        <span class="timeline-event-count" id="timeline-event-count"></span>
+      </div>
+      <div class="timeline-controls">
+        <button class="timeline-expand-btn" id="timeline-toggle-btn" title="Expand/Collapse">\u25b2</button>
+        <div class="timeline-drag-handle"></div>
+      </div>
     </div>
     <div class="timeline-events" id="timeline-events"></div>
   `;
 
   const eventsContainer = document.getElementById('timeline-events');
+  const toggleBtn = document.getElementById('timeline-toggle-btn');
+  const countEl = document.getElementById('timeline-event-count');
+  const headerEl = container.querySelector('.timeline-header');
   const events = [];
+
+  // Apply height to grid
+  function applyHeight(h) {
+    const app = document.getElementById('app');
+    // Update the grid-template-rows: header 1fr controls timeline
+    const rows = getComputedStyle(app).gridTemplateRows.split(' ');
+    rows[rows.length - 1] = `${h}px`;
+    app.style.gridTemplateRows = rows.join(' ');
+    currentHeight = h;
+  }
+
+  // Toggle expand/collapse
+  toggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isCollapsed) {
+      // Restore to default or expanded
+      applyHeight(SIZE_DEFAULT);
+      isCollapsed = false;
+      toggleBtn.textContent = '\u25b2';
+      toggleBtn.title = 'Expand';
+    } else if (currentHeight < SIZE_EXPANDED) {
+      applyHeight(SIZE_EXPANDED);
+      toggleBtn.textContent = '\u25bc';
+      toggleBtn.title = 'Collapse';
+    } else {
+      applyHeight(SIZE_COLLAPSED);
+      isCollapsed = true;
+      toggleBtn.textContent = '\u25b2';
+      toggleBtn.title = 'Expand';
+    }
+  });
+
+  // Double-click header to toggle
+  headerEl.addEventListener('dblclick', () => {
+    if (isCollapsed || currentHeight <= SIZE_COLLAPSED) {
+      applyHeight(SIZE_EXPANDED);
+      isCollapsed = false;
+      toggleBtn.textContent = '\u25bc';
+    } else {
+      applyHeight(SIZE_COLLAPSED);
+      isCollapsed = true;
+      toggleBtn.textContent = '\u25b2';
+    }
+  });
+
+  // Drag resize
+  let dragging = false;
+  let startY = 0;
+  let startHeight = 0;
+
+  headerEl.addEventListener('mousedown', (e) => {
+    // Don't start drag on button click
+    if (e.target.closest('.timeline-expand-btn')) return;
+    dragging = true;
+    startY = e.clientY;
+    startHeight = currentHeight;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const delta = startY - e.clientY; // drag up = increase height
+    const newHeight = Math.max(SIZE_MIN, Math.min(SIZE_MAX, startHeight + delta));
+    applyHeight(newHeight);
+    isCollapsed = newHeight <= SIZE_COLLAPSED;
+    toggleBtn.textContent = isCollapsed ? '\u25b2' : '\u25bc';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (dragging) {
+      dragging = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
 
   function addEvent(event) {
     events.push(event);
@@ -26,8 +123,20 @@ export function initTimeline(containerId, viewer, config) {
     const severity = (event.severity || 'INFO').toLowerCase();
     if (severity === 'critical') row.classList.add('severity-critical');
 
-    // Time
-    const time = event.time ? new Date(event.time).toISOString().substring(11, 16) : '--:--';
+    // Time — try ISO string first, then time_offset_s
+    let timeStr = '--:--';
+    if (event.time) {
+      const d = new Date(event.time);
+      if (!isNaN(d.getTime())) {
+        timeStr = d.toISOString().substring(11, 16);
+      }
+    } else if (event.time_offset_s !== undefined) {
+      // Format offset as HH:MM from start
+      const totalMin = Math.floor(event.time_offset_s / 60);
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      timeStr = `+${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
 
     // Agency badge
     const agencies = event.alert_agencies || [];
@@ -35,7 +144,7 @@ export function initTimeline(containerId, viewer, config) {
     const agencyColor = config.agencyColors[agency] || config.agencyColors.UNKNOWN;
 
     row.innerHTML = `
-      <span class="event-time">${time}</span>
+      <span class="event-time">${timeStr}</span>
       <span class="event-agency-badge" style="background: ${agencyColor}">${agency}</span>
       <span class="event-description ${severity === 'warning' ? 'warning' : ''} ${severity === 'critical' ? 'critical' : ''}">${event.description || ''}</span>
     `;
@@ -62,6 +171,9 @@ export function initTimeline(containerId, viewer, config) {
 
     eventsContainer.appendChild(row);
 
+    // Update count
+    countEl.textContent = `(${events.length})`;
+
     // Flash animation for critical events
     if (severity === 'critical' || severity === 'warning') {
       row.classList.add('flash');
@@ -70,6 +182,13 @@ export function initTimeline(containerId, viewer, config) {
 
     // Auto-scroll to bottom
     eventsContainer.scrollTop = eventsContainer.scrollHeight;
+
+    // Auto-expand if collapsed and critical event arrives
+    if (isCollapsed && (severity === 'critical' || severity === 'warning')) {
+      applyHeight(SIZE_DEFAULT);
+      isCollapsed = false;
+      toggleBtn.textContent = '\u25b2';
+    }
 
     // Toast notification for critical events
     if (severity === 'critical' || severity === 'warning') {

@@ -1,21 +1,28 @@
 /**
  * Agency filter panel — left sidebar.
  * Toggle visibility per agency and domain.
+ * Sections are collapsible.
  */
 
 export function initAgencyFilter(containerId, entityManager, config) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // Build HTML
+  // Build HTML with collapsible sections
   container.innerHTML = `
-    <div class="filter-section">
-      <div class="filter-section-title">Agencies</div>
-      <div class="filter-group" id="agency-filters"></div>
+    <div class="filter-section" id="filter-section-agencies">
+      <div class="filter-section-header" data-target="agency-filters">
+        <span class="filter-section-title">Agencies</span>
+        <span class="filter-section-chevron">\u25bc</span>
+      </div>
+      <div class="filter-group filter-collapsible" id="agency-filters"></div>
     </div>
-    <div class="filter-section">
-      <div class="filter-section-title">Domains</div>
-      <div class="filter-group" id="domain-filters"></div>
+    <div class="filter-section" id="filter-section-domains">
+      <div class="filter-section-header" data-target="domain-filters">
+        <span class="filter-section-title">Domains</span>
+        <span class="filter-section-chevron">\u25bc</span>
+      </div>
+      <div class="filter-group filter-collapsible" id="domain-filters"></div>
     </div>
     <div class="stats-section" id="filter-stats"></div>
   `;
@@ -23,6 +30,20 @@ export function initAgencyFilter(containerId, entityManager, config) {
   const agencyGroup = document.getElementById('agency-filters');
   const domainGroup = document.getElementById('domain-filters');
   const statsEl = document.getElementById('filter-stats');
+
+  // Wire collapsible section headers
+  container.querySelectorAll('.filter-section-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const targetId = header.dataset.target;
+      const body = document.getElementById(targetId);
+      const chevron = header.querySelector('.filter-section-chevron');
+      if (body.classList.toggle('collapsed')) {
+        chevron.textContent = '\u25b6';
+      } else {
+        chevron.textContent = '\u25bc';
+      }
+    });
+  });
 
   // Agency toggles
   for (const [key, label] of Object.entries(config.agencyLabels)) {

@@ -9,12 +9,44 @@
   gap: 16px;
 }
 
+.filter-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 2px 0;
+  margin-bottom: 6px;
+  user-select: none;
+}
+.filter-section-header:hover .filter-section-title {
+  color: var(--text-primary);
+}
+
 .filter-section-title {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-secondary);
-  margin-bottom: 8px;
+  transition: color 0.1s;
+}
+
+.filter-section-chevron {
+  font-size: 9px;
+  color: var(--text-secondary);
+  transition: color 0.1s;
+}
+
+.filter-collapsible {
+  overflow: hidden;
+  transition: max-height 0.2s ease, opacity 0.2s ease;
+  max-height: 500px;
+  opacity: 1;
+}
+.filter-collapsible.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .filter-group {
