@@ -441,7 +441,16 @@ export function initEntityManager(viewer, config) {
   // === API ===
   return {
     loadSnapshot(entityList) {
+      // Remove all existing entities (clears Cesium entities + trail data)
       entities.forEach((_, id) => removeEntity(id));
+      // Also clear any orphaned trail/counter data
+      trailPositions.clear();
+      updateCounters.clear();
+      declutterOffsets.clear();
+      declutteredIds.clear();
+      // Remove all remaining Cesium entities to ensure clean slate
+      dataSource.entities.removeAll();
+      // Re-add entities from snapshot
       entityList.forEach(e => addOrUpdateEntity(e));
       setTimeout(declutterEntities, 500);
     },
