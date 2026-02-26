@@ -169,15 +169,13 @@ export function initTimeline(containerId, viewer, config) {
     `;
 
     // Click to fly to event position
-    if (event.position) {
+    const lon = event.position?.lon ?? event.position?.longitude;
+    const lat = event.position?.lat ?? event.position?.latitude;
+    if (lon !== undefined && lat !== undefined) {
       row.style.cursor = 'pointer';
       row.addEventListener('click', () => {
         viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(
-            event.position.longitude,
-            event.position.latitude,
-            80000
-          ),
+          destination: Cesium.Cartesian3.fromDegrees(lon, lat, 80000),
           orientation: {
             heading: 0,
             pitch: Cesium.Math.toRadians(-60),
