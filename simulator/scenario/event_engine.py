@@ -91,13 +91,16 @@ class EventEngine:
                 return
 
             type_def = ENTITY_TYPES.get(entity.entity_type, {})
-            max_speed = type_def.get("speed_range", (10, 20))[1]
+            speed_range = type_def.get("speed_range", (10, 20))
+            max_speed = speed_range[1]
+            min_speed = speed_range[0]
 
             new_movement = InterceptMovement(
                 entity_speed_knots=max_speed,
                 target_entity_id=event.intercept_target,
                 entity_store=self._entity_store,
                 pursuer_entity_id=target_id,
+                min_speed_knots=min_speed,
             )
             self._movements[target_id] = new_movement
             entity.status = EntityStatus.INTERCEPTING

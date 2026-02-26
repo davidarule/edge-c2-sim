@@ -23,9 +23,10 @@ from simulator.domains.ground_vehicle import GroundVehicleSimulator
 from simulator.domains.maritime import MaritimeSimulator
 from simulator.domains.personnel import PersonnelSimulator
 from simulator.movement.noise import PositionNoise
+from simulator.movement.orbit import OrbitMovement
 from simulator.movement.terrain import validate_position, find_nearest_valid_point
 from simulator.scenario.event_engine import EventEngine
-from simulator.scenario.loader import ScenarioLoader, ScenarioState
+from simulator.scenario.loader import ENTITY_TYPES, ScenarioLoader, ScenarioState
 from simulator.transport.console_adapter import ConsoleAdapter
 from simulator.transport.websocket_adapter import WebSocketAdapter
 from scripts.health_server import HealthServer
@@ -101,6 +102,27 @@ async def simulation_loop(
                 entity.metadata.update(noisy_state.metadata_overrides)
 
             entity_store.upsert_entity(entity)
+
+            # Fixed-wing aircraft: swap to orbit when movement completes
+            if (
+                domain_key == "AIR"
+                and movement.is_complete(sim_time)
+                and not isinstance(movement, OrbitMovement)
+            ):
+                type_def = ENTITY_TYPES.get(entity.entity_type, {})
+                min_speed = type_def.get("speed_range", (0, 100))[0]
+                if min_speed > 0:
+                    scenario_state.movements[entity_id] = OrbitMovement(
+                        center_lat=final_lat,
+                        center_lon=final_lon,
+                        altitude_m=noisy_state.alt_m,
+                        speed_knots=min_speed,
+                        initial_heading=noisy_state.heading_deg,
+                    )
+                    logger.info(
+                        f"Fixed-wing {entity_id} switching to orbit at "
+                        f"{min_speed} kts"
+                    )
 
         # Tick domain simulators
         for domain_sim in domain_sims:
