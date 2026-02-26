@@ -149,8 +149,7 @@ export function initPreviewScrubber(container, viewer, config) {
   let lastFrameTime = 0;
   let visible = false;
 
-  // DOM
-  container.innerHTML = '';
+  // DOM — append scrubber alongside existing timeline content (don't clear)
   const root = document.createElement('div');
   root.className = 'preview-scrubber';
   root.style.display = 'none';

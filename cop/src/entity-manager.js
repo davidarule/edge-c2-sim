@@ -15,7 +15,7 @@ import { renderSymbol, clearSymbolCache } from './symbol-renderer.js';
 
 const TRAIL_UPDATE_INTERVAL = 2; // Update trail every Nth position update
 const SYMBOL_RENDER_SIZE = 128;  // Render SVGs at high res to avoid blur when scaled
-const TRAIL_WIDTH = 6;           // Trail polyline width in pixels
+const TRAIL_WIDTH = 3;           // Trail polyline width in pixels
 
 // Trail duration options in hours (slider stops)
 const TRAIL_DURATIONS = [1, 4, 12, 24];
@@ -155,10 +155,8 @@ export function initEntityManager(viewer, config) {
         }, false),
         width: TRAIL_WIDTH,
         show: globalTrailsVisible,
-        material: new Cesium.PolylineGlowMaterialProperty({
-          glowPower: 0.15,
-          color: agencyColor.withAlpha(0.85)
-        })
+        material: agencyColor.withAlpha(0.9),
+        clampToGround: false
       }
     });
 
@@ -446,6 +444,35 @@ export function initEntityManager(viewer, config) {
       entities.forEach((_, id) => removeEntity(id));
       entityList.forEach(e => addOrUpdateEntity(e));
       setTimeout(declutterEntities, 500);
+    },
+    loadTrailHistory(trailData) {
+      // trailData: { entity_id: [ {lat, lon, alt, ts}, ... ], ... }
+      if (!trailData) return;
+      for (const [id, points] of Object.entries(trailData)) {
+        if (!entities.has(id)) continue;
+        const trail = trailPositions.get(id) || [];
+        // Prepend history before current trail points
+        const historyPoints = points.map(p => ({
+          lat: p.lat, lon: p.lon, alt: p.alt || 0,
+          ts: p.ts || 0
+        }));
+        // Merge: history + existing (dedup by checking last history ts vs first existing ts)
+        const merged = [...historyPoints];
+        for (const existing of trail) {
+          if (!historyPoints.length || existing.ts > historyPoints[historyPoints.length - 1].ts) {
+            merged.push(existing);
+          }
+        }
+        // Prune to trail duration
+        if (merged.length > 0) {
+          const latestTs = merged[merged.length - 1].ts;
+          const cutoff = latestTs - globalTrailDurationH * 3600 * 1000;
+          while (merged.length > 2 && merged[0].ts < cutoff) {
+            merged.shift();
+          }
+        }
+        trailPositions.set(id, merged);
+      }
     },
     updateEntity: addOrUpdateEntity,
     removeEntity,

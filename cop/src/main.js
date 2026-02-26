@@ -88,6 +88,10 @@ async function main() {
       if (timeline) timeline.addEvent(event);
       demoMode.handleEvent(event);
     },
+    onTrailHistory: (trails) => {
+      entityManager.loadTrailHistory(trails);
+      console.log(`Trail history loaded for ${Object.keys(trails).length} entities`);
+    },
     onClock: (clockState) => {
       if (controls) controls.updateClock(clockState);
       updateHeaderClock(clockState);

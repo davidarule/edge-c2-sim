@@ -58,6 +58,9 @@ export function connectWebSocket(url, handlers) {
         case 'clock':
           if (handlers.onClock) handlers.onClock(msg);
           break;
+        case 'trail_history':
+          if (handlers.onTrailHistory) handlers.onTrailHistory(msg.trails);
+          break;
         case 'routes':
           if (handlers.onRoutes) handlers.onRoutes(msg.routes);
           break;

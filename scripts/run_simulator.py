@@ -287,6 +287,9 @@ async def run(
             logger.info("Restart requested by client")
             clock.pause()
             clock.reset()
+            # Clear trail and event history
+            ws_adapter._trail_history.clear()
+            ws_adapter._event_history.clear()
             # Reset all entities to initial positions
             if scenario_state:
                 for eid, entity in scenario_state.entities.items():

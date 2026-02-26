@@ -114,6 +114,11 @@ class WebSocketAdapter(TransportAdapter):
         self._clock_task: asyncio.Task | None = None
         self._command_handlers: dict[str, Any] = {}
         self._route_data: dict[str, list[dict]] = {}
+        # Trail history: entity_id -> list of {lat, lon, alt, ts}
+        self._trail_history: dict[str, list[dict]] = {}
+        self._max_trail_points = 2000  # Max points per entity
+        # Event history: list of event dicts
+        self._event_history: list[dict] = []
 
     @property
     def name(self) -> str:
@@ -162,6 +167,7 @@ class WebSocketAdapter(TransportAdapter):
 
     async def push_event(self, event: dict) -> None:
         """Broadcast operational event to all connected clients."""
+        self._event_history.append(event)
         msg = json.dumps({"type": "event", "event": event})
         await self._broadcast(msg)
 
@@ -169,6 +175,35 @@ class WebSocketAdapter(TransportAdapter):
         """Broadcast multiple entity updates as a batch."""
         if not entities:
             return
+
+        # Accumulate trail history for each entity
+        for entity in entities:
+            eid = entity.entity_id
+            pos = entity.position
+            if not pos or (pos.latitude == 0 and pos.longitude == 0):
+                continue
+            ts = entity.timestamp.isoformat() if entity.timestamp else None
+            ts_ms = int(entity.timestamp.timestamp() * 1000) if entity.timestamp else 0
+            point = {
+                "lat": pos.latitude,
+                "lon": pos.longitude,
+                "alt": pos.altitude_m,
+                "ts": ts_ms,
+            }
+            if eid not in self._trail_history:
+                self._trail_history[eid] = []
+            trail = self._trail_history[eid]
+            # Skip if entity hasn't moved
+            if trail:
+                last = trail[-1]
+                dlat = abs(point["lat"] - last["lat"])
+                dlon = abs(point["lon"] - last["lon"])
+                if dlat < 0.0001 and dlon < 0.0001:
+                    continue
+            trail.append(point)
+            if len(trail) > self._max_trail_points:
+                trail.pop(0)
+
         msg = json.dumps({
             "type": "entity_batch",
             "entities": [e.to_dict() for e in entities],
@@ -198,6 +233,19 @@ class WebSocketAdapter(TransportAdapter):
                 "entities": [e.to_dict() for e in entities],
             })
             await websocket.send(snapshot)
+
+            # Send trail history so new clients get full trails immediately
+            if self._trail_history:
+                trail_msg = json.dumps({
+                    "type": "trail_history",
+                    "trails": self._trail_history,
+                })
+                await websocket.send(trail_msg)
+
+            # Send event history so timeline shows past events
+            if self._event_history:
+                for evt in self._event_history:
+                    await websocket.send(json.dumps({"type": "event", "event": evt}))
 
             # Send planned routes if available
             if self._route_data:
