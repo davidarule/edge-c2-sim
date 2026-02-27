@@ -11,12 +11,13 @@ import json
 import logging
 import os
 import signal
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import click
 import yaml
 
 from simulator.core.clock import SimulationClock
+from simulator.core.entity import EntityStatus
 from simulator.core.entity_store import EntityStore
 from simulator.domains.aviation import AviationSimulator
 from simulator.domains.ground_vehicle import GroundVehicleSimulator
@@ -365,6 +366,55 @@ async def run(
             clock.start()
             logger.info("Scenario reset complete")
 
+        async def handle_return_to_start(msg):
+            """Send an entity back to its initial position."""
+            entity_id = msg.get("entity_id")
+            if not entity_id:
+                logger.warning("return_to_start: missing entity_id")
+                return
+            entity = store.get_entity(entity_id)
+            if not entity or not entity.initial_position:
+                logger.warning(f"return_to_start: entity {entity_id} not found or no initial_position")
+                return
+            # Calculate cruise speed from entity type definition
+            type_def = ENTITY_TYPES.get(entity.entity_type, {})
+            speed_range = type_def.get("speed_range", (10, 20))
+            cruise_speed = sum(speed_range) / 2
+            # Build 2-waypoint movement: current position -> initial position
+            from simulator.movement.waypoint import Waypoint, WaypointMovement
+            from geopy.distance import geodesic as geo_dist
+            dist_nm = geo_dist(
+                (entity.position.latitude, entity.position.longitude),
+                (entity.initial_position.latitude, entity.initial_position.longitude),
+            ).nautical
+            travel_s = (dist_nm / cruise_speed * 3600) if cruise_speed > 0 else 0
+            sim_time = clock.get_sim_time()
+            waypoints = [
+                Waypoint(
+                    lat=entity.position.latitude,
+                    lon=entity.position.longitude,
+                    alt_m=entity.position.altitude_m,
+                    speed_knots=cruise_speed,
+                    time_offset=timedelta(0),
+                ),
+                Waypoint(
+                    lat=entity.initial_position.latitude,
+                    lon=entity.initial_position.longitude,
+                    alt_m=entity.initial_position.altitude_m,
+                    speed_knots=cruise_speed,
+                    time_offset=timedelta(seconds=travel_s),
+                ),
+            ]
+            movement = WaypointMovement(waypoints, sim_time)
+            scenario_state.movements[entity_id] = movement
+            entity.status = EntityStatus.RTB
+            store.upsert_entity(entity)
+            logger.info(
+                f"RTS: {entity_id} returning to start ({dist_nm:.1f} nm, "
+                f"ETA {travel_s:.0f}s at {cruise_speed:.0f} kts)"
+            )
+
+        ws_adapter.set_command_handler("return_to_start", handle_return_to_start)
         ws_adapter.set_command_handler("restart", handle_restart)
         ws_adapter.set_command_handler("reset", handle_restart)
         print(f"WebSocket server on ws://0.0.0.0:{port}")

@@ -11,6 +11,7 @@ export function initEntityPanel(containerId, entityManager, viewer) {
 
   let currentEntityId = null;
   let following = false;
+  let wsRef = null;
 
   function show(entity) {
     currentEntityId = entity.entity_id;
@@ -68,6 +69,7 @@ export function initEntityPanel(containerId, entityManager, viewer) {
           <button class="detail-action-btn" id="btn-flyto">FLY TO</button>
           <button class="detail-action-btn ${following ? 'active' : ''}" id="btn-follow">FOLLOW</button>
           <button class="detail-action-btn ${entityManager.getEntityTrailVisible(entity.entity_id) ? 'active' : ''}" id="btn-trail">TRAIL</button>
+          <button class="detail-action-btn" id="btn-rts">RTS</button>
           <button class="detail-action-btn" id="btn-close">CLOSE</button>
         </div>
       </div>
@@ -101,6 +103,17 @@ export function initEntityPanel(containerId, entityManager, viewer) {
       const current = entityManager.getEntityTrailVisible(entity.entity_id);
       entityManager.setEntityTrailVisible(entity.entity_id, !current);
       document.getElementById('btn-trail').classList.toggle('active', !current);
+    });
+
+    document.getElementById('btn-rts').addEventListener('click', () => {
+      if (wsRef) {
+        wsRef.returnToStart(entity.entity_id);
+        const btn = document.getElementById('btn-rts');
+        if (btn) {
+          btn.textContent = 'RTB...';
+          setTimeout(() => { if (btn) btn.textContent = 'RTS'; }, 2000);
+        }
+      }
     });
 
     document.getElementById('btn-close').addEventListener('click', () => hide());
@@ -215,7 +228,7 @@ export function initEntityPanel(containerId, entityManager, viewer) {
     if (e.key === 'Escape') hide();
   });
 
-  return { show, hide, getCurrentEntityId: () => currentEntityId };
+  return { show, hide, getCurrentEntityId: () => currentEntityId, setWs: (ws) => { wsRef = ws; } };
 }
 
 // === SIDC DECODER / EDITOR ===

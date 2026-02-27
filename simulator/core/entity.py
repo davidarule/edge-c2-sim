@@ -82,6 +82,7 @@ class Entity:
     status: EntityStatus = EntityStatus.ACTIVE
     sidc: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
+    initial_position: Position | None = None
 
     def update_position(
         self,
@@ -118,6 +119,7 @@ class Entity:
             "status": self.status.value,
             "sidc": self.sidc,
             "metadata": self.metadata,
+            **({"initial_position": self.initial_position.to_dict()} if self.initial_position else {}),
         }
 
     @classmethod
@@ -137,4 +139,5 @@ class Entity:
             status=EntityStatus(d.get("status", "ACTIVE")),
             sidc=d.get("sidc", ""),
             metadata=d.get("metadata", {}),
+            initial_position=Position.from_dict(d["initial_position"]) if d.get("initial_position") else None,
         )

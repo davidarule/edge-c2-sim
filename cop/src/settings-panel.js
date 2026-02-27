@@ -359,7 +359,24 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
 
   return {
     setRoutes(data) {
-      routeData = data;
+      // Transform server format {entity_id: [{lat, lon, alt_m}, ...]}
+      // to renderer format [{entity_id, agency, waypoints: [{latitude, longitude, altitude_m}]}]
+      if (data && !Array.isArray(data)) {
+        routeData = Object.entries(data).map(([entityId, wps]) => {
+          const entity = entityManager.getEntity(entityId);
+          return {
+            entity_id: entityId,
+            agency: entity ? entity.agency : 'UNKNOWN',
+            waypoints: (wps || []).map(wp => ({
+              latitude: wp.lat,
+              longitude: wp.lon,
+              altitude_m: wp.alt_m || 0
+            }))
+          };
+        });
+      } else {
+        routeData = data;
+      }
       renderPlannedTracks();
     },
     wireOverlays,

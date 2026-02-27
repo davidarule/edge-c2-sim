@@ -57,8 +57,8 @@ export function initEntityManager(viewer, config) {
   // Per-entity trail visibility overrides (entity_id -> boolean)
   const entityTrailOverrides = new Map();
 
-  // Snapshot cooldown — suppress trail accumulation right after reset
-  let snapshotCooldown = false;
+  // Snapshot generation counter — suppress trail accumulation for first N updates after reset
+  let snapshotGeneration = 0;
 
   // Declutter state
   const declutterOffsets = new Map(); // entity_id -> { x, y } pixel offset
@@ -168,7 +168,8 @@ export function initEntityManager(viewer, config) {
       cesiumTrail,
       sampledPosition,
       data: entityData,
-      visible: true
+      visible: true,
+      createdAtGeneration: snapshotGeneration
     });
 
     applyVisibility(id);
@@ -197,7 +198,10 @@ export function initEntityManager(viewer, config) {
 
     const count = (updateCounters.get(id) || 0) + 1;
     updateCounters.set(id, count);
-    if (!snapshotCooldown && count % TRAIL_UPDATE_INTERVAL === 0) {
+    // Skip trail accumulation for first few updates after a snapshot to prevent
+    // trail artifacts from old->new position jumps, regardless of sim speed
+    const suppressTrail = entry.createdAtGeneration === snapshotGeneration && count < TRAIL_UPDATE_INTERVAL * 3;
+    if (!suppressTrail && count % TRAIL_UPDATE_INTERVAL === 0) {
       const trail = trailPositions.get(id) || [];
       const lastPoint = trail[trail.length - 1];
       const dist = lastPoint
@@ -447,11 +451,9 @@ export function initEntityManager(viewer, config) {
       entities.forEach((_, id) => removeEntity(id));
       trailPositions.clear();
       updateCounters.clear();
+      entityTrailOverrides.clear();
+      snapshotGeneration++;
       entityList.forEach(e => addOrUpdateEntity(e));
-      // Suppress trail accumulation briefly so first updates after reset
-      // don't draw lines from old positions to new starting positions
-      snapshotCooldown = true;
-      setTimeout(() => { snapshotCooldown = false; }, 3000);
       setTimeout(declutterEntities, 500);
     },
     loadTrailHistory(trailData) {

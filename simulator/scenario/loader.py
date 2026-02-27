@@ -403,6 +403,11 @@ class ScenarioLoader:
             status=EntityStatus.IDLE if entry.get("behavior") == "standby" else EntityStatus.ACTIVE,
             sidc=type_def.get("sidc", ""),
             metadata=metadata,
+            initial_position=Position(
+                latitude=pos.get("lat", 0.0),
+                longitude=pos.get("lon", 0.0),
+                altitude_m=pos.get("alt_m", 0.0),
+            ),
         )
 
         # Create movement strategy
@@ -505,6 +510,7 @@ class ScenarioLoader:
                 # Set initial position from first patrol waypoint
                 state = movement.get_state(start)
                 entity.position = Position(state.lat, state.lon)
+                entity.initial_position = Position(state.lat, state.lon)
 
                 results.append((entity, movement))
 
@@ -552,6 +558,7 @@ class ScenarioLoader:
                     speed_knots=speed,
                     sidc=type_def.get("sidc", ""),
                     metadata=dict(metadata),
+                    initial_position=Position(point.y, point.x),
                 )
 
                 if len(waypoints) >= 1:
