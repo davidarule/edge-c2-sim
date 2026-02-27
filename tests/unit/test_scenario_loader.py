@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from simulator.movement.terrain import validate_position
 from simulator.scenario.loader import ScenarioLoader, ENTITY_TYPES
 
 
@@ -134,3 +135,28 @@ class TestScenarioLoader:
         order_events = [e for e in state.events if e.action == "intercept"]
         assert len(order_events) > 0
         assert order_events[0].intercept_target is not None
+
+    def test_maritime_entities_on_water(self, loader, start_time):
+        """Regression: all maritime scenario entities must start on water, not land.
+        BUG: KM Sangitan (MMEA-PV-102) was placed at (5.50, 118.30) which is on land."""
+        for scenario_file in [
+            "config/scenarios/sulu_sea_fishing_intercept.yaml",
+            "config/scenarios/semporna_kfr_response.yaml",
+            "config/scenarios/demo_combined.yaml",
+        ]:
+            state = loader.load(scenario_file, start_time=start_time)
+            for eid, entity in state.entities.items():
+                if entity.metadata.get("background"):
+                    continue
+                if entity.metadata.get("skip_terrain_check"):
+                    continue
+                if entity.domain.value != "MARITIME":
+                    continue
+                is_water = validate_position(
+                    entity.position.latitude, entity.position.longitude, "MARITIME"
+                )
+                assert is_water, (
+                    f"{scenario_file}: Maritime entity {eid} ({entity.callsign}) "
+                    f"starts on LAND at ({entity.position.latitude:.4f}, "
+                    f"{entity.position.longitude:.4f})"
+                )

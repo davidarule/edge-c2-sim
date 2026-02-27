@@ -42,16 +42,20 @@ VERSION = "0.1.0"
 
 
 async def simulation_loop(
-    scenario_state: ScenarioState,
+    sim_context: dict,
     clock: SimulationClock,
     entity_store: EntityStore,
-    event_engine: EventEngine,
     adapters: list,
     tick_interval_s: float,
     stop_event: asyncio.Event,
     domain_simulators: list | None = None,
 ) -> None:
-    """Core simulation loop — runs until scenario complete or user stops."""
+    """Core simulation loop — runs until scenario complete or user stops.
+
+    sim_context is a mutable dict with keys 'scenario_state' and 'event_engine'.
+    This ensures the loop always sees the current objects after a reset, since
+    handle_restart replaces them in the same dict.
+    """
     # Noise generators per entity (keyed by domain)
     noise_cache: dict[str, PositionNoise] = {}
     tick_count = 0
@@ -63,6 +67,10 @@ async def simulation_loop(
             continue
 
         sim_time = clock.get_sim_time()
+
+        # Read current scenario_state and event_engine from shared context
+        scenario_state = sim_context["scenario_state"]
+        event_engine = sim_context["event_engine"]
 
         # Update all entity positions via movement strategies
         for entity_id, movement in list(scenario_state.movements.items()):
@@ -191,14 +199,15 @@ async def run(
     # Parse transport options
     transport_names = [t.strip() for t in transport.split(",")]
 
-    # Load scenario if specified
-    scenario_state = None
-    event_engine = None
+    # Shared mutable context — simulation_loop and command handlers both
+    # read from this dict, so reset/restart updates are immediately visible
+    sim_context: dict = {"scenario_state": None, "event_engine": None}
 
     if scenario:
         print(f"Loading scenario: {scenario}")
         loader = ScenarioLoader()
-        scenario_state = loader.load(scenario)
+        sim_context["scenario_state"] = loader.load(scenario)
+        scenario_state = sim_context["scenario_state"]
 
         scenario_count = sum(
             1 for e in scenario_state.entities.values()
@@ -222,7 +231,7 @@ async def run(
         for entity in scenario_state.entities.values():
             store.add_entity(entity)
 
-        event_engine = EventEngine(
+        sim_context["event_engine"] = EventEngine(
             events=scenario_state.events,
             entity_store=store,
             movements=scenario_state.movements,
@@ -309,7 +318,6 @@ async def run(
 
         async def handle_restart(msg):
             """Reset clock to beginning, reload scenario, and re-broadcast snapshot."""
-            nonlocal scenario_state, event_engine
             logger.info("Restart requested by client")
             clock.pause()
             clock.reset()
@@ -319,6 +327,7 @@ async def run(
             # Reload scenario from scratch to get clean entities and movements
             if scenario:
                 fresh = ScenarioLoader().load(scenario)
+                sim_context["scenario_state"] = fresh
                 scenario_state = fresh
                 # Clear and repopulate entity store
                 with store._lock:
@@ -326,7 +335,7 @@ async def run(
                 for entity in scenario_state.entities.values():
                     store.add_entity(entity)
                 # Recreate event engine with fresh movements
-                event_engine = EventEngine(
+                sim_context["event_engine"] = EventEngine(
                     events=scenario_state.events,
                     entity_store=store,
                     movements=scenario_state.movements,
@@ -406,7 +415,7 @@ async def run(
                 ),
             ]
             movement = WaypointMovement(waypoints, sim_time)
-            scenario_state.movements[entity_id] = movement
+            sim_context["scenario_state"].movements[entity_id] = movement
             entity.status = EntityStatus.RTB
             store.upsert_entity(entity)
             logger.info(
@@ -445,13 +454,12 @@ async def run(
         loop.add_signal_handler(sig, stop.set)
 
     # Run simulation loop
-    if scenario_state and event_engine:
+    if sim_context["scenario_state"] and sim_context["event_engine"]:
         tick_interval = 1.0 / tick_rate
         await simulation_loop(
-            scenario_state=scenario_state,
+            sim_context=sim_context,
             clock=clock,
             entity_store=store,
-            event_engine=event_engine,
             adapters=adapters,
             tick_interval_s=tick_interval,
             stop_event=stop,
@@ -466,9 +474,10 @@ async def run(
     clock.pause()
 
     # Summary
-    if event_engine:
+    if sim_context["event_engine"]:
         elapsed = clock.get_elapsed()
         print(f"Simulation ran for {elapsed.total_seconds() / 60:.1f} simulated minutes")
+        event_engine = sim_context["event_engine"]
         print(f"Events fired: {len(event_engine.get_fired_events())}/{event_engine.total_events}")
     print(f"Entities tracked: {store.count}")
 
