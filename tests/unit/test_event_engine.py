@@ -197,3 +197,96 @@ class TestEventEngine:
         upcoming = engine.get_upcoming_events()
         assert len(upcoming) == 1
         assert upcoming[0].event_type == "B"
+
+    def test_reclassify_changes_entity_type(self, store, start_time):
+        """Reclassify event should change entity type and SIDC."""
+        suspect = Entity(
+            entity_id="HOSTILE-001", entity_type="SUSPECT_VESSEL",
+            domain=Domain.MARITIME, agency=Agency.CIVILIAN,
+            callsign="Suspect 1", position=Position(4.9, 119.2),
+            status=EntityStatus.ACTIVE, sidc="SHSP------",
+        )
+        store.add_entity(suspect)
+
+        events = [
+            ScenarioEvent(
+                time_offset=timedelta(minutes=10),
+                event_type="INCIDENT",
+                description="Armed attack — reclassify",
+                metadata={
+                    "reclassify": {
+                        "targets": ["HOSTILE-001"],
+                        "new_type": "HOSTILE_VESSEL",
+                    }
+                },
+            ),
+        ]
+        engine = EventEngine(events, store, {}, start_time)
+        engine.tick(start_time + timedelta(minutes=10))
+
+        updated = store.get_entity("HOSTILE-001")
+        assert updated.entity_type == "HOSTILE_VESSEL"
+        assert updated.sidc == "SHSP------"  # HOSTILE_VESSEL SIDC
+
+    def test_pursue_creates_intercept_movement(self, store, start_time):
+        """Pursue action should create InterceptMovement like intercept."""
+        pursuer = _make_entity("HELI-1", 5.0, 118.0)
+        target = Entity(
+            entity_id="BAD-1", entity_type="HOSTILE_VESSEL",
+            domain=Domain.MARITIME, agency=Agency.CIVILIAN,
+            callsign="Bad 1", position=Position(4.5, 118.5),
+            status=EntityStatus.ACTIVE,
+        )
+        store.add_entity(pursuer)
+        store.add_entity(target)
+
+        movements = {}
+        events = [
+            ScenarioEvent(
+                time_offset=timedelta(minutes=5),
+                event_type="ORDER",
+                description="Pursue",
+                target="HELI-1",
+                action="pursue",
+                intercept_target="BAD-1",
+            ),
+        ]
+        engine = EventEngine(events, store, movements, start_time)
+        engine.tick(start_time + timedelta(minutes=5))
+
+        from simulator.movement.intercept import InterceptMovement
+        assert isinstance(movements["HELI-1"], InterceptMovement)
+        assert store.get_entity("HELI-1").status == EntityStatus.INTERCEPTING
+
+
+class TestEntityTypes:
+    """Verify new entity types are properly defined."""
+
+    def test_rmp_marine_patrol_exists(self):
+        """RMP_MARINE_PATROL should be a valid entity type."""
+        from simulator.scenario.loader import ENTITY_TYPES
+        assert "RMP_MARINE_PATROL" in ENTITY_TYPES
+        typedef = ENTITY_TYPES["RMP_MARINE_PATROL"]
+        assert typedef["domain"] == Domain.MARITIME
+        assert typedef["agency"] == Agency.RMP
+
+    def test_all_scenario_entity_types_valid(self):
+        """All entity types used in scenario files should exist in ENTITY_TYPES."""
+        import yaml
+        from simulator.scenario.loader import ENTITY_TYPES
+
+        scenario_files = [
+            "config/scenarios/demo_combined.yaml",
+            "config/scenarios/sulu_sea_fishing_intercept.yaml",
+            "config/scenarios/semporna_kfr_response.yaml",
+        ]
+        for path in scenario_files:
+            with open(path) as f:
+                raw = yaml.safe_load(f)
+            scenario = raw.get("scenario", {})
+            for entity in scenario.get("scenario_entities", []):
+                etype = entity["type"]
+                assert etype in ENTITY_TYPES, f"{etype} not in ENTITY_TYPES ({path})"
+            for bg in scenario.get("background_entities", []):
+                etype = bg["type"]
+                assert etype in ENTITY_TYPES, f"{etype} not in ENTITY_TYPES ({path})"

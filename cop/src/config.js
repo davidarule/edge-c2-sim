@@ -88,6 +88,7 @@ export function initConfig() {
       'CIVILIAN_BOAT':        '10043000001400000000',  // Neutral, Non-Military generic
       'RMP_PATROL_CAR':       '10031500001707000000',  // Land Equipment, LE Police
       'RMP_PATROL_BOAT':      '10033000001403000000',  // Law Enforcement Vessel
+      'RMP_MARINE_PATROL':    '10033000001403000000',  // Law Enforcement Vessel (Marine Police)
 
       // ===== AIR (Symbol Set 01) =====
       'RMAF_FIGHTER':         '10030100001101020000',  // Fixed Wing, Fighter/Bomber

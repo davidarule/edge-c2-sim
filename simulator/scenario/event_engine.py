@@ -60,6 +60,11 @@ class EventEngine:
 
     def _fire_event(self, event: ScenarioEvent, sim_time: datetime) -> None:
         """Execute an event's action on its target entities."""
+        # Handle reclassification (changes entity type/SIDC mid-scenario)
+        reclassify = event.metadata.get("reclassify")
+        if reclassify:
+            self._apply_reclassify(reclassify)
+
         if not event.action:
             return
 
@@ -189,11 +194,54 @@ class EventEngine:
             self._movements[target_id] = new_movement
             entity.speed_knots = escort_speed
 
+        elif action == "pursue":
+            # Pursue is like intercept but at max speed
+            if event.intercept_target:
+                type_def = ENTITY_TYPES.get(entity.entity_type, {})
+                speed_range = type_def.get("speed_range", (10, 20))
+                max_speed = speed_range[1]
+                min_speed = speed_range[0]
+
+                new_movement = InterceptMovement(
+                    entity_speed_knots=max_speed,
+                    target_entity_id=event.intercept_target,
+                    entity_store=self._entity_store,
+                    pursuer_entity_id=target_id,
+                    min_speed_knots=min_speed,
+                )
+                self._movements[target_id] = new_movement
+                entity.speed_knots = max_speed
+            entity.status = EntityStatus.INTERCEPTING
+
         else:
             logger.debug(f"Unhandled action '{action}' for {target_id}")
             entity.status = EntityStatus.ACTIVE
 
         self._entity_store.upsert_entity(entity)
+
+    def _apply_reclassify(self, reclassify: dict) -> None:
+        """Change entity type for specified targets (e.g., SUSPECT → HOSTILE)."""
+        target_ids = reclassify.get("targets", [])
+        new_type = reclassify.get("new_type")
+        if not new_type or not target_ids:
+            logger.warning(f"Reclassify missing targets or new_type: {reclassify}")
+            return
+
+        type_def = ENTITY_TYPES.get(new_type)
+        if not type_def:
+            logger.warning(f"Reclassify: unknown entity type '{new_type}'")
+            return
+
+        for target_id in target_ids:
+            entity = self._entity_store.get_entity(target_id)
+            if not entity:
+                logger.warning(f"Reclassify target '{target_id}' not found")
+                continue
+            old_type = entity.entity_type
+            entity.entity_type = new_type
+            entity.sidc = type_def.get("sidc", entity.sidc)
+            self._entity_store.upsert_entity(entity)
+            logger.info(f"Reclassified {target_id}: {old_type} → {new_type}")
 
     def reset(self) -> None:
         """Reset all fired events so they can fire again."""

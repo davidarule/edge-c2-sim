@@ -209,7 +209,7 @@ scenario:
 
     # === RMP MARINE POLICE ===
     - id: "RMP-MP-101"
-      type: RMP_PATROL_BOAT  # Reused type for marine police boat
+      type: RMP_MARINE_PATROL  # Reused type for marine police boat
       callsign: "PDRM Marine 01"
       agency: RMP
       initial_position: { lat: 4.49, lon: 118.618 }  # Semporna Jetty
@@ -219,7 +219,7 @@ scenario:
         equipment: ["FLIR", "NVG", "boarding_kit"]
 
     - id: "RMP-MP-102"
-      type: RMP_PATROL_BOAT
+      type: RMP_MARINE_PATROL
       callsign: "PDRM Marine 02"
       agency: RMP
       initial_position: { lat: 5.84, lon: 118.125 }  # Sandakan Harbor

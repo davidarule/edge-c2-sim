@@ -89,6 +89,10 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
         "domain": Domain.MARITIME, "agency": Agency.RMP,
         "speed_range": (10, 30), "sidc": "SFSP------",
     },
+    "RMP_MARINE_PATROL": {
+        "domain": Domain.MARITIME, "agency": Agency.RMP,
+        "speed_range": (10, 30), "sidc": "SFSP------",
+    },
     "RMP_OFFICER": {
         "domain": Domain.PERSONNEL, "agency": Agency.RMP,
         "speed_range": (0, 4), "sidc": "SFGP------",
