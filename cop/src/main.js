@@ -121,7 +121,7 @@ async function main() {
 
   detail.setWs(ws);
   controls = initPlaybackControls('controls', ws, config);
-  timeline = initTimeline('timeline', viewer, config);
+  timeline = initTimeline('timeline', viewer, config, entityManager);
 
   // Compass widget
   initCompass(viewer);

@@ -3,7 +3,7 @@
  * Resizable via drag handle, with expand/collapse toggle.
  */
 
-export function initTimeline(containerId, viewer, config) {
+export function initTimeline(containerId, viewer, config, entityManager) {
   const container = document.getElementById(containerId);
   if (!container) return {};
 
@@ -168,12 +168,26 @@ export function initTimeline(containerId, viewer, config) {
       <span class="event-description ${severity === 'warning' ? 'warning' : ''} ${severity === 'critical' ? 'critical' : ''}">${event.description || ''}</span>
     `;
 
-    // Click to fly to event position
-    const lon = event.position?.lon ?? event.position?.longitude;
-    const lat = event.position?.lat ?? event.position?.latitude;
-    if (lon !== undefined && lat !== undefined) {
+    // Click to fly to event position (explicit or derived from target entity)
+    const evtLon = event.position?.lon ?? event.position?.longitude;
+    const evtLat = event.position?.lat ?? event.position?.latitude;
+    const targetId = event.target || (event.targets && event.targets[0]);
+    const hasExplicitPos = evtLon !== undefined && evtLat !== undefined;
+    const canLookup = targetId && entityManager;
+
+    if (hasExplicitPos || canLookup) {
       row.style.cursor = 'pointer';
       row.addEventListener('click', () => {
+        let lat = evtLat, lon = evtLon;
+        // For events without explicit position, look up target entity's current position
+        if (!hasExplicitPos && canLookup) {
+          const ent = entityManager.getEntity(targetId);
+          if (ent?.position) {
+            lat = ent.position.latitude;
+            lon = ent.position.longitude;
+          }
+        }
+        if (lat === undefined || lon === undefined) return;
         viewer.camera.flyTo({
           destination: Cesium.Cartesian3.fromDegrees(lon, lat, 80000),
           orientation: {
