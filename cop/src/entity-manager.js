@@ -15,7 +15,9 @@ import { renderSymbol, clearSymbolCache } from './symbol-renderer.js';
 
 const TRAIL_UPDATE_INTERVAL = 2; // Update trail every Nth position update
 const SYMBOL_RENDER_SIZE = 128;  // Render SVGs at high res to avoid blur when scaled
-const TRAIL_WIDTH = 3;           // Trail polyline width in pixels
+const TRAIL_WIDTH = 1.5;         // Trail polyline width in pixels
+const MAX_TRAIL_POINTS = 300;    // Max trail points per entity (ring buffer)
+const MIN_TRAIL_DISTANCE_DEG = 0.001; // ~111 meters — minimum distance between trail points
 
 // Trail duration options in hours (slider stops)
 const TRAIL_DURATIONS = [1, 4, 12, 24];
@@ -203,13 +205,21 @@ export function initEntityManager(viewer, config) {
     const suppressTrail = entry.createdAtGeneration === snapshotGeneration && count < TRAIL_UPDATE_INTERVAL * 3;
     if (!suppressTrail && count % TRAIL_UPDATE_INTERVAL === 0) {
       const trail = trailPositions.get(id) || [];
+      // Use clean track position (pre-noise) if available, else noisy position
+      const meta = entityData.metadata || {};
+      const trailLat = meta.track_lat != null ? meta.track_lat : lat;
+      const trailLon = meta.track_lon != null ? meta.track_lon : lon;
       const lastPoint = trail[trail.length - 1];
       const dist = lastPoint
-        ? Math.sqrt(Math.pow(lat - lastPoint.lat, 2) + Math.pow(lon - lastPoint.lon, 2))
+        ? Math.sqrt(Math.pow(trailLat - lastPoint.lat, 2) + Math.pow(trailLon - lastPoint.lon, 2))
         : Infinity;
-      if (dist > 0.0001) {  // ~11 meters — skip if entity hasn't moved
+      if (dist > MIN_TRAIL_DISTANCE_DEG) {
         const ts = entityData.timestamp ? new Date(entityData.timestamp).getTime() : Date.now();
-        trail.push({ lat, lon, alt, ts });
+        trail.push({ lat: trailLat, lon: trailLon, alt, ts });
+        // Cap max trail points (drop oldest)
+        while (trail.length > MAX_TRAIL_POINTS) {
+          trail.shift();
+        }
         // Prune points older than trail duration
         const cutoff = ts - globalTrailDurationH * 3600 * 1000;
         while (trail.length > 2 && trail[0].ts < cutoff) {

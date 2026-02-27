@@ -54,16 +54,16 @@ class TestPositionNoise:
     def test_domain_factory(self):
         """Domain factory should return correct noise levels."""
         maritime = PositionNoise.for_domain("MARITIME")
-        assert maritime._pos_sigma == 15.0
+        assert maritime._max_amplitude_m == 15.0
 
         air = PositionNoise.for_domain("AIR")
-        assert air._pos_sigma == 50.0
+        assert air._max_amplitude_m == 50.0
 
         ground = PositionNoise.for_domain("GROUND_VEHICLE")
-        assert ground._pos_sigma == 5.0
+        assert ground._max_amplitude_m == 5.0
 
         personnel = PositionNoise.for_domain("PERSONNEL")
-        assert personnel._pos_sigma == 3.0
+        assert personnel._max_amplitude_m == 3.0
 
     def test_correlated_noise(self, base_state):
         """Consecutive noisy samples should be closer than independent samples."""

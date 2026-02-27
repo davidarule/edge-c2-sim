@@ -56,7 +56,7 @@ async def simulation_loop(
     This ensures the loop always sees the current objects after a reset, since
     handle_restart replaces them in the same dict.
     """
-    # Noise generators per entity (keyed by domain)
+    # Per-entity noise generators (each entity gets its own instance)
     noise_cache: dict[str, PositionNoise] = {}
     tick_count = 0
     domain_sims = domain_simulators or []
@@ -80,11 +80,15 @@ async def simulation_loop(
 
             state = movement.get_state(sim_time)
 
-            # Apply noise
+            # Per-entity noise instance
             domain_key = entity.domain.value
-            if domain_key not in noise_cache:
-                noise_cache[domain_key] = PositionNoise.for_domain(domain_key)
-            noisy_state = noise_cache[domain_key].apply(state)
+            if entity_id not in noise_cache:
+                noise_cache[entity_id] = PositionNoise.for_domain(domain_key)
+            noisy_state = noise_cache[entity_id].apply(state)
+
+            # Store clean (pre-noise) position for trail rendering
+            entity.metadata["track_lat"] = state.lat
+            entity.metadata["track_lon"] = state.lon
 
             # Terrain validation: ensure entity is on correct surface
             final_lat = noisy_state.lat

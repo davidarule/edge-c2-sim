@@ -17,6 +17,26 @@ from geopy.distance import geodesic
 from simulator.core.entity_store import EntityStore
 from simulator.movement.waypoint import MovementState, _initial_bearing
 
+# Lazy-loaded terrain validation for coastal avoidance
+_terrain_available = None
+
+def _check_terrain():
+    global _terrain_available
+    if _terrain_available is None:
+        try:
+            from simulator.movement.terrain import validate_position
+            _terrain_available = True
+        except ImportError:
+            _terrain_available = False
+    return _terrain_available
+
+def _is_water(lat, lon):
+    """Check if a point is on water. Returns True if terrain module unavailable."""
+    if not _check_terrain():
+        return True
+    from simulator.movement.terrain import validate_position
+    return validate_position(lat, lon, "MARITIME")
+
 # Orbit radius in meters for fixed-wing loiter pattern
 _ORBIT_RADIUS_M = 3000.0  # ~3km orbit radius
 # Degrees per second of heading change for orbit (~2 min for full circle)
@@ -53,6 +73,15 @@ class InterceptMovement:
         self._orbit_center_lat: float | None = None
         self._orbit_center_lon: float | None = None
         self._orbit_heading: float = 0.0
+
+    def _is_maritime(self) -> bool:
+        """Check if pursuer is a maritime entity (needs coastal avoidance)."""
+        if not self._pursuer_id:
+            return False
+        pursuer = self._store.get_entity(self._pursuer_id)
+        if pursuer is None:
+            return False
+        return pursuer.domain.value == "MARITIME"
 
     def _orbit_state(
         self, p_lat: float, p_lon: float, p_alt: float,
@@ -213,12 +242,36 @@ class InterceptMovement:
             dlon = (move_m * math.sin(heading_rad)) / (
                 111_111.0 * math.cos(math.radians(p_lat))
             )
-            p_lat += dlat
-            p_lon += dlon
+            new_lat = p_lat + dlat
+            new_lon = p_lon + dlon
+
+            # Coastal avoidance: maritime entities must stay in water
+            if self._is_maritime() and not _is_water(new_lat, new_lon):
+                # Try rotating heading to find open water
+                for offset in [15, -15, 30, -30, 45, -45, 60, -60, 90, -90]:
+                    alt_heading = heading + offset
+                    alt_rad = math.radians(alt_heading)
+                    alt_dlat = (move_m * math.cos(alt_rad)) / 111_111.0
+                    alt_dlon = (move_m * math.sin(alt_rad)) / (
+                        111_111.0 * math.cos(math.radians(p_lat))
+                    )
+                    alt_lat = p_lat + alt_dlat
+                    alt_lon = p_lon + alt_dlon
+                    if _is_water(alt_lat, alt_lon):
+                        heading = alt_heading % 360.0
+                        new_lat, new_lon = alt_lat, alt_lon
+                        break
+                else:
+                    # All directions blocked — hold position
+                    new_lat, new_lon = p_lat, p_lon
+
+            p_lat = new_lat
+            p_lon = new_lon
 
         self._last_lat = p_lat
         self._last_lon = p_lon
         self._last_alt = p_alt
+        self._last_heading = heading
         self._last_sim_time = sim_time
 
         return MovementState(
