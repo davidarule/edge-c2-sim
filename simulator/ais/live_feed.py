@@ -341,10 +341,21 @@ class AISLiveFeed:
             await ws.send(json.dumps(subscription))
             logger.info("AIS feed: subscription active, receiving data")
 
+            msg_count = 0
             async for raw_msg in ws:
                 if self._stop.is_set():
                     return
+                msg_count += 1
                 self._process_message(raw_msg)
+                # Periodic status
+                if msg_count == 1:
+                    logger.info("AIS feed: first message received")
+                if msg_count % 500 == 0:
+                    logger.info(
+                        f"AIS feed: {msg_count} msgs, "
+                        f"{self._position_count} positions, "
+                        f"{self._active_count} vessels in store"
+                    )
 
     async def run(self) -> None:
         """Main loop: connect, stream, reconnect on failure."""
