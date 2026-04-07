@@ -1,0 +1,871 @@
+# Malaysia ORBAT Reference
+# Version: 1.0 | Built: April 2026
+# Sources: RMN/RMAF/MMEA official sites, Jane's, Wikipedia, GlobalSecurity
+#
+# VERIFICATION STATUS:
+#   coordinates: UNVERIFIED — must be run through tools/verify_coords.py before use
+#   vessel_data: cross-referenced multiple open sources
+#
+# CLASSIFICATION: UNCLASSIFIED — open source data only
+
+country: Malaysia
+abbreviation: MYS
+
+# ============================================================
+# TENTERA LAUT DIRAJA MALAYSIA (TLDM) — Royal Malaysian Navy
+# ============================================================
+RMN:
+  full_name: "Tentera Laut Diraja Malaysia"
+  english_name: "Royal Malaysian Navy"
+  abbreviation: RMN
+  callsign_prefix: "KD"        # Kapal Diraja = Royal Ship
+  iads_track_prefix: "TLDM"
+
+  commands:
+    - id: "western_fleet"
+      name: "Western Fleet Command (Armada Barat)"
+      hq_base: "lumut"
+      area_of_ops: "Strait of Malacca, Andaman Sea, Indian Ocean approach"
+    - id: "eastern_fleet"
+      name: "Eastern Fleet Command (Armada Timur)"
+      hq_base: "sepanggar"
+      area_of_ops: "South China Sea, Sulu Sea, Celebes Sea, ESSZONE"
+
+  bases:
+    - id: "lumut"
+      name: "RMN Lumut Naval Base (KD Malaya)"
+      location: "Lumut, Perak"
+      command: "Western Fleet HQ"
+      lat_candidate: 4.2294
+      lon_candidate: 100.6253
+      domain: MARITIME
+      verify: true
+      notes: "Largest RMN base. Western Fleet HQ. Home of Boustead Naval Shipyard (LUNAS)."
+
+    - id: "sepanggar"
+      name: "RMN Sepanggar Bay Naval Base"
+      location: "Kota Kinabalu, Sabah"
+      command: "Eastern Fleet HQ, Submarine HQ"
+      lat_candidate: 6.1167
+      lon_candidate: 116.0833
+      domain: MARITIME
+      verify: true
+      notes: "Eastern Fleet HQ. Principal submarine base."
+
+    - id: "kuantan"
+      name: "TLDM Tanjung Gelang (KD Sri Gelang)"
+      location: "Kuantan, Pahang"
+      command: "Naval Region I HQ (MAWILLA I)"
+      lat_candidate: 3.7833
+      lon_candidate: 103.3833
+      domain: MARITIME
+      verify: true
+
+    - id: "langkawi"
+      name: "TLDM Tanjung Gerak (KD Badlishah)"
+      location: "Langkawi, Kedah"
+      command: "Naval Region III HQ (MAWILLA III)"
+      lat_candidate: 6.3667
+      lon_candidate: 99.8000
+      domain: MARITIME
+      verify: true
+      notes: "Provides Indian Ocean access."
+
+    - id: "pengelih"
+      name: "TLDM Tanjung Pengelih (KD Sultan Ismail)"
+      location: "Tanjung Pengelih, Johor"
+      command: "Recruit Training Centre (PULAREK)"
+      lat_candidate: 1.3667
+      lon_candidate: 104.1333
+      domain: MARITIME
+      verify: true
+
+    - id: "labuan"
+      name: "TLDM Labuan (KD Sri Labuan)"
+      location: "Labuan Federal Territory"
+      lat_candidate: 5.2833
+      lon_candidate: 115.2333
+      domain: MARITIME
+      verify: true
+
+    - id: "sandakan"
+      name: "TLDM Sandakan"
+      location: "Sandakan, Sabah"
+      lat_candidate: 5.8370
+      lon_candidate: 118.1170
+      domain: MARITIME
+      verify: true
+
+    - id: "semporna_naval"
+      name: "Tun Sharifah Rodziah Sea Base"
+      location: "Semporna, Sabah"
+      lat_candidate: 4.4800
+      lon_candidate: 118.6100
+      domain: MARITIME
+      verify: true
+      notes: "Retrofitted oil rig — permanent sea base."
+
+  vessels:
+    # --- FRIGATES ---
+    - hull: "F29"
+      name: "KD Jebat"
+      class: "Lekiu-class"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "lumut"
+      displacement_t: 2270
+      length_m: 106
+      speed_max_kn: 28
+      range_nm: 5000
+      crew: 146
+      armament: ["Exocet MM40", "Sea Wolf SAM", "Bofors 57mm", "Lynx helicopter"]
+      commissioned: 1999
+      sidc_2525d: "SFSP------"
+      notes: "Anti-submarine warfare frigate. Western Fleet."
+
+    - hull: "F30"
+      name: "KD Lekiu"
+      class: "Lekiu-class"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "lumut"
+      displacement_t: 2270
+      length_m: 106
+      speed_max_kn: 28
+      range_nm: 5000
+      crew: 146
+      armament: ["Exocet MM40", "Sea Wolf SAM", "Bofors 57mm", "Lynx helicopter"]
+      commissioned: 1999
+      sidc_2525d: "SFSP------"
+
+    # --- CORVETTES ---
+    - hull: "F25"
+      name: "KD Kasturi"
+      class: "Kasturi-class"
+      type: "Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "lumut"
+      displacement_t: 1850
+      length_m: 97.3
+      speed_max_kn: 28
+      crew: 140
+      commissioned: 1984
+      sidc_2525d: "SFSP------"
+
+    - hull: "F26"
+      name: "KD Lekir"
+      class: "Kasturi-class"
+      type: "Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "lumut"
+      displacement_t: 1850
+      length_m: 97.3
+      speed_max_kn: 28
+      crew: 140
+      commissioned: 1984
+      sidc_2525d: "SFSP------"
+
+    # --- OFFSHORE PATROL VESSELS (Kedah-class NGPV) ---
+    - hull: "171"
+      name: "KD Kedah"
+      class: "Kedah-class"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MIL_NAVAL"
+      home_base: "lumut"
+      displacement_t: 1650
+      length_m: 91
+      speed_max_kn: 22
+      range_nm: 6000
+      crew: 70
+      commissioned: 2006
+      sidc_2525d: "SFSP------"
+
+    - hull: "172"
+      name: "KD Pahang"
+      class: "Kedah-class"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MIL_NAVAL"
+      home_base: "lumut"
+      displacement_t: 1650
+      length_m: 91
+      speed_max_kn: 22
+      commissioned: 2007
+      sidc_2525d: "SFSP------"
+
+    - hull: "173"
+      name: "KD Perak"
+      class: "Kedah-class"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MIL_NAVAL"
+      home_base: "lumut"
+      displacement_t: 1650
+      length_m: 91
+      speed_max_kn: 22
+      commissioned: 2008
+      sidc_2525d: "SFSP------"
+
+    - hull: "174"
+      name: "KD Terengganu"
+      class: "Kedah-class"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MIL_NAVAL"
+      home_base: "kuantan"
+      displacement_t: 1650
+      length_m: 91
+      speed_max_kn: 22
+      commissioned: 2009
+      sidc_2525d: "SFSP------"
+
+    - hull: "175"
+      name: "KD Kelantan"
+      class: "Kedah-class"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MIL_NAVAL"
+      home_base: "kuantan"
+      displacement_t: 1650
+      length_m: 91
+      speed_max_kn: 22
+      commissioned: 2010
+      sidc_2525d: "SFSP------"
+
+    - hull: "176"
+      name: "KD Selangor"
+      class: "Kedah-class"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MIL_NAVAL"
+      home_base: "lumut"
+      displacement_t: 1650
+      length_m: 91
+      speed_max_kn: 22
+      commissioned: 2010
+      sidc_2525d: "SFSP------"
+
+    # --- LITTORAL MISSION SHIPS (Keris-class LMS) ---
+    - hull: "181"
+      name: "KD Keris"
+      class: "Keris-class"
+      type: "Littoral Mission Ship"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "lumut"
+      displacement_t: 700
+      length_m: 68
+      speed_max_kn: 22
+      range_nm: 3000
+      crew: 55
+      commissioned: 2019
+      sidc_2525d: "SFSP------"
+      notes: "11th LMS Squadron"
+
+    - hull: "182"
+      name: "KD Sundang"
+      class: "Keris-class"
+      type: "Littoral Mission Ship"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "lumut"
+      displacement_t: 700
+      speed_max_kn: 22
+      commissioned: 2020
+      sidc_2525d: "SFSP------"
+
+    - hull: "183"
+      name: "KD Badik"
+      class: "Keris-class"
+      type: "Littoral Mission Ship"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "lumut"
+      displacement_t: 700
+      speed_max_kn: 22
+      commissioned: 2021
+      sidc_2525d: "SFSP------"
+
+    - hull: "184"
+      name: "KD Rencong"
+      class: "Keris-class"
+      type: "Littoral Mission Ship"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "sepanggar"
+      displacement_t: 700
+      speed_max_kn: 22
+      commissioned: 2021
+      sidc_2525d: "SFSP------"
+
+    # --- FAST INTERCEPTOR CRAFT (G2000) ---
+    - hull: "3139"
+      name: "KD G2000 Alpha"
+      class: "G2000-class"
+      type: "Fast Interceptor Craft"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "sandakan"
+      displacement_t: 40
+      length_m: 20
+      speed_max_kn: 35
+      crew: 8
+      sidc_2525d: "SFSP------"
+      notes: "ESSZONE patrol asset"
+
+    - hull: "3140"
+      name: "KD G2000 Bravo"
+      class: "G2000-class"
+      type: "Fast Interceptor Craft"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "semporna_naval"
+      displacement_t: 40
+      speed_max_kn: 35
+      crew: 8
+      sidc_2525d: "SFSP------"
+
+    - hull: "3141"
+      name: "KD G2000 Charlie"
+      class: "G2000-class"
+      type: "Fast Interceptor Craft"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "sandakan"
+      displacement_t: 40
+      speed_max_kn: 35
+      crew: 8
+      sidc_2525d: "SFSP------"
+
+    # --- SUBMARINES ---
+    - hull: "S411"
+      name: "KD Tunku Abdul Rahman"
+      class: "Scorpène-class"
+      type: "Attack Submarine"
+      entity_type: "MIL_SUBMARINE"
+      home_base: "sepanggar"
+      displacement_t: 1740
+      length_m: 67.5
+      speed_max_kn: 20
+      crew: 34
+      commissioned: 2009
+      sidc_2525d: "SFUP------"
+      notes: "Tropicalised for SEA operations. Armed with Black Shark torpedoes and SM-39 Exocet."
+
+    - hull: "S403"
+      name: "KD Tun Abdul Razak"
+      class: "Scorpène-class"
+      type: "Attack Submarine"
+      entity_type: "MIL_SUBMARINE"
+      home_base: "sepanggar"
+      displacement_t: 1740
+      length_m: 67.5
+      speed_max_kn: 20
+      crew: 34
+      commissioned: 2010
+      sidc_2525d: "SFUP------"
+
+    # --- PATROL CRAFT (older types) ---
+    - hull: "3501"
+      name: "KD Perdana"
+      class: "La Combattante II-class"
+      type: "Missile Fast Attack Craft"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "lumut"
+      displacement_t: 234
+      speed_max_kn: 36.5
+      sidc_2525d: "SFSP------"
+
+    - hull: "3505"
+      name: "KD Jerong"
+      class: "Jerong-class"
+      type: "Fast Attack Craft"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "lumut"
+      displacement_t: 244
+      speed_max_kn: 34
+      sidc_2525d: "SFSP------"
+
+  naval_aviation:
+    - id: "rmn_lynx"
+      name: "Super Lynx 300"
+      type: "Naval Helicopter"
+      entity_type: "RMAF_HELICOPTER"
+      count: 6
+      home_base: "lumut"
+      speed_max_kn: 140
+      range_nm: 320
+      sidc_2525d: "SFAP------"
+      roles: ["ASW", "ASuW", "SAR", "VERTREP"]
+      notes: "Embarked on Lekiu-class frigates"
+
+    - id: "rmn_fennec"
+      name: "AS555 Fennec"
+      type: "Light Helicopter"
+      entity_type: "RMAF_HELICOPTER"
+      count: 6
+      home_base: "lumut"
+      speed_max_kn: 130
+      sidc_2525d: "SFAP------"
+      roles: ["Utility", "SAR", "ISR"]
+
+    - id: "rmn_aw139"
+      name: "AW139 Maritime Utility Helicopter"
+      type: "Medium Helicopter"
+      entity_type: "RMAF_HELICOPTER"
+      count: 3
+      home_base: "lumut"
+      speed_max_kn: 150
+      sidc_2525d: "SFAP------"
+
+    - id: "rmn_beechcraft"
+      name: "Beechcraft Super King Air B200T"
+      type: "Maritime Patrol Aircraft"
+      entity_type: "RMAF_MPA"
+      count: 4
+      home_base: "lumut"
+      speed_max_kn: 270
+      range_nm: 1500
+      endurance_hrs: 7
+      sidc_2525d: "SFAP------"
+      sensors: ["AIS receiver", "FLIR", "maritime radar"]
+      notes: "RMN organic MPA capability"
+
+  special_forces:
+    - id: "paskal"
+      name: "PASKAL (Pasukan Khas Laut)"
+      type: "Naval Special Operations"
+      entity_type: "MIL_SPECIAL_FORCES"
+      home_base: "lumut"
+      sidc_2525d: "SFGP------"
+      notes: "Malaysian equivalent of Navy SEALs. KD Panglima Hitam."
+
+# ============================================================
+# TENTERA UDARA DIRAJA MALAYSIA (TUDM) — Royal Malaysian Air Force
+# ============================================================
+RMAF:
+  full_name: "Tentera Udara Diraja Malaysia"
+  english_name: "Royal Malaysian Air Force"
+  abbreviation: RMAF
+  callsign_prefix: "TUDM"
+
+  bases:
+    - id: "subang"
+      name: "RMAF Subang (Pangkalan Udara Subang)"
+      location: "Shah Alam, Selangor"
+      iata: "SZB"
+      lat_candidate: 3.1306
+      lon_candidate: 101.5493
+      domain: GROUND_VEHICLE
+      verify: true
+      notes: "Major transport and VIP base. MPA operations for Malacca Strait."
+
+    - id: "butterworth"
+      name: "RMAF Butterworth (Pangkalan Udara Butterworth)"
+      location: "Butterworth, Penang"
+      lat_candidate: 5.4659
+      lon_candidate: 100.3903
+      domain: GROUND_VEHICLE
+      verify: true
+      notes: "Primary fighter base. F/A-18D and Hawk squadrons. RAAF historically co-located."
+
+    - id: "kuantan_air"
+      name: "RMAF Kuantan (Pangkalan Udara Kuantan)"
+      location: "Kuantan, Pahang"
+      lat_candidate: 3.7753
+      lon_candidate: 103.2092
+      domain: GROUND_VEHICLE
+      verify: true
+      notes: "East coast air defence."
+
+    - id: "labuan_air"
+      name: "RMAF Labuan (Pangkalan Udara Labuan)"
+      location: "Labuan Federal Territory"
+      lat_candidate: 5.3008
+      lon_candidate: 115.2500
+      domain: GROUND_VEHICLE
+      verify: true
+      notes: "East Malaysia MPA and transport. CN-235 MPA base."
+
+    - id: "kota_belud"
+      name: "RMAF Kota Belud"
+      location: "Kota Belud, Sabah"
+      lat_candidate: 6.3500
+      lon_candidate: 116.4333
+      domain: GROUND_VEHICLE
+      verify: true
+
+    - id: "alor_setar"
+      name: "RMAF Alor Setar (Pangkalan Udara Alor Setar)"
+      location: "Alor Setar, Kedah"
+      lat_candidate: 6.1897
+      lon_candidate: 100.4044
+      domain: GROUND_VEHICLE
+      verify: true
+
+    - id: "gong_kedak"
+      name: "RMAF Gong Kedak (Pangkalan Udara Gong Kedak)"
+      location: "Kelantan"
+      lat_candidate: 5.8167
+      lon_candidate: 102.5833
+      domain: GROUND_VEHICLE
+      verify: true
+
+  aircraft:
+    - id: "fa18d"
+      name: "F/A-18D Hornet"
+      type: "Multi-Role Fighter"
+      entity_type: "RMAF_FIGHTER"
+      home_base: "butterworth"
+      count: 8
+      speed_max_kn: 1000
+      range_nm: 1000
+      sidc_2525d: "SFAP------"
+      squadron: "No. 18 Squadron"
+      notes: "Two-seat variant. Strike/maritime strike capable."
+
+    - id: "su30mkm"
+      name: "Su-30MKM Flanker"
+      type: "Multi-Role Fighter"
+      entity_type: "RMAF_FIGHTER"
+      home_base: "butterworth"
+      count: 18
+      speed_max_kn: 1200
+      range_nm: 1500
+      sidc_2525d: "SFAP------"
+      squadron: "No. 11 Squadron, No. 12 Squadron"
+      notes: "Primary air superiority and strike aircraft."
+
+    - id: "hawk208"
+      name: "BAE Hawk 108/208"
+      type: "Light Fighter/LIFT"
+      entity_type: "RMAF_FIGHTER"
+      home_base: "butterworth"
+      count: 24
+      speed_max_kn: 540
+      range_nm: 1600
+      sidc_2525d: "SFAP------"
+      squadron: "No. 6, 9 Squadron"
+
+    - id: "cn235mpa"
+      name: "CASA/IPTN CN-235 MPA"
+      type: "Maritime Patrol Aircraft"
+      entity_type: "RMAF_MPA"
+      home_base: "labuan_air"
+      count: 6
+      speed_max_kn: 200
+      range_nm: 1600
+      endurance_hrs: 9
+      sidc_2525d: "SFAP------"
+      sensors: ["AIS", "FLIR", "search radar"]
+      notes: "Primary RMAF MPA for East Malaysia and Sulu Sea."
+
+    - id: "c130h"
+      name: "Lockheed C-130H Hercules"
+      type: "Transport"
+      entity_type: "RMAF_TRANSPORT"
+      home_base: "subang"
+      count: 8
+      speed_max_kn: 320
+      range_nm: 2000
+      sidc_2525d: "SFAP------"
+      squadron: "No. 20 Squadron"
+
+    - id: "ec725"
+      name: "Airbus H225M (EC725) Caracal"
+      type: "Multi-Role Helicopter"
+      entity_type: "RMAF_HELICOPTER"
+      home_base: "subang"
+      count: 12
+      speed_max_kn: 150
+      range_nm: 450
+      sidc_2525d: "SFAP------"
+      notes: "CSAR, troop transport, MEDEVAC. Frequently deployed to ESSZONE FOBs."
+
+    - id: "a400m"
+      name: "Airbus A400M Atlas"
+      type: "Strategic Transport"
+      entity_type: "RMAF_TRANSPORT"
+      home_base: "subang"
+      count: 4
+      speed_max_kn: 440
+      range_nm: 4800
+      sidc_2525d: "SFAP------"
+
+# ============================================================
+# AGENSI PENGUATKUASAAN MARITIM MALAYSIA (APMM) — MMEA
+# ============================================================
+MMEA:
+  full_name: "Agensi Penguatkuasaan Maritim Malaysia"
+  english_name: "Malaysian Maritime Enforcement Agency"
+  abbreviation: MMEA
+  callsign_prefix: "KM"        # Kapal Malaysia
+
+  hq: "Putrajaya"
+
+  regions:
+    - id: "region1"
+      name: "MMEA Maritime Region 1"
+      coverage: "Strait of Malacca — Northern"
+      hq: "penang_mmea"
+    - id: "region2"
+      name: "MMEA Maritime Region 2"
+      coverage: "Strait of Malacca — Southern / Johor"
+      hq: "johor_mmea"
+    - id: "region3"
+      name: "MMEA Maritime Region 3"
+      coverage: "South China Sea — Terengganu/Pahang/Kelantan"
+      hq: "kuantan_mmea"
+    - id: "region4"
+      name: "MMEA Maritime Region 4"
+      coverage: "South China Sea — Sabah/Sarawak"
+      hq: "labuan_mmea"
+    - id: "region5"
+      name: "MMEA Maritime Region 5"
+      coverage: "Sabah EEZ / ESSZONE"
+      hq: "semporna_mmea"
+
+  stations:
+    - id: "lumut_mmea"
+      name: "MMEA Lumut Maritime Station"
+      lat_candidate: 4.2333
+      lon_candidate: 100.6167
+      domain: MARITIME
+      verify: true
+      region: "region1"
+
+    - id: "penang_mmea"
+      name: "MMEA Penang Maritime Station"
+      lat_candidate: 5.4141
+      lon_candidate: 100.3288
+      domain: MARITIME
+      verify: true
+      region: "region1"
+
+    - id: "port_klang_mmea"
+      name: "MMEA Port Klang Maritime Station"
+      lat_candidate: 3.0000
+      lon_candidate: 101.3833
+      domain: MARITIME
+      verify: true
+      region: "region1"
+      notes: "Key station for Malacca Strait southern patrol."
+
+    - id: "johor_mmea"
+      name: "MMEA Johor Bahru Maritime Station"
+      lat_candidate: 1.4667
+      lon_candidate: 103.7667
+      domain: MARITIME
+      verify: true
+      region: "region2"
+
+    - id: "kuantan_mmea"
+      name: "MMEA Kuantan Maritime Station"
+      lat_candidate: 3.7500
+      lon_candidate: 103.4333
+      domain: MARITIME
+      verify: true
+      region: "region3"
+
+    - id: "labuan_mmea"
+      name: "MMEA Labuan Maritime Station"
+      lat_candidate: 5.2833
+      lon_candidate: 115.2333
+      domain: MARITIME
+      verify: true
+      region: "region4"
+
+    - id: "sandakan_mmea"
+      name: "MMEA Sandakan Maritime Station"
+      lat_candidate: 5.8400
+      lon_candidate: 118.0700
+      domain: MARITIME
+      verify: true
+      region: "region5"
+
+    - id: "semporna_mmea"
+      name: "MMEA Semporna Maritime Station"
+      lat_candidate: 4.4800
+      lon_candidate: 118.6100
+      domain: MARITIME
+      verify: true
+      region: "region5"
+
+    - id: "tawau_mmea"
+      name: "MMEA Tawau Maritime Station"
+      lat_candidate: 4.2333
+      lon_candidate: 117.8833
+      domain: MARITIME
+      verify: true
+      region: "region5"
+
+    - id: "kudat_mmea"
+      name: "MMEA Kudat Maritime Station"
+      lat_candidate: 6.8833
+      lon_candidate: 116.8500
+      domain: MARITIME
+      verify: true
+
+  vessels:
+    # --- OFFSHORE PATROL VESSELS ---
+    - name: "KM Pekan"
+      class: "Langkawi-class"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "port_klang_mmea"
+      displacement_t: 1,500
+      length_m: 80
+      speed_max_kn: 22
+      range_nm: 3500
+      crew: 55
+      sidc_2525d: "SFSP------"
+
+    - name: "KM Perantau"
+      class: "Langkawi-class"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "lumut_mmea"
+      displacement_t: 1500
+      length_m: 80
+      speed_max_kn: 22
+      sidc_2525d: "SFSP------"
+
+    - name: "KM Marlin"
+      class: "Patrol Vessel"
+      type: "Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "port_klang_mmea"
+      displacement_t: 650
+      length_m: 55
+      speed_max_kn: 22
+      sidc_2525d: "SFSP------"
+      notes: "Fictional callsign used in scenarios — represents class"
+
+    - name: "KM Penggalang"
+      class: "Fast Interceptor"
+      type: "Fast Interceptor Craft"
+      entity_type: "MMEA_FAST_INTERCEPT"
+      home_base: "port_klang_mmea"
+      displacement_t: 120
+      length_m: 39
+      speed_max_kn: 35
+      sidc_2525d: "SFSP------"
+      notes: "Fictional callsign — represents fast intercept class"
+
+    - name: "KM Sangitan"
+      class: "OPV"
+      type: "Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "sandakan_mmea"
+      displacement_t: 650
+      length_m: 55
+      speed_max_kn: 22
+      sidc_2525d: "SFSP------"
+
+    - name: "KM Semporna"
+      class: "OPV"
+      type: "Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "semporna_mmea"
+      displacement_t: 500
+      length_m: 50
+      speed_max_kn: 20
+      sidc_2525d: "SFSP------"
+
+  aviation:
+    - id: "mmea_ec725"
+      name: "H225M / EC725 Caracal"
+      type: "Maritime Helicopter"
+      entity_type: "RMAF_HELICOPTER"
+      count: 3
+      speed_max_kn: 150
+      sidc_2525d: "SFAP------"
+      notes: "MMEA air wing. SAR and maritime patrol."
+
+    - id: "mmea_beechcraft"
+      name: "Beechcraft B200T"
+      type: "Maritime Patrol Aircraft"
+      entity_type: "RMAF_MPA"
+      count: 2
+      speed_max_kn: 270
+      sidc_2525d: "SFAP------"
+
+# ============================================================
+# POLIS DIRAJA MALAYSIA (PDRM) — Royal Malaysia Police Marine
+# ============================================================
+RMP_MARINE:
+  full_name: "Polis Diraja Malaysia — Unit Marin"
+  english_name: "Royal Malaysia Police — Marine Unit"
+  abbreviation: "PDRM Marine"
+  callsign_prefix: "PDRM"
+
+  units:
+    - id: "marine_klang"
+      name: "RMP Marine Police — Port Klang"
+      lat_candidate: 3.0000
+      lon_candidate: 101.4200
+      domain: MARITIME
+      verify: true
+      vessel_types: ["RHIB", "Patrol Boat"]
+
+    - id: "marine_penang"
+      name: "RMP Marine Police — Penang"
+      lat_candidate: 5.4000
+      lon_candidate: 100.3500
+      domain: MARITIME
+      verify: true
+
+    - id: "marine_johor"
+      name: "RMP Marine Police — Johor"
+      lat_candidate: 1.4833
+      lon_candidate: 103.7500
+      domain: MARITIME
+      verify: true
+
+    - id: "marine_semporna"
+      name: "RMP Marine Police — Semporna"
+      lat_candidate: 4.4900
+      lon_candidate: 118.6200
+      domain: MARITIME
+      verify: true
+
+    - id: "marine_sandakan"
+      name: "RMP Marine Police — Sandakan"
+      lat_candidate: 5.8400
+      lon_candidate: 118.1200
+      domain: MARITIME
+      verify: true
+
+  vessel_types:
+    - entity_type: "RMP_MARINE_PATROL"
+      description: "Rigid Hull Inflatable Boat (RHIB) — boarding operations"
+      speed_max_kn: 35
+      sidc_2525d: "SFSP------"
+      typical_crew: 8
+
+    - entity_type: "RMP_MARINE_PATROL"
+      description: "Patrol Boat 10-15m — coastal patrol"
+      speed_max_kn: 25
+      sidc_2525d: "SFSP------"
+      typical_crew: 6
+
+  special_units:
+    - id: "utk"
+      name: "Unit Tindakan Khas (UTK)"
+      type: "Tactical Response Unit"
+      entity_type: "RMP_TACTICAL_TEAM"
+      sidc_2525d: "SFGP------"
+      notes: "Counter-terrorism. Conducts high-risk maritime boarding."
+
+    - id: "gof"
+      name: "Pasukan Gerakan Am (PGA) / General Operations Force"
+      type: "Paramilitary Police"
+      entity_type: "RMP_TACTICAL_TEAM"
+      sidc_2525d: "SFGP------"
+      notes: "ESSZONE operations. Armed paramilitary force."
+
+# ============================================================
+# JABATAN KASTAM DAN IMIGRESEN (CUSTOMS & IMMIGRATION)
+# ============================================================
+CUSTOMS_IMMIGRATION:
+  agencies:
+    - id: "rmcd"
+      name: "Royal Malaysian Customs Department"
+      abbreviation: "JKDM"
+      entity_type: "CI_OFFICER"
+      sidc_2525d: "SFGP------"
+      maritime_entity_type: "CI_IMMIGRATION_TEAM"
+
+    - id: "jim"
+      name: "Jabatan Imigresen Malaysia"
+      abbreviation: "JIM"
+      entity_type: "CI_IMMIGRATION_TEAM"
+      sidc_2525d: "SFGP------"

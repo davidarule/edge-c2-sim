@@ -1,0 +1,353 @@
+# Entity Types — Canonical Reference
+# Version: 1.0 | Built: April 2026
+#
+# MIL-STD-2525D SIDC FORMAT:
+#   Position 1:   Version (always 'S' for 2525D)
+#   Position 2:   Standard Identity
+#                   F = Friend, H = Hostile, N = Neutral, U = Unknown, S = Suspect/Assumed Hostile
+#   Position 3:   Symbol Set
+#                   A = Air, S = Sea Surface, U = Sea Subsurface, G = Ground
+#   Position 4-10: Entity/modifier codes
+#
+# STANDARD IDENTITY CODES used in simulation:
+#   F = Friend (own forces / allied)
+#   N = Neutral (civilian, commercial)
+#   S = Suspect (dark targets, unknown vessels)
+#   H = Hostile (confirmed threat — used after positive ID)
+#   U = Unknown (unidentified contact)
+#
+# SYMBOL SET (position 3):
+#   Air:             'A' → SFAP (friend air), SNAP (neutral air)
+#   Sea Surface:     'S' → SFSP (friend surface), SNSP (neutral surface), SHSP (hostile surface)
+#   Sea Subsurface:  'U' → SFUP (friend sub), SNUP (neutral sub)
+#   Ground:          'G' → SFGP (friend ground), SNGP (neutral ground)
+#
+# NOTE: SIDCs in the simulator use 10-character codes with dashes for unused fields.
+# Example: "SFSP------" = Standard + Friend + Sea Surface + Paddlesteamer (generic surface)
+
+entity_types:
+
+  # ============================================================
+  # MARITIME — CIVILIAN / NEUTRAL
+  # ============================================================
+
+  - type: "CIVILIAN_CARGO"
+    domain: MARITIME
+    agency: CIVILIAN
+    sidc_2525d: "SNSP------"
+    standard_identity: N    # Neutral
+    symbol_set: S           # Sea Surface
+    speed_range_kn: [8, 16]
+    notes: "General cargo vessels, bulk carriers, container ships transiting TSS"
+
+  - type: "CIVILIAN_TANKER"
+    domain: MARITIME
+    agency: CIVILIAN
+    sidc_2525d: "SNSP------"
+    standard_identity: N
+    symbol_set: S
+    speed_range_kn: [8, 14]
+    notes: "Oil tankers, LNG carriers"
+
+  - type: "CIVILIAN_FISHING"
+    domain: MARITIME
+    agency: CIVILIAN
+    sidc_2525d: "SNSP------"
+    standard_identity: N
+    symbol_set: S
+    speed_range_kn: [2, 8]
+    notes: "Licensed fishing vessels"
+
+  - type: "CIVILIAN_PASSENGER"
+    domain: MARITIME
+    agency: CIVILIAN
+    sidc_2525d: "SNSP------"
+    standard_identity: N
+    symbol_set: S
+    speed_range_kn: [10, 22]
+    notes: "Ferries, cruise ships, passenger vessels"
+
+  - type: "CIVILIAN_BOAT"
+    domain: MARITIME
+    agency: CIVILIAN
+    sidc_2525d: "SNSP------"
+    standard_identity: N
+    symbol_set: S
+    speed_range_kn: [3, 15]
+    notes: "Small civilian craft, dhows, sampans"
+
+  # ============================================================
+  # MARITIME — SUSPECT / UNKNOWN
+  # ============================================================
+
+  - type: "SUSPECT_VESSEL"
+    domain: MARITIME
+    agency: CIVILIAN
+    sidc_2525d: "SUSP------"
+    standard_identity: U    # CHANGED: Was 'S' (Suspect) — use 'U' (Unknown) for initial detection
+    symbol_set: S
+    speed_range_kn: [0, 40]
+    notes: |
+      Use 'U' (Unknown) for initial AIS-dark contacts.
+      Change to 'S' (Suspect) via event when identity confirmed suspect.
+      Change to 'H' (Hostile) via event when armed/confirmed threat.
+
+  - type: "HOSTILE_VESSEL"
+    domain: MARITIME
+    agency: CIVILIAN
+    sidc_2525d: "SHSP------"
+    standard_identity: H    # Hostile — confirmed threat
+    symbol_set: S
+    speed_range_kn: [0, 40]
+
+  # ============================================================
+  # MARITIME — FRIEND (OWN FORCES)
+  # ============================================================
+
+  - type: "MMEA_PATROL"
+    domain: MARITIME
+    agency: MMEA
+    sidc_2525d: "SFSP------"
+    standard_identity: F
+    symbol_set: S
+    speed_range_kn: [8, 22]
+    notes: "MMEA OPV and patrol vessels. Malaysian coast guard."
+
+  - type: "MMEA_FAST_INTERCEPT"
+    domain: MARITIME
+    agency: MMEA
+    sidc_2525d: "SFSP------"
+    standard_identity: F
+    symbol_set: S
+    speed_range_kn: [15, 45]
+    notes: "MMEA high-speed intercept craft"
+
+  - type: "MIL_NAVAL"
+    domain: MARITIME
+    agency: MIL
+    sidc_2525d: "SFSP------"
+    standard_identity: F
+    symbol_set: S
+    speed_range_kn: [10, 30]
+    notes: "RMN / TNI-AL / RSN major surface combatants (frigates, corvettes, OPVs)"
+
+  - type: "MIL_NAVAL_FIC"
+    domain: MARITIME
+    agency: MIL
+    sidc_2525d: "SFSP------"
+    standard_identity: F
+    symbol_set: S
+    speed_range_kn: [15, 40]
+    notes: "Fast Interceptor Craft — G2000, KCR-60, Victory-class corvette (fast)"
+
+  - type: "MIL_SUBMARINE"
+    domain: MARITIME
+    agency: MIL
+    sidc_2525d: "SFUP------"
+    standard_identity: F
+    symbol_set: U           # Subsurface
+    speed_range_kn: [0, 20]
+    notes: "RMN Scorpène, RSN Type 218SG, TNI-AL Nagapasa"
+
+  - type: "RMP_MARINE_PATROL"
+    domain: MARITIME
+    agency: RMP
+    sidc_2525d: "SFSP------"
+    standard_identity: F
+    symbol_set: S
+    speed_range_kn: [10, 35]
+    notes: "PDRM Marine Police patrol boats and RHIBs. Also used for PCG Singapore and Polairud Indonesia."
+
+  - type: "RMP_PATROL_BOAT"
+    domain: MARITIME
+    agency: RMP
+    sidc_2525d: "SFSP------"
+    standard_identity: F
+    symbol_set: S
+    speed_range_kn: [10, 25]
+
+  # ============================================================
+  # AIR — CIVILIAN / NEUTRAL
+  # ============================================================
+
+  - type: "CIVILIAN_COMMERCIAL"
+    domain: AIR
+    agency: CIVILIAN
+    sidc_2525d: "SNAP------"
+    standard_identity: N
+    symbol_set: A
+    speed_range_kn: [140, 500]
+    notes: "Commercial airliners. MAS, SIA, Garuda, etc."
+
+  - type: "CIVILIAN_LIGHT"
+    domain: AIR
+    agency: CIVILIAN
+    sidc_2525d: "SNAP------"
+    standard_identity: N
+    symbol_set: A
+    speed_range_kn: [80, 200]
+    notes: "Light general aviation aircraft"
+
+  # ============================================================
+  # AIR — FRIEND (OWN FORCES)
+  # ============================================================
+
+  - type: "RMAF_FIGHTER"
+    domain: AIR
+    agency: RMAF
+    sidc_2525d: "SFAP------"
+    standard_identity: F
+    symbol_set: A
+    speed_range_kn: [200, 1200]
+    notes: "Su-30MKM, F/A-18D, Hawk, F-16 (TNI-AU), F-15SG/F-16 (RSAF)"
+
+  - type: "RMAF_MPA"
+    domain: AIR
+    agency: RMAF
+    sidc_2525d: "SFAP------"
+    standard_identity: F
+    symbol_set: A
+    speed_range_kn: [120, 280]
+    notes: "Maritime Patrol Aircraft — Beechcraft B200T, CN-235, CN-295, P-3C"
+
+  - type: "RMAF_TRANSPORT"
+    domain: AIR
+    agency: RMAF
+    sidc_2525d: "SFAP------"
+    standard_identity: F
+    symbol_set: A
+    speed_range_kn: [120, 440]
+    notes: "C-130H, A400M, CN-295 (transport variant)"
+
+  - type: "RMAF_HELICOPTER"
+    domain: AIR
+    agency: RMAF
+    sidc_2525d: "SFAP------"
+    standard_identity: F
+    symbol_set: A
+    speed_range_kn: [0, 160]
+    notes: |
+      EC725/H225M Caracal, Super Lynx, AW139, S-70B, CH-47, AH-64.
+      Used by RMAF, RMN, MMEA, and in scenarios for RSN/RSAF helicopters.
+
+  # ============================================================
+  # GROUND — FRIEND
+  # ============================================================
+
+  - type: "MIL_INFANTRY_SQUAD"
+    domain: GROUND_VEHICLE
+    agency: MIL
+    sidc_2525d: "SFGP------"
+    standard_identity: F
+    symbol_set: G
+    speed_range_kn: [0, 6]
+    notes: "Infantry units. Correct domain is PERSONNEL not GROUND_VEHICLE."
+    domain_correction: PERSONNEL
+
+  - type: "MIL_SPECIAL_FORCES"
+    domain: PERSONNEL
+    agency: MIL
+    sidc_2525d: "SFGP------"
+    standard_identity: F
+    symbol_set: G
+    speed_range_kn: [0, 8]
+    notes: "PASKAL, KOPASKA, 21 SAS equivalent units"
+
+  - type: "MIL_APC"
+    domain: GROUND_VEHICLE
+    agency: MIL
+    sidc_2525d: "SFGP------"
+    standard_identity: F
+    symbol_set: G
+    speed_range_kn: [0, 40]
+
+  - type: "MIL_VEHICLE"
+    domain: GROUND_VEHICLE
+    agency: MIL
+    sidc_2525d: "SFGP------"
+    standard_identity: F
+    symbol_set: G
+    speed_range_kn: [0, 80]
+
+  - type: "RMP_PATROL_CAR"
+    domain: GROUND_VEHICLE
+    agency: RMP
+    sidc_2525d: "SFGP------"
+    standard_identity: F
+    symbol_set: G
+    speed_range_kn: [0, 80]
+
+  - type: "RMP_OFFICER"
+    domain: PERSONNEL
+    agency: RMP
+    sidc_2525d: "SFGP------"
+    standard_identity: F
+    symbol_set: G
+    speed_range_kn: [0, 4]
+
+  - type: "RMP_TACTICAL_TEAM"
+    domain: PERSONNEL
+    agency: RMP
+    sidc_2525d: "SFGP------"
+    standard_identity: F
+    symbol_set: G
+    speed_range_kn: [0, 6]
+
+  - type: "CI_OFFICER"
+    domain: PERSONNEL
+    agency: CI
+    sidc_2525d: "SFGP------"
+    standard_identity: F
+    symbol_set: G
+    speed_range_kn: [0, 4]
+
+  - type: "CI_IMMIGRATION_TEAM"
+    domain: PERSONNEL
+    agency: CI
+    sidc_2525d: "SFGP------"
+    standard_identity: F
+    symbol_set: G
+    speed_range_kn: [0, 4]
+
+  # ============================================================
+  # CIVILIAN GROUND
+  # ============================================================
+
+  - type: "CIVILIAN_TOURIST"
+    domain: PERSONNEL
+    agency: CIVILIAN
+    sidc_2525d: "SNGP------"
+    standard_identity: N
+    symbol_set: G
+    speed_range_kn: [0, 3]
+
+  - type: "HOSTILE_PERSONNEL"
+    domain: PERSONNEL
+    agency: CIVILIAN
+    sidc_2525d: "SHGP------"
+    standard_identity: H
+    symbol_set: G
+    speed_range_kn: [0, 6]
+
+# ============================================================
+# SIDC AUDIT NOTES — Issues found in loader.py ENTITY_TYPES
+# ============================================================
+sidc_audit:
+  - finding: "SUSPECT_VESSEL was SHSP (Hostile). Should be SUSP (Unknown) initially."
+    current: "SHSP------"
+    corrected: "SUSP------"
+    entity_type: SUSPECT_VESSEL
+
+  - finding: "All MIL_INFANTRY_SQUAD/RMP_TACTICAL_TEAM use SFGP but domain is GROUND_VEHICLE in loader — should be PERSONNEL."
+    affected: [MIL_INFANTRY_SQUAD, RMP_TACTICAL_TEAM, RMP_OFFICER, CI_OFFICER, CI_IMMIGRATION_TEAM, HOSTILE_PERSONNEL, CIVILIAN_TOURIST]
+    action: "Update domain from GROUND_VEHICLE to PERSONNEL in loader.py for these types."
+
+  - finding: "CIVILIAN_CARGO/TANKER/FISHING/PASSENGER all use SNSP which is correct for Neutral Sea Surface."
+    status: CORRECT
+
+  - finding: "RMAF_TRANSPORT should be SFAP not SFGP — it is an air asset."
+    current_in_loader: "SFAP------"
+    status: CORRECT
+
+  - finding: "MIL_SUBMARINE not yet defined in loader.py. Required for scenario use."
+    action: "Add MIL_SUBMARINE entity type with domain MARITIME and sidc SFUP------"

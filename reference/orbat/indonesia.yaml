@@ -1,0 +1,514 @@
+# Indonesia ORBAT Reference
+# Version: 1.0 | Built: April 2026
+# Sources: TNI-AL/AU official, Jane's, Wikipedia, GlobalSecurity
+#
+# VERIFICATION STATUS:
+#   coordinates: UNVERIFIED — must be run through tools/verify_coords.py
+#   vessel_data: cross-referenced multiple open sources
+
+country: Indonesia
+abbreviation: IDN
+
+# ============================================================
+# TENTARA NASIONAL INDONESIA ANGKATAN LAUT (TNI-AL)
+# ============================================================
+TNI_AL:
+  full_name: "Tentara Nasional Indonesia Angkatan Laut"
+  english_name: "Indonesian Navy"
+  abbreviation: "TNI-AL"
+  callsign_prefix: "KRI"       # Kapal Perang Republik Indonesia
+
+  commands:
+    - id: "koarmada1"
+      name: "Koarmada I (Western Fleet)"
+      hq_base: "tanjung_priok"
+      area_of_ops: "Malacca Strait, Indian Ocean, South China Sea west"
+    - id: "koarmada2"
+      name: "Koarmada II (Eastern Fleet)"
+      hq_base: "surabaya"
+      area_of_ops: "Java Sea, Flores Sea, Banda Sea"
+    - id: "koarmada3"
+      name: "Koarmada III (Eastern Indonesia)"
+      hq_base: "sorong"
+      area_of_ops: "Sulu Sea, Celebes Sea, Maluku, Papua"
+
+  bases:
+    - id: "tanjung_priok"
+      name: "Pangkalan TNI-AL Tanjung Priok (Koarmada I HQ)"
+      location: "Jakarta, Java"
+      lat_candidate: -6.1000
+      lon_candidate: 106.8833
+      domain: MARITIME
+      verify: true
+      notes: "Western Fleet HQ. Major naval facility."
+
+    - id: "sabang"
+      name: "Pangkalan TNI-AL Sabang"
+      location: "Sabang, Aceh (Weh Island)"
+      lat_candidate: 5.8833
+      lon_candidate: 95.3167
+      domain: MARITIME
+      verify: true
+      notes: "Strategic base at northern entrance to Malacca Strait."
+
+    - id: "belawan"
+      name: "Pangkalan TNI-AL Belawan"
+      location: "Belawan, North Sumatra"
+      lat_candidate: 3.7833
+      lon_candidate: 98.6833
+      domain: MARITIME
+      verify: true
+      notes: "Key Malacca Strait patrol base."
+
+    - id: "batam"
+      name: "Pangkalan TNI-AL Batam"
+      location: "Batam Island, Riau Islands"
+      lat_candidate: 1.1500
+      lon_candidate: 104.0500
+      domain: MARITIME
+      verify: true
+      notes: "Strategically positioned near Singapore Strait."
+
+    - id: "tanjung_pinang"
+      name: "Pangkalan TNI-AL Tanjung Pinang"
+      location: "Tanjung Pinang, Riau Islands"
+      lat_candidate: 0.9167
+      lon_candidate: 104.4525
+      domain: MARITIME
+      verify: true
+
+    - id: "surabaya"
+      name: "Pangkalan TNI-AL Surabaya (Koarmada II HQ)"
+      location: "Surabaya, East Java"
+      lat_candidate: -7.2000
+      lon_candidate: 112.7333
+      domain: MARITIME
+      verify: true
+      notes: "Largest TNI-AL base. Eastern Fleet HQ."
+
+    - id: "makassar"
+      name: "Pangkalan TNI-AL Makassar"
+      location: "Makassar, South Sulawesi"
+      lat_candidate: -5.1333
+      lon_candidate: 119.4167
+      domain: MARITIME
+      verify: true
+      notes: "Key base for Sulawesi Sea operations."
+
+    - id: "tarakan"
+      name: "Pangkalan TNI-AL Tarakan"
+      location: "Tarakan, North Kalimantan"
+      lat_candidate: 3.3167
+      lon_candidate: 117.6333
+      domain: MARITIME
+      verify: true
+      notes: "Patrol of Celebes Sea / Sulu Sea region."
+
+    - id: "nunukan"
+      name: "Pangkalan TNI-AL Nunukan"
+      location: "Nunukan, North Kalimantan"
+      lat_candidate: 4.1333
+      lon_candidate: 117.6667
+      domain: MARITIME
+      verify: true
+      notes: "Close to Malaysian/Philippine border area."
+
+    - id: "sorong"
+      name: "Pangkalan TNI-AL Sorong (Koarmada III HQ)"
+      location: "Sorong, West Papua"
+      lat_candidate: -0.8667
+      lon_candidate: 131.2500
+      domain: MARITIME
+      verify: true
+
+  vessels:
+    # --- FRIGATES ---
+    - hull: "331"
+      name: "KRI Raden Eddy Martadinata"
+      class: "Martadinata-class (SIGMA 10514)"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "tanjung_priok"
+      displacement_t: 2365
+      length_m: 105.11
+      speed_max_kn: 28
+      range_nm: 4800
+      crew: 120
+      commissioned: 2017
+      sidc_2525d: "SFSP------"
+
+    - hull: "332"
+      name: "KRI I Gusti Ngurah Rai"
+      class: "Martadinata-class (SIGMA 10514)"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "surabaya"
+      displacement_t: 2365
+      speed_max_kn: 28
+      commissioned: 2017
+      sidc_2525d: "SFSP------"
+
+    - hull: "333"
+      name: "KRI Hageman"
+      class: "Martadinata-class"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "tanjung_priok"
+      displacement_t: 2365
+      speed_max_kn: 28
+      commissioned: 2024
+      sidc_2525d: "SFSP------"
+
+    - hull: "334"
+      name: "KRI Arun"
+      class: "Martadinata-class"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "surabaya"
+      displacement_t: 2365
+      speed_max_kn: 28
+      commissioned: 2024
+      sidc_2525d: "SFSP------"
+
+    # --- CORVETTES (Van Speijk / Ahmad Yani-class) ---
+    - hull: "351"
+      name: "KRI Ahmad Yani"
+      class: "Van Speijk / Ahmad Yani-class"
+      type: "Frigate/Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "surabaya"
+      displacement_t: 2840
+      length_m: 113.4
+      speed_max_kn: 28.5
+      crew: 180
+      sidc_2525d: "SFSP------"
+      notes: "Older class, upgrades ongoing."
+
+    - hull: "354"
+      name: "KRI Abdul Halim Perdanakusuma"
+      class: "Van Speijk-class"
+      type: "Frigate/Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "tanjung_priok"
+      displacement_t: 2840
+      speed_max_kn: 28.5
+      sidc_2525d: "SFSP------"
+
+    # --- CORVETTES (Diponegoro-class SIGMA 9113) ---
+    - hull: "365"
+      name: "KRI Diponegoro"
+      class: "Diponegoro-class (SIGMA 9113)"
+      type: "Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "surabaya"
+      displacement_t: 1700
+      length_m: 91.13
+      speed_max_kn: 28
+      crew: 80
+      commissioned: 2007
+      sidc_2525d: "SFSP------"
+
+    - hull: "366"
+      name: "KRI Hasanuddin"
+      class: "Diponegoro-class"
+      type: "Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "surabaya"
+      displacement_t: 1700
+      speed_max_kn: 28
+      commissioned: 2007
+      sidc_2525d: "SFSP------"
+
+    - hull: "367"
+      name: "KRI Sultan Iskandar Muda"
+      class: "Diponegoro-class"
+      type: "Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "tanjung_priok"
+      displacement_t: 1700
+      speed_max_kn: 28
+      commissioned: 2008
+      sidc_2525d: "SFSP------"
+
+    - hull: "368"
+      name: "KRI Frans Kaisiepo"
+      class: "Diponegoro-class"
+      type: "Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "sorong"
+      displacement_t: 1700
+      speed_max_kn: 28
+      commissioned: 2009
+      sidc_2525d: "SFSP------"
+
+    # --- FAST PATROL VESSELS ---
+    - hull: "622"
+      name: "KRI Sampari"
+      class: "KCR-60M"
+      type: "Fast Missile Boat"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "tanjung_priok"
+      displacement_t: 460
+      length_m: 60
+      speed_max_kn: 30
+      sidc_2525d: "SFSP------"
+      notes: "Armed with C-705 anti-ship missiles."
+
+    - hull: "625"
+      name: "KRI Tombak"
+      class: "KCR-60M"
+      type: "Fast Missile Boat"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "batam"
+      displacement_t: 460
+      speed_max_kn: 30
+      sidc_2525d: "SFSP------"
+
+    - hull: "646"
+      name: "KRI Panah"
+      class: "KCR-40"
+      type: "Fast Patrol Boat"
+      entity_type: "MIL_NAVAL_FIC"
+      home_base: "belawan"
+      displacement_t: 247
+      length_m: 40
+      speed_max_kn: 30
+      sidc_2525d: "SFSP------"
+
+    # --- SUBMARINES ---
+    - hull: "401"
+      name: "KRI Nagapasa"
+      class: "Nagapasa-class (Chang Bogo/Type 209)"
+      type: "Diesel-Electric Submarine"
+      entity_type: "MIL_SUBMARINE"
+      home_base: "surabaya"
+      displacement_t: 1460
+      length_m: 61.3
+      speed_max_kn: 22
+      crew: 40
+      commissioned: 2017
+      sidc_2525d: "SFUP------"
+
+    - hull: "402"
+      name: "KRI Ardadedali"
+      class: "Nagapasa-class"
+      type: "Diesel-Electric Submarine"
+      entity_type: "MIL_SUBMARINE"
+      home_base: "surabaya"
+      displacement_t: 1460
+      speed_max_kn: 22
+      commissioned: 2018
+      sidc_2525d: "SFUP------"
+
+    - hull: "403"
+      name: "KRI Alugoro"
+      class: "Nagapasa-class"
+      type: "Diesel-Electric Submarine"
+      entity_type: "MIL_SUBMARINE"
+      home_base: "surabaya"
+      displacement_t: 1460
+      speed_max_kn: 22
+      commissioned: 2021
+      sidc_2525d: "SFUP------"
+      notes: "First built in Indonesia at PT PAL."
+
+  special_forces:
+    - id: "kopaska"
+      name: "Komando Pasukan Katak (KOPASKA)"
+      type: "Naval Special Forces"
+      entity_type: "MIL_SPECIAL_FORCES"
+      home_base: "tanjung_priok"
+      sidc_2525d: "SFGP------"
+      notes: "Indonesian Navy SEALs equivalent."
+
+    - id: "taifib"
+      name: "Batalyon Intai Amfibi (TAIFIB)"
+      type: "Amphibious Reconnaissance"
+      entity_type: "MIL_INFANTRY_SQUAD"
+      home_base: "surabaya"
+      sidc_2525d: "SFGP------"
+
+# ============================================================
+# BADAN KEAMANAN LAUT (BAKAMLA) — Indonesia Coast Guard
+# ============================================================
+BAKAMLA:
+  full_name: "Badan Keamanan Laut Republik Indonesia"
+  english_name: "Indonesian Coast Guard / Maritime Security Agency"
+  abbreviation: "Bakamla"
+  callsign_prefix: "KN"        # Kapal Negara
+
+  hq: "Jakarta"
+
+  zones:
+    - id: "zona_barat"
+      name: "Bakamla Western Zone"
+      coverage: "Malacca Strait, Indian Ocean"
+      hq_base: "batam_bakamla"
+    - id: "zona_tengah"
+      name: "Bakamla Central Zone"
+      coverage: "Java Sea, Kalimantan"
+      hq_base: "tanjung_priok_bakamla"
+    - id: "zona_timur"
+      name: "Bakamla Eastern Zone"
+      coverage: "Celebes Sea, Maluku, Papua"
+      hq_base: "makassar_bakamla"
+
+  stations:
+    - id: "batam_bakamla"
+      name: "Bakamla Station Batam"
+      lat_candidate: 1.1500
+      lon_candidate: 104.0167
+      domain: MARITIME
+      verify: true
+
+    - id: "belawan_bakamla"
+      name: "Bakamla Station Belawan"
+      lat_candidate: 3.7667
+      lon_candidate: 98.6833
+      domain: MARITIME
+      verify: true
+      notes: "Key for Malacca Strait operations."
+
+    - id: "tanjung_priok_bakamla"
+      name: "Bakamla Station Jakarta"
+      lat_candidate: -6.1000
+      lon_candidate: 106.8833
+      domain: MARITIME
+      verify: true
+
+  vessels:
+    - name: "KN Tanjung Datu"
+      class: "3600GT OPV"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MMEA_PATROL"   # Use same type — coast guard OPV
+      home_base: "batam_bakamla"
+      displacement_t: 2000
+      length_m: 90
+      speed_max_kn: 22
+      sidc_2525d: "SFSP------"
+
+    - name: "KN Tanjung Fatagar"
+      class: "3600GT OPV"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "tanjung_priok_bakamla"
+      displacement_t: 2000
+      length_m: 90
+      speed_max_kn: 22
+      sidc_2525d: "SFSP------"
+
+    - name: "KN Pulau Nipah"
+      class: "110m OPV"
+      type: "Offshore Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "batam_bakamla"
+      displacement_t: 1800
+      length_m: 110
+      speed_max_kn: 22
+      sidc_2525d: "SFSP------"
+      notes: "Primary Malacca/Singapore Strait patrol."
+
+# ============================================================
+# POLAIRUD — Indonesian Water Police
+# ============================================================
+POLAIRUD:
+  full_name: "Polisi Perairan dan Udara"
+  english_name: "Indonesian Water and Air Police"
+  abbreviation: "Polairud"
+
+  vessel_types:
+    - entity_type: "RMP_MARINE_PATROL"   # Closest analogue
+      description: "Police patrol boat 10–30m"
+      speed_max_kn: 25
+      sidc_2525d: "SFSP------"
+
+# ============================================================
+# TENTARA NASIONAL INDONESIA ANGKATAN UDARA (TNI-AU)
+# ============================================================
+TNI_AU:
+  full_name: "Tentara Nasional Indonesia Angkatan Udara"
+  english_name: "Indonesian Air Force"
+  abbreviation: "TNI-AU"
+
+  bases:
+    - id: "medan_au"
+      name: "Pangkalan Udara Soewondo (Medan)"
+      location: "Medan, North Sumatra"
+      lat_candidate: 3.5592
+      lon_candidate: 98.6711
+      domain: GROUND_VEHICLE
+      verify: true
+      notes: "Key base for Malacca Strait area. F-16 and CN-235."
+
+    - id: "ranai"
+      name: "Pangkalan Udara Ranai"
+      location: "Natuna Islands"
+      lat_candidate: 3.9083
+      lon_candidate: 108.3883
+      domain: GROUND_VEHICLE
+      verify: true
+      notes: "Natuna Islands — strategic position in South China Sea."
+
+    - id: "halim"
+      name: "Pangkalan Udara Halim Perdanakusuma"
+      location: "Jakarta"
+      lat_candidate: -6.2667
+      lon_candidate: 106.8833
+      domain: GROUND_VEHICLE
+      verify: true
+
+    - id: "makassar_au"
+      name: "Pangkalan Udara Sultan Hasanuddin"
+      location: "Makassar, South Sulawesi"
+      lat_candidate: -5.0622
+      lon_candidate: 119.5542
+      domain: GROUND_VEHICLE
+      verify: true
+
+    - id: "tarakan_au"
+      name: "Pangkalan Udara Juwata (Tarakan)"
+      location: "Tarakan, North Kalimantan"
+      lat_candidate: 3.3267
+      lon_candidate: 117.5650
+      domain: GROUND_VEHICLE
+      verify: true
+
+  aircraft:
+    - id: "f16"
+      name: "F-16C/D Fighting Falcon"
+      type: "Multi-Role Fighter"
+      entity_type: "RMAF_FIGHTER"
+      home_base: "medan_au"
+      count: 33
+      speed_max_kn: 1100
+      sidc_2525d: "SFAP------"
+      notes: "Block 15/25/52ID variants. 3 Sqn at Pekanbaru."
+
+    - id: "t50i"
+      name: "T-50i Golden Eagle"
+      type: "Advanced Trainer/Light Combat"
+      entity_type: "RMAF_FIGHTER"
+      home_base: "makassar_au"
+      count: 16
+      speed_max_kn: 700
+      sidc_2525d: "SFAP------"
+
+    - id: "cn295"
+      name: "CASA/IPTN CN-295 Maritime Patrol"
+      type: "Maritime Patrol Aircraft"
+      entity_type: "RMAF_MPA"
+      home_base: "ranai"
+      count: 9
+      speed_max_kn: 260
+      range_nm: 2000
+      sidc_2525d: "SFAP------"
+      notes: "Maritime patrol over South China Sea and Natuna EEZ."
+
+    - id: "c130_tniau"
+      name: "C-130B/H/L-100 Hercules"
+      type: "Transport"
+      entity_type: "RMAF_TRANSPORT"
+      home_base: "halim"
+      count: 12
+      speed_max_kn: 320
+      sidc_2525d: "SFAP------"

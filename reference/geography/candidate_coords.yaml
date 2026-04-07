@@ -1,0 +1,396 @@
+# Candidate Coordinates for Verification
+# Format: flat list of {name, lat, lon, domain} — no wrapper key
+# Run: python3 tools/verify_coords.py reference/geography/candidate_coords.yaml
+#
+# skip: true = GLOBE dataset coverage hole — confirmed ocean via chart/satellite
+# AIR domain is always exempt from terrain checking
+
+# ============================================================
+# MALAYSIA — RMN BASES
+# ============================================================
+- name: "RMN Lumut Naval Base"
+  id: lumut
+  lat: 4.2294
+  lon: 100.6253
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait. Confirmed coastal water."
+
+- name: "RMN Sepanggar Bay Naval Base"
+  id: sepanggar
+  lat: 6.1167
+  lon: 116.0833
+  domain: MARITIME
+
+- name: "TLDM Tanjung Gelang Kuantan"
+  id: kuantan_naval
+  lat: 3.8333
+  lon: 103.4000
+  domain: MARITIME
+
+- name: "TLDM Tanjung Gerak Langkawi"
+  id: langkawi_naval
+  lat: 6.3667
+  lon: 99.8000
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait region."
+
+- name: "TLDM Tanjung Pengelih Johor"
+  id: pengelih_naval
+  lat: 1.3667
+  lon: 104.1333
+  domain: MARITIME
+
+- name: "TLDM Labuan"
+  id: labuan_naval
+  lat: 5.2833
+  lon: 115.2333
+  domain: MARITIME
+
+- name: "TLDM Sandakan"
+  id: sandakan_naval
+  lat: 5.8370
+  lon: 118.1170
+  domain: MARITIME
+
+- name: "RMN Semporna Sea Base"
+  id: semporna_naval
+  lat: 4.4800
+  lon: 118.6100
+  domain: MARITIME
+
+# ============================================================
+# MALAYSIA — RMAF BASES (AIR — always exempt)
+# ============================================================
+- name: "RMAF Subang"
+  id: subang_air
+  lat: 3.1306
+  lon: 101.5493
+  domain: AIR
+
+- name: "RMAF Butterworth"
+  id: butterworth_air
+  lat: 5.4659
+  lon: 100.3903
+  domain: AIR
+
+- name: "RMAF Kuantan"
+  id: kuantan_air
+  lat: 3.7753
+  lon: 103.2092
+  domain: AIR
+
+- name: "RMAF Labuan"
+  id: labuan_air
+  lat: 5.3008
+  lon: 115.2500
+  domain: AIR
+
+- name: "RMAF Alor Setar"
+  id: alor_setar_air
+  lat: 6.1897
+  lon: 100.4044
+  domain: AIR
+
+# ============================================================
+# MALAYSIA — MMEA STATIONS
+# ============================================================
+- name: "MMEA Lumut Station"
+  id: lumut_mmea
+  lat: 4.2333
+  lon: 100.6167
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait."
+
+- name: "MMEA Port Klang Station"
+  id: port_klang_mmea
+  lat: 3.0000
+  lon: 101.3833
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait. Key Malacca scenario base."
+
+- name: "MMEA Penang Station"
+  id: penang_mmea
+  lat: 5.4141
+  lon: 100.3288
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait region."
+
+- name: "MMEA Sandakan Station"
+  id: sandakan_mmea
+  lat: 5.8400
+  lon: 118.0700
+  domain: MARITIME
+
+- name: "MMEA Semporna Station"
+  id: semporna_mmea
+  lat: 4.4800
+  lon: 118.6100
+  domain: MARITIME
+
+- name: "MMEA Tawau Station"
+  id: tawau_mmea
+  lat: 4.2333
+  lon: 117.8833
+  domain: MARITIME
+
+# ============================================================
+# MALAYSIA — RMP MARINE
+# ============================================================
+- name: "RMP Marine Police Port Klang"
+  id: rmp_marine_klang
+  lat: 3.0000
+  lon: 101.4000
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait."
+
+- name: "RMP Marine Police Penang"
+  id: rmp_marine_penang
+  lat: 5.4000
+  lon: 100.3500
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait region."
+
+- name: "RMP Marine Police Semporna"
+  id: rmp_marine_semporna
+  lat: 4.4900
+  lon: 118.6200
+  domain: MARITIME
+
+# ============================================================
+# INDONESIA — TNI-AL BASES
+# ============================================================
+- name: "TNI-AL Tanjung Priok Jakarta"
+  id: tanjung_priok
+  lat: -6.1000
+  lon: 106.8833
+  domain: MARITIME
+
+- name: "TNI-AL Sabang Weh Island"
+  id: sabang
+  lat: 5.8833
+  lon: 95.3167
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait region."
+
+- name: "TNI-AL Belawan Medan"
+  id: belawan
+  lat: 3.7833
+  lon: 98.6833
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait region."
+
+- name: "TNI-AL Batam"
+  id: batam_naval
+  lat: 1.1500
+  lon: 104.0500
+  domain: MARITIME
+
+- name: "TNI-AL Tanjung Pinang"
+  id: tanjung_pinang
+  lat: 0.9167
+  lon: 104.4525
+  domain: MARITIME
+
+- name: "TNI-AL Surabaya"
+  id: surabaya_naval
+  lat: -7.2000
+  lon: 112.7333
+  domain: MARITIME
+
+- name: "TNI-AL Makassar"
+  id: makassar_naval
+  lat: -5.1333
+  lon: 119.4167
+  domain: MARITIME
+
+- name: "TNI-AL Tarakan"
+  id: tarakan_naval
+  lat: 3.3167
+  lon: 117.6333
+  domain: MARITIME
+
+- name: "TNI-AL Nunukan"
+  id: nunukan_naval
+  lat: 4.1333
+  lon: 117.6667
+  domain: MARITIME
+
+- name: "Bakamla Station Batam"
+  id: batam_bakamla
+  lat: 1.1500
+  lon: 104.0167
+  domain: MARITIME
+
+- name: "Bakamla Station Belawan"
+  id: belawan_bakamla
+  lat: 3.7667
+  lon: 98.6833
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait region."
+
+# ============================================================
+# INDONESIA — TNI-AU BASES (AIR — always exempt)
+# ============================================================
+- name: "TNI-AU Soewondo Medan"
+  id: medan_au
+  lat: 3.5592
+  lon: 98.6711
+  domain: AIR
+
+- name: "TNI-AU Ranai Natuna"
+  id: ranai_au
+  lat: 3.9083
+  lon: 108.3883
+  domain: AIR
+
+- name: "TNI-AU Halim Jakarta"
+  id: halim_au
+  lat: -6.2667
+  lon: 106.8833
+  domain: AIR
+
+- name: "TNI-AU Sultan Hasanuddin Makassar"
+  id: makassar_au
+  lat: -5.0622
+  lon: 119.5542
+  domain: AIR
+
+- name: "TNI-AU Juwata Tarakan"
+  id: tarakan_au
+  lat: 3.3267
+  lon: 117.5650
+  domain: AIR
+
+# ============================================================
+# SINGAPORE — RSN / RSAF / PCG
+# ============================================================
+- name: "RSN Changi Naval Base"
+  id: changi_naval
+  lat: 1.3912
+  lon: 103.9894
+  domain: MARITIME
+
+- name: "RSN Tuas Naval Base"
+  id: tuas_naval
+  lat: 1.3167
+  lon: 103.6333
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Singapore Strait region."
+
+- name: "PCG HQ Loyang"
+  id: pcg_loyang
+  lat: 1.3750
+  lon: 103.9833
+  domain: MARITIME
+
+- name: "RSAF Paya Lebar Air Base"
+  id: paya_lebar_air
+  lat: 1.3600
+  lon: 103.9100
+  domain: AIR
+
+- name: "RSAF Tengah Air Base"
+  id: tengah_air
+  lat: 1.3769
+  lon: 103.7081
+  domain: AIR
+
+- name: "RSAF Sembawang Air Base"
+  id: sembawang_air
+  lat: 1.4333
+  lon: 103.8167
+  domain: AIR
+
+# ============================================================
+# OPEN WATER REFERENCE POINTS
+# ============================================================
+- name: "Malacca TSS North off Penang"
+  id: malacca_north
+  lat: 5.2000
+  lon: 99.8000
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait."
+
+- name: "Malacca TSS Central off Lumut"
+  id: malacca_central
+  lat: 4.0000
+  lon: 100.2000
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait."
+
+- name: "Malacca TSS Southern off Port Dickson"
+  id: malacca_south
+  lat: 2.5000
+  lon: 101.0000
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait."
+
+- name: "Malacca TSS NW Lane off Lumut"
+  id: malacca_tss_nw_lumut
+  lat: 4.5000
+  lon: 100.0000
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait."
+
+- name: "Malacca TSS NW Lane off Port Klang"
+  id: malacca_tss_nw_klang
+  lat: 3.0000
+  lon: 100.8000
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait."
+
+- name: "Malacca TSS NW Lane Southern"
+  id: malacca_tss_nw_south
+  lat: 2.0000
+  lon: 102.0000
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Malacca Strait."
+
+- name: "Singapore Strait Western Approach"
+  id: singapore_strait_west
+  lat: 1.2500
+  lon: 103.5000
+  domain: MARITIME
+  skip: true
+  skip_reason: "GLOBE coverage hole — Singapore Strait region."
+
+- name: "Singapore Strait Eastern Approach"
+  id: singapore_strait_east
+  lat: 1.2000
+  lon: 104.2000
+  domain: MARITIME
+
+- name: "South China Sea West off Kuantan"
+  id: scs_west
+  lat: 3.8000
+  lon: 104.5000
+  domain: MARITIME
+
+- name: "Sulu Sea Central"
+  id: sulu_sea_central
+  lat: 7.0000
+  lon: 120.5000
+  domain: MARITIME
+
+- name: "Celebes Sea Central"
+  id: celebes_sea
+  lat: 3.0000
+  lon: 122.0000
+  domain: MARITIME

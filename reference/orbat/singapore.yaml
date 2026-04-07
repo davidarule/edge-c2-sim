@@ -1,0 +1,490 @@
+# Singapore ORBAT Reference
+# Version: 1.0 | Built: April 2026
+# Sources: RSN/RSAF/PCG official, Jane's, Wikipedia, IISS Military Balance
+#
+# VERIFICATION STATUS:
+#   coordinates: UNVERIFIED — must be run through tools/verify_coords.py
+
+country: Singapore
+abbreviation: SGP
+
+# ============================================================
+# REPUBLIC OF SINGAPORE NAVY (RSN)
+# ============================================================
+RSN:
+  full_name: "Republic of Singapore Navy"
+  abbreviation: RSN
+  callsign_prefix: "RSS"
+
+  bases:
+    - id: "changi_naval"
+      name: "Changi Naval Base"
+      location: "Changi, Singapore"
+      lat_candidate: 1.3912
+      lon_candidate: 103.9894
+      domain: MARITIME
+      verify: true
+      notes: "Primary RSN base. Deep-water facility. Capable of berthing US carrier groups."
+
+    - id: "tuas_naval"
+      name: "Tuas Naval Base"
+      location: "Tuas, Singapore"
+      lat_candidate: 1.3167
+      lon_candidate: 103.6333
+      domain: MARITIME
+      verify: true
+      notes: "Western Singapore Strait patrol base."
+
+    - id: "brani"
+      name: "RSS Brani (Historical — now Sentosa)"
+      location: "Sentosa Island, Singapore"
+      lat_candidate: 1.2500
+      lon_candidate: 103.8167
+      domain: MARITIME
+      verify: true
+      notes: "Former RSN base. Now decommissioned/converted."
+
+  vessels:
+    # --- FRIGATES (Formidable-class) ---
+    - hull: "68"
+      name: "RSS Formidable"
+      class: "Formidable-class (La Fayette derivative)"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "changi_naval"
+      displacement_t: 3200
+      length_m: 114.8
+      speed_max_kn: 27
+      range_nm: 4200
+      crew: 71
+      commissioned: 2007
+      sidc_2525d: "SFSP------"
+      armament: ["Aster 15 SAM", "Harpoon SSM", "76mm gun", "Super Lynx"]
+
+    - hull: "69"
+      name: "RSS Intrepid"
+      class: "Formidable-class"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "changi_naval"
+      displacement_t: 3200
+      speed_max_kn: 27
+      commissioned: 2008
+      sidc_2525d: "SFSP------"
+
+    - hull: "70"
+      name: "RSS Steadfast"
+      class: "Formidable-class"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "changi_naval"
+      displacement_t: 3200
+      speed_max_kn: 27
+      commissioned: 2008
+      sidc_2525d: "SFSP------"
+
+    - hull: "71"
+      name: "RSS Tenacious"
+      class: "Formidable-class"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "changi_naval"
+      displacement_t: 3200
+      speed_max_kn: 27
+      commissioned: 2009
+      sidc_2525d: "SFSP------"
+
+    - hull: "72"
+      name: "RSS Stalwart"
+      class: "Formidable-class"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "changi_naval"
+      displacement_t: 3200
+      speed_max_kn: 27
+      commissioned: 2010
+      sidc_2525d: "SFSP------"
+
+    - hull: "73"
+      name: "RSS Supreme"
+      class: "Formidable-class"
+      type: "Frigate"
+      entity_type: "MIL_NAVAL"
+      home_base: "changi_naval"
+      displacement_t: 3200
+      speed_max_kn: 27
+      commissioned: 2011
+      sidc_2525d: "SFSP------"
+
+    # --- CORVETTES (Victory-class) ---
+    - hull: "88"
+      name: "RSS Victory"
+      class: "Victory-class (S70B derivative)"
+      type: "Missile Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "tuas_naval"
+      displacement_t: 595
+      length_m: 62.4
+      speed_max_kn: 35
+      crew: 49
+      commissioned: 1990
+      sidc_2525d: "SFSP------"
+      armament: ["Harpoon SSM", "Barak SAM", "76mm gun"]
+
+    - hull: "89"
+      name: "RSS Valour"
+      class: "Victory-class"
+      type: "Missile Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "tuas_naval"
+      displacement_t: 595
+      speed_max_kn: 35
+      sidc_2525d: "SFSP------"
+
+    - hull: "90"
+      name: "RSS Vigilance"
+      class: "Victory-class"
+      type: "Missile Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "changi_naval"
+      displacement_t: 595
+      speed_max_kn: 35
+      sidc_2525d: "SFSP------"
+
+    - hull: "91"
+      name: "RSS Valiant"
+      class: "Victory-class"
+      type: "Missile Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "changi_naval"
+      displacement_t: 595
+      speed_max_kn: 35
+      sidc_2525d: "SFSP------"
+
+    - hull: "92"
+      name: "RSS Vigour"
+      class: "Victory-class"
+      type: "Missile Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "tuas_naval"
+      displacement_t: 595
+      speed_max_kn: 35
+      sidc_2525d: "SFSP------"
+
+    - hull: "93"
+      name: "RSS Vengeance"
+      class: "Victory-class"
+      type: "Missile Corvette"
+      entity_type: "MIL_NAVAL"
+      home_base: "tuas_naval"
+      displacement_t: 595
+      speed_max_kn: 35
+      sidc_2525d: "SFSP------"
+
+    # --- PATROL VESSELS (Independence-class LMV) ---
+    - hull: "20"
+      name: "RSS Independence"
+      class: "Independence-class (Littoral Mission Vessel)"
+      type: "Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "tuas_naval"
+      displacement_t: 1250
+      length_m: 80
+      speed_max_kn: 27
+      crew: 23
+      commissioned: 2017
+      sidc_2525d: "SFSP------"
+      notes: "Modular mission bay. Highly flexible."
+
+    - hull: "21"
+      name: "RSS Sovereignty"
+      class: "Independence-class"
+      type: "Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "tuas_naval"
+      displacement_t: 1250
+      speed_max_kn: 27
+      commissioned: 2018
+      sidc_2525d: "SFSP------"
+
+    - hull: "22"
+      name: "RSS Unity"
+      class: "Independence-class"
+      type: "Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "changi_naval"
+      displacement_t: 1250
+      speed_max_kn: 27
+      commissioned: 2019
+      sidc_2525d: "SFSP------"
+
+    - hull: "23"
+      name: "RSS Justice"
+      class: "Independence-class"
+      type: "Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "changi_naval"
+      displacement_t: 1250
+      speed_max_kn: 27
+      commissioned: 2019
+      sidc_2525d: "SFSP------"
+
+    - hull: "24"
+      name: "RSS Freedom"
+      class: "Independence-class"
+      type: "Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "tuas_naval"
+      displacement_t: 1250
+      speed_max_kn: 27
+      commissioned: 2020
+      sidc_2525d: "SFSP------"
+
+    - hull: "25"
+      name: "RSS Indomitable"
+      class: "Independence-class"
+      type: "Patrol Vessel"
+      entity_type: "MMEA_PATROL"
+      home_base: "tuas_naval"
+      displacement_t: 1250
+      speed_max_kn: 27
+      commissioned: 2020
+      sidc_2525d: "SFSP------"
+
+    # --- SUBMARINES ---
+    - hull: "71"
+      name: "RSS Archer"
+      class: "Archer-class (ex-Royal Navy Upholder)"
+      type: "Diesel-Electric Submarine"
+      entity_type: "MIL_SUBMARINE"
+      home_base: "changi_naval"
+      displacement_t: 2400
+      length_m: 70.3
+      speed_max_kn: 20
+      crew: 44
+      commissioned: 2011
+      sidc_2525d: "SFUP------"
+      notes: "Tropicalised. Armed with Mk24 Tigerfish (upgraded)."
+
+    - hull: "72"
+      name: "RSS Swordsman"
+      class: "Archer-class"
+      type: "Diesel-Electric Submarine"
+      entity_type: "MIL_SUBMARINE"
+      home_base: "changi_naval"
+      displacement_t: 2400
+      speed_max_kn: 20
+      commissioned: 2013
+      sidc_2525d: "SFUP------"
+
+    - hull: "73"
+      name: "RSS Chieftain"
+      class: "Invincible-class"
+      type: "Diesel-Electric Submarine"
+      entity_type: "MIL_SUBMARINE"
+      home_base: "changi_naval"
+      displacement_t: 2000
+      length_m: 70
+      speed_max_kn: 20
+      commissioned: 2021
+      sidc_2525d: "SFUP------"
+      notes: "New-build Type 218SG. AIP-equipped."
+
+    - hull: "74"
+      name: "RSS Impeccable"
+      class: "Invincible-class (Type 218SG)"
+      type: "Diesel-Electric Submarine"
+      entity_type: "MIL_SUBMARINE"
+      home_base: "changi_naval"
+      displacement_t: 2000
+      speed_max_kn: 20
+      commissioned: 2022
+      sidc_2525d: "SFUP------"
+
+  naval_aviation:
+    - id: "rsn_lynx"
+      name: "Super Lynx 300S"
+      type: "Naval Helicopter"
+      entity_type: "RMAF_HELICOPTER"
+      count: 6
+      home_base: "changi_naval"
+      speed_max_kn: 140
+      sidc_2525d: "SFAP------"
+      notes: "Embarked on Formidable-class frigates."
+
+    - id: "rsn_s70b"
+      name: "Sikorsky S-70B Seahawk"
+      type: "Naval Helicopter"
+      entity_type: "RMAF_HELICOPTER"
+      count: 6
+      home_base: "changi_naval"
+      speed_max_kn: 155
+      sidc_2525d: "SFAP------"
+
+# ============================================================
+# REPUBLIC OF SINGAPORE AIR FORCE (RSAF)
+# ============================================================
+RSAF:
+  full_name: "Republic of Singapore Air Force"
+  abbreviation: RSAF
+
+  bases:
+    - id: "paya_lebar"
+      name: "Paya Lebar Air Base"
+      location: "Paya Lebar, Singapore"
+      lat_candidate: 1.3600
+      lon_candidate: 103.9100
+      domain: GROUND_VEHICLE
+      verify: true
+      notes: "Primary RSAF fighter base."
+
+    - id: "tengah"
+      name: "Tengah Air Base"
+      location: "Tengah, Singapore"
+      lat_candidate: 1.3769
+      lon_candidate: 103.7081
+      domain: GROUND_VEHICLE
+      verify: true
+
+    - id: "sembawang"
+      name: "Sembawang Air Base"
+      location: "Sembawang, Singapore"
+      lat_candidate: 1.4333
+      lon_candidate: 103.8167
+      domain: GROUND_VEHICLE
+      verify: true
+      notes: "Helicopter base."
+
+    - id: "changi_air"
+      name: "Changi Air Base (East)"
+      location: "Changi, Singapore"
+      lat_candidate: 1.3833
+      lon_candidate: 103.9833
+      domain: GROUND_VEHICLE
+      verify: true
+
+  aircraft:
+    - id: "f15sg"
+      name: "F-15SG Strike Eagle"
+      type: "Multi-Role Fighter"
+      entity_type: "RMAF_FIGHTER"
+      home_base: "paya_lebar"
+      count: 40
+      speed_max_kn: 1200
+      range_nm: 1800
+      sidc_2525d: "SFAP------"
+      notes: "Primary air superiority. Advanced APG-63(V)3 AESA radar."
+
+    - id: "f16cd"
+      name: "F-16C/D Block 52 Fighting Falcon"
+      type: "Multi-Role Fighter"
+      entity_type: "RMAF_FIGHTER"
+      home_base: "tengah"
+      count: 60
+      speed_max_kn: 1100
+      sidc_2525d: "SFAP------"
+      notes: "Including Peace Carvin V F-16Ds."
+
+    - id: "g550_aewc"
+      name: "Gulfstream G550 AEW&C (Eitam)"
+      type: "Airborne Early Warning"
+      entity_type: "RMAF_MPA"
+      home_base: "paya_lebar"
+      count: 4
+      speed_max_kn: 500
+      range_nm: 6500
+      sidc_2525d: "SFAP------"
+      notes: "Israeli Phalcon EL/W-2085 radar system."
+
+    - id: "c130h_rsaf"
+      name: "C-130H Hercules"
+      type: "Transport"
+      entity_type: "RMAF_TRANSPORT"
+      home_base: "tengah"
+      count: 5
+      speed_max_kn: 320
+      sidc_2525d: "SFAP------"
+
+    - id: "ch47d"
+      name: "CH-47D Chinook"
+      type: "Heavy Helicopter"
+      entity_type: "RMAF_HELICOPTER"
+      home_base: "sembawang"
+      count: 18
+      speed_max_kn: 150
+      sidc_2525d: "SFAP------"
+
+    - id: "ah64d"
+      name: "AH-64D Apache Longbow"
+      type: "Attack Helicopter"
+      entity_type: "RMAF_HELICOPTER"
+      home_base: "sembawang"
+      count: 8
+      speed_max_kn: 150
+      sidc_2525d: "SFAP------"
+
+# ============================================================
+# SINGAPORE POLICE COAST GUARD (PCG)
+# ============================================================
+PCG:
+  full_name: "Singapore Police Coast Guard"
+  abbreviation: PCG
+
+  hq: "PCG HQ, Loyang, Singapore"
+
+  stations:
+    - id: "loyang"
+      name: "PCG HQ — Loyang"
+      lat_candidate: 1.3750
+      lon_candidate: 103.9833
+      domain: MARITIME
+      verify: true
+
+    - id: "marina_south"
+      name: "PCG Marina South Division"
+      lat_candidate: 1.2667
+      lon_candidate: 103.8667
+      domain: MARITIME
+      verify: true
+
+    - id: "brani_pcg"
+      name: "PCG Brani Division"
+      lat_candidate: 1.2500
+      lon_candidate: 103.8250
+      domain: MARITIME
+      verify: true
+
+  vessel_types:
+    - entity_type: "RMP_MARINE_PATROL"
+      description: "PCG PV55-class patrol vessel"
+      speed_max_kn: 28
+      sidc_2525d: "SFSP------"
+      displacement_t: 180
+      length_m: 55
+      notes: "Primary coastal patrol."
+
+    - entity_type: "RMP_MARINE_PATROL"
+      description: "PCG PB26-class patrol boat"
+      speed_max_kn: 30
+      sidc_2525d: "SFSP------"
+      notes: "Fast intercept and boarding."
+
+# ============================================================
+# MARITIME AND PORT AUTHORITY OF SINGAPORE (MPA)
+# ============================================================
+MPA_SINGAPORE:
+  full_name: "Maritime and Port Authority of Singapore"
+  abbreviation: MPA
+
+  vessel_types:
+    - entity_type: "MMEA_PATROL"
+      description: "MPA patrol craft"
+      speed_max_kn: 20
+      sidc_2525d: "SFSP------"
+      notes: "Port state control and traffic management in Singapore Strait."
+
+  vts_centres:
+    - id: "vtis"
+      name: "Vessel Traffic Information System (VTIS)"
+      location: "Singapore Strait"
+      notes: "Monitors all vessel traffic through Singapore Strait TSS."
