@@ -75,10 +75,12 @@ export function initConfig() {
     //   8=HQ/TF, 9-10=Echelon, 11-16=Entity/Type/Subtype, 17-18=Mod1, 19-20=Mod2
     sidcMap: {
       // ===== MARITIME (Symbol Set 30 — Sea Surface) =====
-      'MMEA_PATROL':          '10033000001204020000',  // Patrol Coastal, Station Ship
-      'MMEA_FAST_INTERCEPT':  '10033000001204010000',  // Patrol Coastal, Patrol Craft
-      'MIL_NAVAL':            '10033000001202060000',  // Combatant, Cruiser (30120206.svg)
-      'MIL_NAVAL_FIC':        '10033000001204010000',  // Patrol Coastal, Patrol Craft
+      'MMEA_PATROL':          '10033000001205020000',  // Patrol Ship (OPV)
+      'MMEA_FAST_INTERCEPT':  '10033000001205010000',  // Patrol Craft (fast intercept)
+      'MIL_NAVAL':            '10033000001205020000',  // Patrol Ship (OPV, Kedah-class)
+      'MIL_NAVAL_FRIGATE':    '10033000001202040000',  // Frigate (Lekiu/Kasturi-class)
+      'MIL_NAVAL_FIC':        '10033000001205010000',  // Patrol Craft (fast intercept)
+      'MIL_SUBMARINE':        '10033500000000000000',  // Sea Subsurface, Friend (Symbol Set 35)
       'SUSPECT_VESSEL':       '10053000001400000000',  // Suspect, Non-Military
       'HOSTILE_VESSEL':       '10063000001400000000',  // Hostile, Non-Military
       'CIVILIAN_CARGO':       '10043000001401010000',  // Neutral, Merchant, Cargo
@@ -87,13 +89,13 @@ export function initConfig() {
       'CIVILIAN_PASSENGER':   '10043000001401030000',  // Neutral, Merchant, Passenger
       'CIVILIAN_BOAT':        '10043000001400000000',  // Neutral, Non-Military generic
       'RMP_PATROL_CAR':       '10031500001707000000',  // Land Equipment, LE Police
-      'RMP_PATROL_BOAT':      '10033000001403000000',  // Law Enforcement Vessel
-      'RMP_MARINE_PATROL':    '10033000001403000000',  // Law Enforcement Vessel (Marine Police)
+      'RMP_PATROL_BOAT':      '10033000001208010000',  // RHIB
+      'RMP_MARINE_PATROL':    '10033000001208010000',  // RHIB (Marine Police boarding craft)
 
       // ===== AIR (Symbol Set 01) =====
       'RMAF_FIGHTER':         '10030100001101020000',  // Fixed Wing, Fighter/Bomber
       'RMAF_HELICOPTER':      '10030100001102000000',  // Rotary Wing
-      'RMAF_TRANSPORT':       '10030100001101310303',  // Fixed Wing, Passenger + C + L modifiers
+      'RMAF_TRANSPORT':       '10030100001101310000',  // Fixed Wing, Transport
       'RMAF_MPA':             '10030100001101040000',  // Fixed Wing, Patrol
       'RMP_HELICOPTER':       '10030100001102000000',  // Rotary Wing
       'CIVILIAN_COMMERCIAL':  '10040100001200000000',  // Neutral, Civilian generic

@@ -33,6 +33,13 @@ export async function initCesium(containerId, config) {
   // Hide Cesium credits
   viewer.cesiumWidget.creditContainer.style.display = 'none';
 
+  // Recover from Cesium render errors instead of stopping permanently
+  viewer.scene.renderError.addEventListener((scene, error) => {
+    console.warn('Cesium render error (recovering):', error);
+    // Re-enable rendering — Cesium stops the loop on unhandled renderError
+    viewer.useDefaultRenderLoop = true;
+  });
+
   // Initial camera — ESSZONE overview
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(

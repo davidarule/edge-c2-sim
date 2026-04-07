@@ -189,9 +189,9 @@ export function initTimeline(containerId, viewer, config, entityManager) {
         }
         if (lat === undefined || lon === undefined) return;
         viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(lon, lat, 80000),
+          destination: Cesium.Cartesian3.fromDegrees(lon, lat, 50000),
           orientation: {
-            heading: 0,
+            heading: Cesium.Math.toRadians(0),
             pitch: Cesium.Math.toRadians(-60),
             roll: 0
           },

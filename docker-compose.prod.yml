@@ -1,30 +1,29 @@
 services:
   # --- Nginx Reverse Proxy ---
-  nginx:
-    build: ./nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - cop
-      - simulator
-      - auth-service
-    networks:
-      - edge_c2_net
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+  # DISABLED: Host-level nginx handles SSL termination and proxying.
+  # The edge-c2-sim nginx container cannot bind ports 80/443 because the
+  # host nginx (serving multiple sites) already occupies them.
+  # See /etc/nginx/sites-available/ec2sim.brumbiesoft.org on the server.
+  # nginx:
+  #   build: ./nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - cop
+  #     - simulator
+  #     - auth-service
+  #   networks:
+  #     - edge_c2_net
+  #   restart: unless-stopped
 
   # --- Auth Service ---
   auth-service:
     build: ./auth
+    ports:
+      - "127.0.0.1:8280:8080"
     environment:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS:-24}
@@ -62,6 +61,9 @@ services:
       - ./logs:/app/logs
       - ./scripts:/app/scripts
       - ./simulator:/app/simulator
+    ports:
+      - "127.0.0.1:8765:8765"
+      - "127.0.0.1:8766:8766"
     command: >
       python -m scripts.run_simulator
         --scenario ${SCENARIO:-config/scenarios/demo_combined.yaml}
@@ -86,6 +88,8 @@ services:
       args:
         - VITE_CESIUM_ION_TOKEN=${CESIUM_ION_TOKEN}
         - VITE_WS_URL=wss://ec2sim.brumbiesoft.org/ws
+    ports:
+      - "127.0.0.1:3200:3000"
     volumes:
       - ./geodata:/geodata:ro
     networks:

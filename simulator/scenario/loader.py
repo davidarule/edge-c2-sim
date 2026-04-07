@@ -49,21 +49,33 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
         "domain": Domain.AIR, "agency": Agency.CIVILIAN,
         "speed_range": (80, 140), "sidc": "SNAP------",
     },
+    "CIVILIAN_COMMERCIAL": {
+        "domain": Domain.AIR, "agency": Agency.CIVILIAN,
+        "speed_range": (200, 400), "sidc": "SNAP------",
+    },
     "MMEA_PATROL": {
         "domain": Domain.MARITIME, "agency": Agency.MMEA,
-        "speed_range": (8, 22), "sidc": "SFSP------",
+        "speed_range": (8, 28), "sidc": "SFSP------",
     },
     "MMEA_FAST_INTERCEPT": {
         "domain": Domain.MARITIME, "agency": Agency.MMEA,
-        "speed_range": (15, 35), "sidc": "SFSP------",
+        "speed_range": (15, 50), "sidc": "SFSP------",
     },
     "MIL_NAVAL": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
         "speed_range": (10, 35), "sidc": "SFSP------",
     },
+    "MIL_NAVAL_FRIGATE": {
+        "domain": Domain.MARITIME, "agency": Agency.MIL,
+        "speed_range": (15, 30), "sidc": "SFSP------",
+    },
     "MIL_NAVAL_FIC": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
         "speed_range": (15, 35), "sidc": "SFSP------",
+    },
+    "MIL_SUBMARINE": {
+        "domain": Domain.MARITIME, "agency": Agency.MIL,
+        "speed_range": (0, 20), "sidc": "SFUP------",
     },
     "RMAF_TRANSPORT": {
         "domain": Domain.AIR, "agency": Agency.RMAF,

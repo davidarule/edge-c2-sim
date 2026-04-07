@@ -59,6 +59,23 @@ export function initEntityManager(viewer, config) {
   // Per-entity trail visibility overrides (entity_id -> boolean)
   const entityTrailOverrides = new Map();
 
+  // Refresh billboards when background SVG fetches complete
+  window.addEventListener('symbols-updated', (e) => {
+    const updatedSidc = e.detail?.sidc;
+    if (!updatedSidc) return;
+
+    // Invalidate local symbol cache for this SIDC
+    symbolCache.delete(updatedSidc);
+
+    // Re-render billboards for all entities using this SIDC
+    entities.forEach((entry) => {
+      const sidc = getSidcForEntity(entry.data);
+      if (sidc === updatedSidc) {
+        entry.cesiumEntity.billboard.image = getSymbolImage(entry.data);
+      }
+    });
+  });
+
   // Snapshot generation counter — suppress trail accumulation for first N updates after reset
   let snapshotGeneration = 0;
 
@@ -156,7 +173,11 @@ export function initEntityManager(viewer, config) {
       polyline: {
         positions: new Cesium.CallbackProperty(() => {
           const points = trailPositions.get(id) || [];
-          return points.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
+          const valid = points.filter(p =>
+            p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon)
+          );
+          if (valid.length < 2) return [];
+          return valid.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
         }, false),
         width: TRAIL_WIDTH,
         show: globalTrailsVisible,

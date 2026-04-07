@@ -1,0 +1,66 @@
+{
+  "type": "FeatureCollection",
+  "name": "malacca_strait_operational_data",
+  "description": "Strait of Malacca operational geodata — fishing zones and patrol areas for simulation background entities",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "malacca_malaysian_coast_fishing",
+        "name": "Malacca Strait — Malaysian Coast Fishing Zone",
+        "description": "Inshore and nearshore fishing grounds along the Malaysian west coast between Port Dickson and Muar. Active small-vessel fishing traffic typical of Peninsular Malaysia's west coast fisheries.",
+        "agency": "CIVILIAN",
+        "activity": "fishing"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [101.75, 2.10],
+          [102.45, 2.10],
+          [102.70, 2.45],
+          [102.55, 2.90],
+          [102.10, 3.10],
+          [101.70, 3.05],
+          [101.55, 2.65],
+          [101.65, 2.30],
+          [101.75, 2.10]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "malacca_tss_separation_zone",
+        "name": "Malacca TSS — Traffic Separation Zone",
+        "description": "Central no-traffic buffer zone between the northwestbound and southeastbound TSS lanes.",
+        "type": "separation_zone"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [100.48, 5.38],
+          [100.72, 4.72],
+          [101.00, 4.18],
+          [101.35, 3.60],
+          [101.70, 3.06],
+          [102.08, 2.70],
+          [102.48, 2.40],
+          [102.88, 2.10],
+          [103.25, 1.80],
+          [103.72, 1.40],
+          [103.78, 1.45],
+          [103.30, 1.85],
+          [102.92, 2.15],
+          [102.55, 2.45],
+          [102.15, 2.75],
+          [101.75, 3.12],
+          [101.45, 3.68],
+          [101.18, 4.25],
+          [100.90, 4.80],
+          [100.55, 5.45],
+          [100.48, 5.38]
+        ]]
+      }
+    }
+  ]
+}

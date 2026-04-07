@@ -1,0 +1,100 @@
+{
+  "type": "FeatureCollection",
+  "name": "malacca_strait_routes",
+  "description": "Strait of Malacca Traffic Separation Scheme lanes and approach corridors for simulation background traffic",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "malacca_tss_northwestbound",
+        "name": "Malacca TSS — Northwestbound Lane",
+        "description": "IMO Traffic Separation Scheme northwestbound lane. Ships transiting from Singapore toward Penang / Andaman Sea. Runs along the Sumatran side of the separation zone.",
+        "domain": "MARITIME",
+        "speed_knots_typical": 13
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [103.65, 1.35],
+          [103.20, 1.75],
+          [102.80, 2.05],
+          [102.40, 2.35],
+          [102.00, 2.65],
+          [101.65, 3.00],
+          [101.30, 3.55],
+          [101.05, 4.10],
+          [100.80, 4.65],
+          [100.40, 5.30]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "malacca_tss_southeastbound",
+        "name": "Malacca TSS — Southeastbound Lane",
+        "description": "IMO Traffic Separation Scheme southeastbound lane. Ships transiting from Penang / Andaman Sea toward Singapore. Runs closer to the Malaysian west coast.",
+        "domain": "MARITIME",
+        "speed_knots_typical": 13
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [100.55, 5.45],
+          [100.90, 4.80],
+          [101.18, 4.25],
+          [101.45, 3.68],
+          [101.75, 3.12],
+          [102.15, 2.75],
+          [102.55, 2.45],
+          [102.92, 2.15],
+          [103.30, 1.85],
+          [103.78, 1.45]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "klia_malacca_approach",
+        "name": "KLIA–Malacca Air Approach Corridor",
+        "description": "Standard commercial air traffic corridor between Kuala Lumpur International Airport and the Malacca/southern Johor approach sector. Used by domestic and regional short-haul flights.",
+        "domain": "AIR",
+        "altitude_ft_typical": 8000,
+        "speed_knots_typical": 250
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [101.70, 2.74],
+          [101.88, 2.55],
+          [102.05, 2.40],
+          [102.22, 2.22],
+          [102.40, 2.05]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "malacca_ipoh_corridor",
+        "name": "Malacca–Ipoh West Coast Corridor",
+        "description": "North–south air and overland corridor along the west coast of Peninsular Malaysia, connecting Malacca to Ipoh via Seremban, Kuala Lumpur and Rawang.",
+        "domain": "AIR",
+        "altitude_ft_typical": 3000,
+        "speed_knots_typical": 120
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [102.25, 2.19],
+          [101.95, 2.73],
+          [101.68, 3.14],
+          [101.45, 3.68],
+          [101.20, 4.10],
+          [101.08, 4.59]
+        ]
+      }
+    }
+  ]
+}
