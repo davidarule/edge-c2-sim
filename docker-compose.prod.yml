@@ -55,6 +55,10 @@ services:
       - SIM_SPEED=${SIM_SPEED:-1}
       - JWT_SECRET=${JWT_SECRET}
       - WS_AUTH=${WS_AUTH:-true}
+      - AISSTREAM_API_KEY=${AISSTREAM_API_KEY:-}
+      - AIS_MAX_ENTITIES=${AIS_MAX_ENTITIES:-300}
+      - AIS_UPDATE_INTERVAL=${AIS_UPDATE_INTERVAL:-30}
+      - AIS_STALE_SECONDS=${AIS_STALE_SECONDS:-300}
     volumes:
       - ./config:/app/config
       - ./geodata:/app/geodata
