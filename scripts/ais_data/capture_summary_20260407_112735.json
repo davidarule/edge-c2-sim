@@ -1,0 +1,14 @@
+{
+  "generated_utc": "2026-04-07T11:27:35.357564",
+  "source_positions": "positions_20260407_062945.csv",
+  "source_statics": "statics_20260407_062945.csv",
+  "position_records": 19529,
+  "static_records": 2954,
+  "unique_vessels": 1024,
+  "vessels_with_metadata": 693,
+  "enrichment_pct": 85.8,
+  "output_files": {
+    "merged": "sim_seed_20260407_112735.csv",
+    "catalogue": "vessel_catalogue_20260407_112735.csv"
+  }
+}

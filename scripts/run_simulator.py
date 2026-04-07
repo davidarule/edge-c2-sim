@@ -471,21 +471,56 @@ async def run(
     for adapter in adapters:
         await adapter.connect()
 
-    # Start AIS live feed if API key is available
+    # Start AIS feed: live (AISStream.io) or replay (captured CSV)
     ais_feed = None
-    ais_key = os.environ.get("AISSTREAM_API_KEY", "")
-    if ais_key and "ws" in transport_names:
-        from simulator.ais.live_feed import AISLiveFeed
-        ais_feed = AISLiveFeed(
-            api_key=ais_key,
-            entity_store=store,
-            ws_adapter=ws_adapter,
-            max_entities=int(os.environ.get("AIS_MAX_ENTITIES", "300")),
-            update_interval_s=float(os.environ.get("AIS_UPDATE_INTERVAL", "30")),
-            stale_seconds=float(os.environ.get("AIS_STALE_SECONDS", "300")),
-        )
-        asyncio.create_task(ais_feed.run())
-        logger.info("AIS live feed started (AISStream.io)")
+    if "ws" in transport_names:
+        ais_max = int(os.environ.get("AIS_MAX_ENTITIES", "300"))
+        ais_interval = float(os.environ.get("AIS_UPDATE_INTERVAL", "30"))
+        ais_stale = float(os.environ.get("AIS_STALE_SECONDS", "300"))
+        ais_key = os.environ.get("AISSTREAM_API_KEY", "")
+        ais_replay_dir = os.environ.get("AIS_REPLAY_DIR", "scripts/ais_data")
+
+        # Prefer replay CSV if available; fall back to live API
+        replay_pos = None
+        if os.path.isdir(ais_replay_dir):
+            # Find latest positions CSV in the replay dir
+            csvs = sorted(
+                [f for f in os.listdir(ais_replay_dir) if f.startswith("positions_") and f.endswith(".csv")],
+                reverse=True,
+            )
+            if csvs:
+                replay_pos = os.path.join(ais_replay_dir, csvs[0])
+                replay_static = os.path.join(
+                    ais_replay_dir, csvs[0].replace("positions_", "statics_")
+                )
+
+        if replay_pos and os.path.exists(replay_pos):
+            from simulator.ais.replay_feed import AISReplayFeed
+            ais_replay_speed = float(os.environ.get("AIS_REPLAY_SPEED", "1"))
+            ais_feed = AISReplayFeed(
+                positions_csv=replay_pos,
+                statics_csv=replay_static,
+                entity_store=store,
+                ws_adapter=ws_adapter,
+                max_entities=ais_max,
+                update_interval_s=ais_interval,
+                stale_seconds=ais_stale,
+                speed=ais_replay_speed,
+            )
+            asyncio.create_task(ais_feed.run())
+            logger.info(f"AIS replay feed started: {replay_pos} ({ais_replay_speed}x)")
+        elif ais_key:
+            from simulator.ais.live_feed import AISLiveFeed
+            ais_feed = AISLiveFeed(
+                api_key=ais_key,
+                entity_store=store,
+                ws_adapter=ws_adapter,
+                max_entities=ais_max,
+                update_interval_s=ais_interval,
+                stale_seconds=ais_stale,
+            )
+            asyncio.create_task(ais_feed.run())
+            logger.info("AIS live feed started (AISStream.io)")
 
     # Start health server
     health = HealthServer(port=8766)
