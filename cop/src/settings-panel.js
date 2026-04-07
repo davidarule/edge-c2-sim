@@ -306,7 +306,9 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
       cluster.clusterLabels = true;
       cluster.clusterPoints = false;
 
-      // Generate cluster billboard: circle with count
+      // Generate cluster billboard: circle with count.
+      // Also hide individual labels for clustered entities so they don't
+      // show through the cluster icon.
       if (!cluster._settingsPanelListenerAdded) {
         cluster.clusterEvent.addEventListener((clusteredEntities, clusterObj) => {
           clusterObj.label.show = false;
@@ -315,6 +317,11 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
           clusterObj.billboard.verticalOrigin = Cesium.VerticalOrigin.CENTER;
           clusterObj.billboard.horizontalOrigin = Cesium.HorizontalOrigin.CENTER;
           clusterObj.billboard.disableDepthTestDistance = Number.POSITIVE_INFINITY;
+
+          // Hide labels on the individual entities absorbed into this cluster
+          for (const ce of clusteredEntities) {
+            if (ce.label) ce.label.show = false;
+          }
         });
         cluster._settingsPanelListenerAdded = true;
       }
