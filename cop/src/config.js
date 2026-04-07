@@ -82,10 +82,12 @@ export function initConfig() {
       'MIL_NAVAL_FIC':        '10033000001205010000',  // Patrol Craft (fast intercept)
       'MIL_SUBMARINE':        '10033500000000000000',  // Sea Subsurface, Friend (Symbol Set 35)
       'SUSPECT_VESSEL':       '10053000001400000000',  // Suspect, Non-Military
+      'SUSPECT_FAST_BOAT':    '10053000001400000000',  // Suspect, Non-Military (fast boat)
       'HOSTILE_VESSEL':       '10063000001400000000',  // Hostile, Non-Military
       'CIVILIAN_CARGO':       '10043000001401010000',  // Neutral, Merchant, Cargo
       'CIVILIAN_FISHING':     '10043000001402000000',  // Neutral, Fishing
       'CIVILIAN_TANKER':      '10043000001401020000',  // Neutral, Merchant, Tanker
+      'CIVILIAN_TANKER_VLCC': '10043000001401020000',  // Neutral, Merchant, Tanker (VLCC)
       'CIVILIAN_PASSENGER':   '10043000001401030000',  // Neutral, Merchant, Passenger
       'CIVILIAN_BOAT':        '10043000001400000000',  // Neutral, Non-Military generic
       'RMP_PATROL_CAR':       '10031500001707000000',  // Land Equipment, LE Police
@@ -115,7 +117,7 @@ export function initConfig() {
       'CI_IMMIGRATION_TEAM':  '10031500001703000000',  // LE Customs Service
     },
 
-    defaultSidc: '10033000001100000000',  // Sea Surface, Military generic
+    defaultSidc: '10043000001400000000',  // Neutral, Sea Surface, Non-Military
 
     speeds: [1, 2, 5, 10, 60]
   };
