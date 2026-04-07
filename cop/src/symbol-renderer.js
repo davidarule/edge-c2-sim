@@ -58,7 +58,7 @@ async function fetchSvg(path) {
   if (svgTextCache.has(path)) return svgTextCache.get(path);
   if (pendingFetches.has(path)) return pendingFetches.get(path);
 
-  const promise = fetch(path)
+  const promise = fetch(path + '?v=1')
     .then(res => {
       if (!res.ok) return null;
       return res.text();
