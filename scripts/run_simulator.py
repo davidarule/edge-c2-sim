@@ -93,8 +93,7 @@ async def simulation_loop(
             # Terrain validation: ensure entity is on correct surface
             final_lat = noisy_state.lat
             final_lon = noisy_state.lon
-            skip_terrain = entity.metadata.get("skip_terrain_check", False)
-            if not skip_terrain and domain_key in ("MARITIME", "GROUND_VEHICLE", "PERSONNEL"):
+            if domain_key in ("MARITIME", "GROUND_VEHICLE", "PERSONNEL"):
                 if not validate_position(final_lat, final_lon, domain_key):
                     fix = find_nearest_valid_point(final_lat, final_lon, domain_key)
                     if fix:

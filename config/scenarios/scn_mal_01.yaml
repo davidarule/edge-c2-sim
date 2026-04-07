@@ -5,10 +5,9 @@
 # Built using edge-c2-scenario-SKILL.md 8-step methodology.
 # Forces from reference/orbat/malaysia.yaml.
 # All coordinates from open-water reference grid (skill Step 3b).
-# All maritime positions carry skip_terrain_check: true — the GLOBE dataset
-# has a confirmed ~100km coverage hole over the Malacca Strait. Positions
-# are confirmed open water by chart geography (see skill STEP 3b reference
-# grid: MAL-NW-1 through MAL-CTR-2).
+# All maritime positions verified using Natural Earth 10m terrain classifier
+# (scripts/terrain.py). Positions confirmed open water by chart geography
+# (see skill STEP 3b reference grid: MAL-NW-1 through MAL-CTR-2).
 #
 # ── PHYSICS VALIDATION ──────────────────────────────────────────────────────
 # All intercepts calculated BEFORE scenario was written. Formula:
@@ -93,7 +92,6 @@ scenario:
         - { lat: 4.983, lon: 100.005, speed: 0, time: "00:40" }
         - { lat: 4.983, lon: 100.005, speed: 0, time: "01:00" }
       metadata:
-        skip_terrain_check: true     # GLOBE coverage hole — Malacca Strait
         ais_active: true             # Goes false at T+10 via AIS_LOSS event
         mmsi: "413112233"
         flag: "CHN"
@@ -130,7 +128,6 @@ scenario:
         - { lat: 4.984, lon: 100.006, speed: 2,  time: "00:40" }
         - { lat: 4.984, lon: 100.006, speed: 2,  time: "01:00" }
       metadata:
-        skip_terrain_check: true
         vessel_type: "39m Fast Intercept Craft"
         callsign_radio: "MMEA PENGGALANG"
         equipment: ["FLIR", "boarding_kit", "VHF_multichannel"]
@@ -159,7 +156,6 @@ scenario:
         # Station keeping — boarding team deployed
         - { lat: 4.982, lon: 100.003, speed: 2,  time: "01:00" }
       metadata:
-        skip_terrain_check: true
         vessel_type: "Offshore Patrol Vessel"
         callsign_radio: "MMEA MARLIN"
         boarding_team: true
@@ -188,7 +184,6 @@ scenario:
         - { lat: 4.050, lon: 99.850,  speed: 5,  time: "00:45" }
         - { lat: 4.050, lon: 99.850,  speed: 5,  time: "01:00" }
       metadata:
-        skip_terrain_check: true
         vessel_type: "Kedah-class Offshore Patrol Vessel"
         hull_number: "171"
         displacement_t: 1650
@@ -220,8 +215,6 @@ scenario:
         - { lat: 5.020, lon: 99.980,  speed: 150, time: "00:57" }
         - { lat: 4.950, lon: 99.960,  speed: 150, time: "01:00" }
       metadata:
-        # AIR domain — skip_terrain_check not required but set for clarity
-        skip_terrain_check: true
         aircraft_type: "Beechcraft Super King Air B200T"
         home_base: "RMAF Subang"
         altitude_ft: 5000

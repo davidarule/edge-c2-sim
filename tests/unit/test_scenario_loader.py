@@ -148,8 +148,6 @@ class TestScenarioLoader:
             for eid, entity in state.entities.items():
                 if entity.metadata.get("background"):
                     continue
-                if entity.metadata.get("skip_terrain_check"):
-                    continue
                 if entity.domain.value != "MARITIME":
                     continue
                 is_water = validate_position(

@@ -34,6 +34,11 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
         "speed_range": (0, 35), "sidc": "SHSP------",
         "turn": (100.0, 3.5, 2.5),   # ~100m cargo/bulk carrier
     },
+    "SUSPECT_FAST_BOAT": {
+        "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
+        "speed_range": (0, 45), "sidc": "SHSP------",
+        "turn": (10.0, 1.5, 0.8),    # ~10m pirate skiff / fast attack boat
+    },
     "CIVILIAN_FISHING": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
         "speed_range": (2, 8), "sidc": "SNSP------",
@@ -48,6 +53,11 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
         "speed_range": (8, 14), "sidc": "SNSP------",
         "turn": (180.0, 4.0, 3.0),   # ~180m product tanker
+    },
+    "CIVILIAN_TANKER_VLCC": {
+        "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
+        "speed_range": (8, 14), "sidc": "SNSP------",
+        "turn": (300.0, 4.5, 3.5),   # ~300m VLCC crude tanker (e.g. MT Labuan Palm)
     },
     "CIVILIAN_LIGHT": {
         "domain": Domain.AIR, "agency": Agency.CIVILIAN,
@@ -342,21 +352,59 @@ class ScenarioLoader:
     def _validate_terrain(
         self, entities: dict, movements: dict, start: datetime,
     ) -> None:
-        """Validate waypoints against terrain and fix invalid ones.
-        Entities with metadata 'skip_terrain_check: true' are excluded."""
+        """Validate all maritime/ground entity starting positions and waypoints.
+
+        Raises ValueError if any maritime entity's initial position is on land,
+        so bad scenario coordinates are caught at load time rather than silently
+        corrected or hidden behind skip_terrain_check workarounds.
+        """
         try:
-            from simulator.movement.terrain import validate_position, find_nearest_valid_point
+            from scripts.terrain import get_nearest_sea_point, is_land
+            from simulator.movement.terrain import find_nearest_valid_point, validate_position
         except ImportError:
-            logger.debug("Terrain validation unavailable (global-land-mask not installed)")
+            logger.debug("Terrain validation unavailable (scripts.terrain not installed)")
             return
 
+        # Check initial positions — hard fail for maritime entities on land.
+        # For patrol entities, check the movement's actual initial state rather
+        # than the YAML initial_position (which is just a hint for patrol).
+        terrain_errors = []
+        for eid, entity in entities.items():
+            domain = entity.domain.value
+            if domain != "MARITIME":
+                continue
+            movement = movements.get(eid)
+            if isinstance(movement, PatrolMovement):
+                # Patrol position is authoritative — YAML initial_position is a hint
+                state = movement.get_state(start)
+                lat, lon = state.lat, state.lon
+            else:
+                lat = entity.position.latitude
+                lon = entity.position.longitude
+            if is_land(lat, lon):
+                nearest = get_nearest_sea_point(lat, lon)
+                nearest_str = (
+                    f"nearest sea point: ({nearest[0]:.4f}, {nearest[1]:.4f})"
+                    if nearest else "no nearby sea point found"
+                )
+                msg = (
+                    f"Maritime entity '{entity.callsign}' ({eid}) is on land: "
+                    f"({lat:.4f}, {lon:.4f}) — {nearest_str}"
+                )
+                logger.warning(msg)
+                terrain_errors.append(msg)
+
+        if terrain_errors:
+            raise ValueError(
+                f"Scenario has {len(terrain_errors)} maritime entity/entities on land:\n"
+                + "\n".join(f"  • {e}" for e in terrain_errors)
+            )
+
+        # Fix waypoints that are on wrong terrain (auto-correct rather than fail)
         fix_count = 0
         for eid, movement in movements.items():
             entity = entities.get(eid)
             if not entity:
-                continue
-            # Skip if entity opts out of terrain check (e.g. amphibious ops, beach landings)
-            if entity.metadata.get("skip_terrain_check"):
                 continue
             domain = entity.domain.value
             if domain == "AIR":
@@ -364,6 +412,7 @@ class ScenarioLoader:
 
             if isinstance(movement, WaypointMovement):
                 wps = movement.waypoints
+                local_fixes = 0
                 for i, wp in enumerate(wps):
                     if not validate_position(wp.lat, wp.lon, domain):
                         fix = find_nearest_valid_point(wp.lat, wp.lon, domain)
@@ -373,22 +422,22 @@ class ScenarioLoader:
                                 f"({wp.lat:.4f},{wp.lon:.4f})->({fix[0]:.4f},{fix[1]:.4f}) "
                                 f"[{domain}]"
                             )
-                            # Create corrected waypoint
                             wps[i] = Waypoint(
                                 lat=fix[0], lon=fix[1], alt_m=wp.alt_m,
                                 speed_knots=wp.speed_knots,
                                 time_offset=wp.time_offset,
                                 metadata_overrides=wp.metadata_overrides,
                             )
-                            fix_count += 1
+                            local_fixes += 1
                         else:
                             logger.warning(
                                 f"Terrain INVALID [{eid}] wp{i}: "
                                 f"({wp.lat:.4f},{wp.lon:.4f}) — no fix found [{domain}]"
                             )
-                if fix_count > 0:
-                    # Rebuild movement with corrected waypoints
-                    movements[eid] = WaypointMovement(wps, start)
+                if local_fixes > 0:
+                    fix_count += local_fixes
+                    # Rebuild movement with corrected waypoints (preserve turn_params)
+                    movements[eid] = WaypointMovement(wps, start, turn_params=movement._turn_params)
                     # Update entity initial position
                     state = movements[eid].get_state(start)
                     entity.position = Position(state.lat, state.lon)

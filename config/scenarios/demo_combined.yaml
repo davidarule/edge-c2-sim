@@ -181,7 +181,7 @@ scenario:
       type: MMEA_PATROL
       callsign: "KM Sangitan"
       agency: MMEA
-      initial_position: { lat: 5.60, lon: 118.67 }  # Patrolling near fleet area
+      initial_position: { lat: 5.60, lon: 118.69 }  # Patrolling near fleet area (Sulu Sea)
       behavior: "patrol"
       patrol_area: "esszone_sector_2_sandakan"
 
@@ -279,7 +279,6 @@ scenario:
         ais_active: false
         vessel_type: "High-speed fibreglass boat"
         armed: true
-        skip_terrain_check: true
 
     - id: "HOSTILE-002"
       type: SUSPECT_VESSEL
@@ -297,7 +296,6 @@ scenario:
       metadata:
         ais_active: false
         armed: true
-        skip_terrain_check: true
 
     # Part 2 additional forces — pre-positioned near Semporna
     - id: "RMP-MP-201"

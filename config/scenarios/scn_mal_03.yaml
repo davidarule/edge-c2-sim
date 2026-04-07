@@ -4,7 +4,7 @@
 # ── METHODOLOGY ─────────────────────────────────────────────────────────────
 # Built using edge-c2-scenario-SKILL.md 8-step methodology.
 # Forces from reference/orbat/malaysia.yaml, indonesia.yaml, singapore.yaml.
-# All maritime positions: skip_terrain_check: true (GLOBE coverage hole).
+# All maritime positions verified using Natural Earth 10m terrain classifier.
 #
 # ── PHYSICS VALIDATION ──────────────────────────────────────────────────────
 #   MMEA-PV-001 to fishing vessel:  8.0nm @ 22kn = 22min  ORDER T+08  ARR T+30 ✓
@@ -85,7 +85,6 @@ scenario:
         - { lat: 3.060, lon: 101.090, speed: 12, time: "00:50" }
         - { lat: 3.090, lon: 101.060, speed: 12, time: "01:05" }
       metadata:
-        skip_terrain_check: true
         vessel_type: "Langkawi-class Offshore Patrol Vessel"
         callsign_radio: "MMEA PERANTAU"
         flag: "MYS"
@@ -116,7 +115,6 @@ scenario:
         - { lat: 2.980, lon: 101.080, speed: 8,  time: "00:55" }
         - { lat: 2.900, lon: 101.020, speed: 8,  time: "01:05" }
       metadata:
-        skip_terrain_check: true
         vessel_type: "Bakamla 110m Offshore Patrol Vessel"
         callsign_radio: "KN PULAU NIPAH"
         flag: "IDN"
@@ -149,7 +147,6 @@ scenario:
         - { lat: 1.355, lon: 104.370, speed: 15, time: "01:02" }
         - { lat: 1.330, lon: 104.300, speed: 15, time: "01:05" }
       metadata:
-        skip_terrain_check: true
         vessel_type: "Independence-class Littoral Mission Vessel"
         hull_number: "21"
         callsign_radio: "RSS SOVEREIGNTY"
@@ -179,7 +176,6 @@ scenario:
         - { lat: 2.980, lon: 101.082, speed: 5, time: "00:58" }
         - { lat: 2.900, lon: 101.022, speed: 5, time: "01:05" }
       metadata:
-        skip_terrain_check: true
         ais_active: true
         mmsi: "510123456"
         flag: "IDN"
@@ -205,7 +201,6 @@ scenario:
         # Identified — disabled pleasure craft, 3 persons aboard
         - { lat: 1.373, lon: 104.415, speed: 0, time: "01:05" }
       metadata:
-        skip_terrain_check: false   # Horsburgh area — verify
         ais_active: false
         vessel_type: "Small pleasure craft — ~8m fibreglass"
         estimated_crew: 3

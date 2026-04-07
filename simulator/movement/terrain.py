@@ -2,15 +2,14 @@
 Terrain validator — ensures entities stay in their correct domain.
 
 Maritime entities must be on water, ground entities on land.
-Uses global-land-mask (GLOBE dataset, ~1km resolution) for fast
-offline land/water classification.
+Uses Natural Earth 10m land polygons with Shapely STRtree indexing for
+correct offline land/water classification. Replaces the old global-land-mask
+(GLOBE dataset) which had a known ~100km coverage hole over the Malacca Strait.
 """
 
 import logging
-from functools import lru_cache
 
-import numpy as np
-from global_land_mask import globe
+from scripts.terrain import get_nearest_sea_point, is_land, is_land_batch, is_sea
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +18,9 @@ logger = logging.getLogger(__name__)
 COAST_BUFFER_DEG = 0.01
 
 
-def is_land(lat: float, lon: float) -> bool:
-    """Check if a single point is on land."""
-    return bool(globe.is_land(lat, lon))
-
-
 def is_water(lat: float, lon: float) -> bool:
     """Check if a single point is on water."""
-    return bool(globe.is_ocean(lat, lon))
+    return is_sea(lat, lon)
 
 
 def validate_position(lat: float, lon: float, domain: str) -> bool:
@@ -48,25 +42,17 @@ def validate_position(lat: float, lon: float, domain: str) -> bool:
 def validate_waypoints_batch(
     lats: list[float], lons: list[float], domain: str
 ) -> list[int]:
-    """Return indices of invalid waypoints for the domain.
-
-    Uses vectorized NumPy check for performance.
-    """
+    """Return indices of invalid waypoints for the domain."""
     if domain == "AIR" or not lats:
         return []
 
-    lat_arr = np.array(lats, dtype=np.float64)
-    lon_arr = np.array(lons, dtype=np.float64)
-    on_land = globe.is_land(lat_arr, lon_arr)
+    on_land = is_land_batch(lats, lons)
 
     if domain == "MARITIME":
-        invalid = np.where(on_land)[0]
-    elif domain in ("GROUND_VEHICLE", "PERSONNEL"):
-        invalid = np.where(~on_land)[0]
-    else:
-        return []
-
-    return invalid.tolist()
+        return [i for i, land in enumerate(on_land) if land]
+    if domain in ("GROUND_VEHICLE", "PERSONNEL"):
+        return [i for i, land in enumerate(on_land) if not land]
+    return []
 
 
 def find_nearest_valid_point(
@@ -75,9 +61,13 @@ def find_nearest_valid_point(
 ) -> tuple[float, float] | None:
     """Search nearby for a valid point in the given domain.
 
-    Searches in concentric rings around the invalid point.
+    For MARITIME, delegates to get_nearest_sea_point() for accuracy.
+    For GROUND/PERSONNEL, uses a concentric ring spiral search.
     Returns (lat, lon) of nearest valid point, or None if not found.
     """
+    if domain == "MARITIME":
+        return get_nearest_sea_point(lat, lon)
+
     import math
 
     for ring in range(1, 6):

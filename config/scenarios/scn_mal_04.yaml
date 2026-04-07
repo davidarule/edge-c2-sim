@@ -4,7 +4,7 @@
 # ── METHODOLOGY ─────────────────────────────────────────────────────────────
 # Built using edge-c2-scenario-SKILL.md 8-step methodology.
 # Forces from reference/orbat/malaysia.yaml.
-# All maritime positions: skip_terrain_check: true (GLOBE coverage hole).
+# All maritime positions verified using Natural Earth 10m terrain classifier.
 # Region: Northern Malacca Strait, ~5.0-5.8°N, 99.6-100.4°E
 #
 # ── PHYSICS VALIDATION ──────────────────────────────────────────────────────
@@ -101,7 +101,6 @@ scenario:
         # RTB — contact handed to Peregrine 3 and KD Lekiu
         - { lat: 5.300, lon: 100.100, speed: 200, time: "01:00" }
       metadata:
-        skip_terrain_check: true
         aircraft_type: "Beechcraft Super King Air B200T"
         home_base: "RMAF Butterworth"
         altitude_ft: 500
@@ -132,7 +131,6 @@ scenario:
         - { lat: 5.155, lon: 99.800,  speed: 130, time: "00:55" }
         - { lat: 5.148, lon: 99.785,  speed: 130, time: "01:00" }
       metadata:
-        skip_terrain_check: true
         aircraft_type: "Beechcraft Super King Air B200T"
         home_base: "RMAF Subang"
         altitude_ft: 300
@@ -170,7 +168,6 @@ scenario:
         - { lat: 5.115, lon: 99.815,  speed: 3,  time: "00:58" }
         - { lat: 5.115, lon: 99.815,  speed: 3,  time: "01:00" }
       metadata:
-        skip_terrain_check: true
         vessel_type: "Lekiu-class Guided Missile Frigate"
         hull_number: "30"
         displacement_t: 2270
@@ -204,7 +201,6 @@ scenario:
         - { lat: 5.475, lon: 99.700, speed: 8,  time: "00:50" }
         - { lat: 5.490, lon: 99.680, speed: 8,  time: "01:00" }
       metadata:
-        skip_terrain_check: true
         vessel_type: "Kedah-class Offshore Patrol Vessel"
         hull_number: "171"
         callsign_radio: "KD KEDAH"
@@ -241,7 +237,6 @@ scenario:
         - { lat: 5.115, lon: 100.028,speed: 2, time: "00:55" }
         - { lat: 5.115, lon: 100.028,speed: 2, time: "01:00" }
       metadata:
-        skip_terrain_check: true
         ais_active: false
         vessel_type: "Diesel-electric submarine (Type 209/1300)"
         estimated_depth_m: 45

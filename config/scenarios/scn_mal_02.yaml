@@ -45,7 +45,7 @@ scenario:
   background_entities: []
   scenario_entities:
   - id: TANKER-001
-    type: CIVILIAN_TANKER
+    type: CIVILIAN_TANKER_VLCC
     callsign: MT Labuan Palm
     initial_position:
       lat: 3.48
@@ -84,7 +84,6 @@ scenario:
       speed: 3
       time: 01:15
     metadata:
-      skip_terrain_check: true
       ais_active: true
       mmsi: '533000777'
       flag: MYS
@@ -96,7 +95,7 @@ scenario:
       destination_declared: Port Dickson
       last_port: Miri, Sarawak
   - id: PIRATE-001
-    type: SUSPECT_VESSEL
+    type: SUSPECT_FAST_BOAT
     callsign: Unknown Fast Boat 1
     initial_position:
       lat: 3.52
@@ -139,13 +138,12 @@ scenario:
       speed: 0
       time: 01:15
     metadata:
-      skip_terrain_check: true
       ais_active: false
       vessel_type: High-speed fibreglass boat, ~10m
       armed: true
       estimated_crew: 6
   - id: PIRATE-002
-    type: SUSPECT_VESSEL
+    type: SUSPECT_FAST_BOAT
     callsign: Unknown Fast Boat 2
     initial_position:
       lat: 3.51
@@ -196,7 +194,6 @@ scenario:
       speed: 0
       time: 01:12
     metadata:
-      skip_terrain_check: true
       ais_active: false
       vessel_type: High-speed fibreglass boat, ~10m
       armed: true
@@ -247,7 +244,6 @@ scenario:
       speed: 2
       time: 01:15
     metadata:
-      skip_terrain_check: true
       vessel_type: Langkawi-class Offshore Patrol Vessel
       callsign_radio: MMEA PERANTAU
       boarding_team: true
@@ -290,7 +286,6 @@ scenario:
       speed: 5
       time: 01:15
     metadata:
-      skip_terrain_check: true
       vessel_type: Kedah-class Offshore Patrol Vessel
       hull_number: '173'
       callsign_radio: KD PERAK
@@ -353,7 +348,6 @@ scenario:
       speed: 120
       time: 01:21
     metadata:
-      skip_terrain_check: true
       aircraft_type: Airbus H225M (EC725) Caracal
       home_base: RMAF Subang
       altitude_ft: 500
@@ -402,7 +396,6 @@ scenario:
       speed: 0
       time: 01:15
     metadata:
-      skip_terrain_check: true
       unit_size: 12
       equipment:
       - MP5
@@ -416,7 +409,7 @@ scenario:
   - time: 00:00
     type: DETECTION
     description: 'MRCC Lumut: MT Labuan Palm (MMSI 533000777) tracking normally on
-      AIS. Position 3.48°N 101.24°E, speed 14 knots, heading 315° NW. VLCC, 300m,
+      AIS. Position 3.48°N 100.96°E, speed 14 knots, heading 315° NW. VLCC, 300m,
       crude oil cargo. Malaysian flag. Normal traffic — night transit through southern
       Malacca TSS.'
     position:
@@ -442,7 +435,7 @@ scenario:
     type: ALERT
     description: MMEA Director of Operations activates Armed Robbery at Sea (ARAS)
       response protocol. All agencies notified on secure channel. Vessel position
-      confirmed — 3.53°N 101.19°E, continuing NW but speed dropping. Pirates estimated
+      confirmed — 3.53°N 100.91°E, continuing NW but speed dropping. Pirates estimated
       to be boarding now. Radio silence imposed — no open VHF contact with MT Labuan
       Palm to avoid alerting attackers.
     alert_agencies:
@@ -460,7 +453,7 @@ scenario:
     action: deploy
     destination:
       lat: 3.565
-      lon: 101.145
+      lon: 100.865
   - time: 00:10
     type: ORDER
     description: MMEA KM Perantau ordered to proceed at best speed to tanker position.
@@ -496,14 +489,14 @@ scenario:
   - time: 00:22
     type: DETECTION
     description: 'TUDM Caracal 1 on scene. FLIR confirms: MT Labuan Palm stationary,
-      position 3.565°N 101.145°E. Two small fast boats alongside — one port quarter,
+      position 3.565°N 100.865°E. Two small fast boats alongside — one port quarter,
       one circling. Crew activity on foredeck — crew mustered by armed individuals.
       Perpetrator count: estimated 10-12 armed persons. Helicopter maintaining 500ft,
       covert observation — no searchlight. FLIR imagery transmitting to MMEA MRCC.'
     source: RMAF-HELI-001
     position:
       lat: 3.565
-      lon: 101.145
+      lon: 100.865
     alert_agencies:
     - MMEA
     - MIL

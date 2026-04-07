@@ -193,12 +193,12 @@ class WebSocketAdapter(TransportAdapter):
             if eid not in self._trail_history:
                 self._trail_history[eid] = []
             trail = self._trail_history[eid]
-            # Skip if entity hasn't moved
+            # Skip if entity hasn't moved (threshold: ~3m to capture slow/turning vessels)
             if trail:
                 last = trail[-1]
                 dlat = abs(point["lat"] - last["lat"])
                 dlon = abs(point["lon"] - last["lon"])
-                if dlat < 0.0001 and dlon < 0.0001:
+                if dlat < 0.000025 and dlon < 0.000025:
                     continue
             trail.append(point)
             if len(trail) > self._max_trail_points:

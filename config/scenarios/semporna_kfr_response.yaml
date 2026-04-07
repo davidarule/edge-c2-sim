@@ -80,7 +80,6 @@ scenario:
         estimated_crew: 8
         armed: true
         note: "Armed group — assault rifles, RPG"
-        skip_terrain_check: true
 
     - id: "HOSTILE-002"
       type: SUSPECT_VESSEL
@@ -103,7 +102,6 @@ scenario:
         vessel_type: "High-speed fibreglass boat"
         estimated_crew: 6
         armed: true
-        skip_terrain_check: true
 
     # === RMP MARINE POLICE (First responders) ===
     - id: "RMP-MP-201"
