@@ -185,9 +185,36 @@ function backgroundFetch(sidc, size, framePath, iconPath, mod1Path, mod2Path) {
  * With 4,554 SVG files we can't preload everything. This function is kept for
  * API compatibility but is now a no-op — symbols are fetched on first use.
  */
-export async function preloadSymbols() {
-  // no-op: on-demand fetch handles this transparently
-  console.log('[symbol-renderer] On-demand mode — symbols loaded on first use');
+export async function preloadSymbols(sidcList = []) {
+  if (!sidcList.length) {
+    console.log('[symbol-renderer] No SIDCs to preload');
+    return;
+  }
+
+  // Collect unique SVG paths needed for all SIDCs
+  const paths = new Set();
+  for (const sidc of sidcList) {
+    if (!sidc || sidc.length < 20) continue;
+    const context   = sidc[2];
+    const identity  = sidc[3];
+    const symbolSet = sidc.slice(4, 6);
+    const status    = sidc[6];
+    const entity6   = sidc.slice(10, 16);
+
+    paths.add(resolveFramePath(context, identity, symbolSet, status));
+    paths.add(resolveIconPath(identity, symbolSet, entity6));
+
+    // Also preload fallback icon paths (parent type, grandparent)
+    const folder = SYMBOL_SET_FOLDER[symbolSet] || 'Land';
+    paths.add(`/svg/Appendices/${folder}/${symbolSet}${entity6.slice(0, 4)}00.svg`);
+    paths.add(`/svg/Appendices/${folder}/${symbolSet}${entity6.slice(0, 2)}0000.svg`);
+  }
+
+  // Fetch all unique SVGs in parallel
+  const toFetch = [...paths].filter(p => p && !svgTextCache.has(p));
+  console.log(`[symbol-renderer] Preloading ${toFetch.length} SVGs for ${sidcList.length} SIDCs...`);
+  await Promise.all(toFetch.map(fetchSvg));
+  console.log(`[symbol-renderer] Preload complete — ${svgTextCache.size} SVGs cached`);
 }
 
 /**

@@ -51,8 +51,12 @@ async function main() {
   console.log('Edge C2 COP initializing...');
   const config = initConfig();
 
-  // Preload DISA SVG symbol files before rendering any entities
-  await preloadSymbols();
+  // Preload DISA SVG symbol files for all configured entity types + default
+  const sidcsToPreload = [...new Set([
+    ...Object.values(config.sidcMap),
+    config.defaultSidc,
+  ])];
+  await preloadSymbols(sidcsToPreload);
 
   // Build header
   buildHeader(config);
