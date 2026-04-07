@@ -1,415 +1,638 @@
-# SCN-MAL-02: Tanker Armed Robbery at Sea — Strait of Malacca
-# Version: 1.0 | Built: April 2026
-#
-# ── METHODOLOGY ─────────────────────────────────────────────────────────────
-# Built using edge-c2-scenario-SKILL.md 8-step methodology.
-# Forces from reference/orbat/malaysia.yaml.
-# All maritime positions: skip_terrain_check: true (GLOBE coverage hole).
-# All coordinates from open-water reference grid (skill Step 3b).
-# Region: Southern Malacca Strait, ~3.0-3.6°N, 100.7-101.5°E
-#
-# ── PHYSICS VALIDATION ──────────────────────────────────────────────────────
-# cos(3°) ≈ 0.9986, 1°lon ≈ 59.9nm
-#
-#   PIRATES approach tanker: 8.4nm @ 25kn = 20min → aboard T+15 ✓
-#   RMAF-HELI-001 from Subang: 33.5nm @ 150kn = 13min → on scene T+22 ✓
-#   MMEA-PV-001 to tanker: 22.3nm @ 22kn = 61min → boards T+72 ✓
-#   RMN-OPV-001 to block: 18.4nm @ 22kn = 50min → in position T+62 ✓
-#
-# ── FORCES ──────────────────────────────────────────────────────────────────
-# Source: reference/orbat/malaysia.yaml
-#   MT Labuan Palm: VLCC crude tanker, Malaysian flag, 300m, 14kn
-#   MMEA-PV-001: KM Perantau — Langkawi-class OPV, max 22kn
-#   RMN-OPV-001: KD Perak (173) — Kedah-class NGPV, max 22kn
-#   RMAF-HELI-001: TUDM Caracal 1 — EC725/H225M, max 150kn, from RMAF Subang
-#   RMP-UTK-001: UTK Team Alpha — Counter-terrorism boarding team, 12 operators
-#   PIRATE-001/002: Armed fast boats from Sumatran coast
-#
-# ── DEMO NOTES ──────────────────────────────────────────────────────────────
-# Duration: 75 min. Recommended: 5x (15 min briefing), 3x (25 min).
-# Pause at T+05 (SSAS alert) for audience impact — explain SSAS system.
-# Slow to 1x at T+22 (helicopter arrival) and T+72 (UTK boarding).
-# High drama: pirates, hostages, night operation, special forces boarding.
-
 scenario:
-  name: "SCN-MAL-02: Tanker Armed Robbery at Sea — Strait of Malacca"
-  description: |
-    A Malaysian-flag VLCC crude tanker transiting the southern Strait of
+  name: 'SCN-MAL-02: Tanker Armed Robbery at Sea — Strait of Malacca'
+  description: 'A Malaysian-flag VLCC crude tanker transiting the southern Strait
+    of
+
     Malacca activates its Ship Security Alert System (SSAS) covertly during
+
     a night transit. Two armed fast boats have approached from the Indonesian
+
     side and armed perpetrators have boarded. The Master activates SSAS from
+
     the bridge without alerting the attackers.
 
+
     MMEA Maritime Rescue Coordination Centre receives the covert alert and
+
     activates a multi-agency response. An RMAF EC725 helicopter scrambles
+
     from Subang for immediate airborne overwatch. MMEA dispatches its nearest
+
     patrol vessel. RMN provides a southern blocking position to cut off pirate
+
     escape routes toward Indonesian waters. RMP UTK (counter-terrorism unit)
+
     deploys as the tactical boarding team.
 
+
     The scenario includes a hostage negotiation phase before UTK insertion,
+
     and concludes with tactical boarding, crew rescue, and pirate detention.
 
+
     Demonstrates: SSAS distress alert workflow, night maritime operations,
+
     helicopter overwatch and FLIR targeting, RMP counter-terrorism boarding,
+
     multi-agency joint operations, pirate pursuit and interdiction.
+
+    '
   duration_minutes: 75
-  center: { lat: 3.30, lon: 101.05 }
+  center:
+    lat: 3.3
+    lon: 100.77
   zoom: 9
-
   background_entities: []
-
-  # ================================================================
-  # SCENARIO ENTITIES
-  # ================================================================
   scenario_entities:
-
-    # ── MT LABUAN PALM — VLCC CRUDE TANKER ──────────────────────
-    # Malaysian-flag VLCC, 300m, 14kn, transiting NW through TSS.
-    # SSAS activated at T+05. Vessel slows then stops as pirates take
-    # control. Held stationary T+20 to T+72 during crisis.
-    - id: "TANKER-001"
-      type: CIVILIAN_TANKER
-      callsign: "MT Labuan Palm"
-      initial_position: { lat: 3.480, lon: 101.240 }
-      waypoints:
-        # Normal transit NW at 14kn
-        - { lat: 3.480, lon: 101.240, speed: 14, time: "00:00" }
-        - { lat: 3.510, lon: 101.210, speed: 14, time: "00:03" }
-        # SSAS activated silently — vessel continues briefly
-        - { lat: 3.530, lon: 101.190, speed: 14, time: "00:05" }
-        # Pirates take helm — speed reduces, vessel manoeuvred off TSS
-        - { lat: 3.550, lon: 101.165, speed: 8,  time: "00:10" }
-        - { lat: 3.560, lon: 101.150, speed: 4,  time: "00:15" }
-        # Pirates have full control — vessel held stationary
-        - { lat: 3.565, lon: 101.145, speed: 0,  time: "00:20" }
-        - { lat: 3.565, lon: 101.145, speed: 0,  time: "01:12" }
-        # Pirates attempt to flee — tanker resumes slow movement
-        - { lat: 3.560, lon: 101.150, speed: 3,  time: "01:15" }
-      metadata:
-        skip_terrain_check: true
-        ais_active: true
-        mmsi: "533000777"
-        flag: "MYS"
-        vessel_type: "VLCC Crude Tanker"
-        length_m: 300
-        draught_m: 18.5
-        estimated_crew: 28
-        cargo: "Crude oil — 280,000 DWT"
-        destination_declared: "Port Dickson"
-        last_port: "Miri, Sarawak"
-
-    # ── PIRATE FAST BOAT 1 ───────────────────────────────────────
-    # Armed speedboat from Sumatran coast. Approaches tanker at 25kn.
-    # Boards T+10. Flees SW at T+55 when helicopter closes.
-    # Physics: 8.4nm from (3.45,101.35) to tanker → 20min @ 25kn ✓
-    - id: "PIRATE-001"
-      type: SUSPECT_VESSEL
-      callsign: "Unknown Fast Boat 1"
-      initial_position: { lat: 3.520, lon: 101.200 }
-      waypoints:
-        # Lurking ahead of tanker track — close ambush
-        - { lat: 3.520, lon: 101.200, speed: 3,  time: "00:00" }
-        # Sprint to intercept tanker at T+02
-        - { lat: 3.525, lon: 101.195, speed: 25, time: "00:02" }
-        - { lat: 3.530, lon: 101.185, speed: 25, time: "00:04" }
-        # Alongside tanker
-        - { lat: 3.555, lon: 101.155, speed: 5,  time: "00:10" }
-        # Stationary — boarding team on tanker
-        - { lat: 3.558, lon: 101.150, speed: 0,  time: "00:15" }
-        - { lat: 3.558, lon: 101.150, speed: 0,  time: "00:54" }
-        # Helicopter closing — pirates attempt escape SW
-        - { lat: 3.520, lon: 101.090, speed: 28, time: "01:02" }
-        - { lat: 3.470, lon: 101.010, speed: 28, time: "01:10" }
-        # Intercepted by RMN — stopped
-        - { lat: 3.420, lon: 100.970, speed: 0,  time: "01:15" }
-      metadata:
-        skip_terrain_check: true
-        ais_active: false
-        vessel_type: "High-speed fibreglass boat, ~10m"
-        armed: true
-        estimated_crew: 6
-
-    # ── PIRATE FAST BOAT 2 ───────────────────────────────────────
-    # Second boat maintaining perimeter watch during boarding.
-    - id: "PIRATE-002"
-      type: SUSPECT_VESSEL
-      callsign: "Unknown Fast Boat 2"
-      initial_position: { lat: 3.510, lon: 101.210 }
-      waypoints:
-        - { lat: 3.510, lon: 101.210, speed: 3,  time: "00:00" }
-        - { lat: 3.518, lon: 101.200, speed: 25, time: "00:02" }
-        - { lat: 3.525, lon: 101.185, speed: 25, time: "00:05" }
-        # Perimeter watch — circling tanker slowly
-        - { lat: 3.562, lon: 101.160, speed: 4,  time: "00:11" }
-        - { lat: 3.570, lon: 101.140, speed: 4,  time: "00:20" }
-        - { lat: 3.560, lon: 101.130, speed: 4,  time: "00:30" }
-        - { lat: 3.550, lon: 101.145, speed: 4,  time: "00:40" }
-        - { lat: 3.560, lon: 101.155, speed: 4,  time: "00:52" }
-        # Helicopter flares — boat breaks off SW
-        - { lat: 3.510, lon: 101.080, speed: 28, time: "01:00" }
-        - { lat: 3.460, lon: 101.000, speed: 28, time: "01:08" }
-        # RMN blocks — stopped
-        - { lat: 3.430, lon: 100.970, speed: 0,  time: "01:12" }
-      metadata:
-        skip_terrain_check: true
-        ais_active: false
-        vessel_type: "High-speed fibreglass boat, ~10m"
-        armed: true
-        estimated_crew: 5
-
-    # ── MMEA PATROL VESSEL ───────────────────────────────────────
-    # KM Perantau — Langkawi-class OPV, max 22kn.
-    # Pre-positioned on southern Malacca patrol. ORDER T+10.
-    # Physics: 22.3nm @ 22kn = 61min → alongside T+71 ✓
-    - id: "MMEA-PV-001"
-      type: MMEA_PATROL
-      callsign: "KM Perantau"
-      agency: MMEA
-      initial_position: { lat: 3.200, lon: 101.000 }
-      behavior: "patrol"
-      waypoints:
-        # Southern patrol
-        - { lat: 3.200, lon: 101.000, speed: 12, time: "00:00" }
-        - { lat: 3.210, lon: 100.985, speed: 12, time: "00:06" }
-        # ORDER T+10 — sprint to tanker at best speed
-        - { lat: 3.225, lon: 100.975, speed: 22, time: "00:12" }
-        - { lat: 3.320, lon: 101.020, speed: 22, time: "00:25" }
-        - { lat: 3.420, lon: 101.065, speed: 22, time: "00:38" }
-        - { lat: 3.510, lon: 101.110, speed: 22, time: "00:50" }
-        # Approaching tanker — reducing speed
-        - { lat: 3.555, lon: 101.140, speed: 10, time: "01:01" }
-        # On scene — station keeping 500m from tanker
-        - { lat: 3.555, lon: 101.140, speed: 2,  time: "01:11" }
-        - { lat: 3.555, lon: 101.140, speed: 2,  time: "01:15" }
-      metadata:
-        skip_terrain_check: true
-        vessel_type: "Langkawi-class Offshore Patrol Vessel"
-        callsign_radio: "MMEA PERANTAU"
-        boarding_team: true
-        boarding_team_size: 6
-
-    # ── RMN OFFSHORE PATROL VESSEL ───────────────────────────────
-    # KD Perak (173) — Kedah-class NGPV, max 22kn.
-    # Establishes southern blocking position to cut pirate escape.
-    # ORDER T+12. Physics: 18.4nm @ 22kn = 50min → in position T+62 ✓
-    - id: "RMN-OPV-001"
-      type: MIL_NAVAL
-      callsign: "KD Perak"
-      agency: MIL
-      initial_position: { lat: 3.300, lon: 100.900 }
-      behavior: "patrol"
-      waypoints:
-        # Western patrol
-        - { lat: 3.300, lon: 100.900, speed: 10, time: "00:00" }
-        - { lat: 3.310, lon: 100.885, speed: 10, time: "00:08" }
-        # ORDER T+12 — move to blocking position
-        - { lat: 3.280, lon: 100.870, speed: 22, time: "00:14" }
-        - { lat: 3.200, lon: 100.870, speed: 22, time: "00:26" }
-        - { lat: 3.100, lon: 100.880, speed: 22, time: "00:39" }
-        # Blocking position — covers SW pirate escape route
-        - { lat: 3.020, lon: 100.890, speed: 5,  time: "01:02" }
-        - { lat: 3.020, lon: 100.890, speed: 5,  time: "01:15" }
-      metadata:
-        skip_terrain_check: true
-        vessel_type: "Kedah-class Offshore Patrol Vessel"
-        hull_number: "173"
-        callsign_radio: "KD PERAK"
-        notes: "Blocking SW escape route toward Indonesian EEZ."
-
-    # ── RMAF EC725 HELICOPTER ────────────────────────────────────
-    # TUDM Caracal 1 — EC725/H225M, max 150kn, from RMAF Subang.
-    # ORDER T+08. Physics: 33.5nm @ 150kn = 13min → on scene T+22 ✓
-    - id: "RMAF-HELI-001"
-      type: RMAF_HELICOPTER
-      callsign: "TUDM Caracal 1"
-      agency: RMAF
-      initial_position: { lat: 3.131, lon: 101.549 }   # RMAF Subang — AIR
-      behavior: "standby"
-      waypoints:
-        # On ground at RMAF Subang until ORDER
-        - { lat: 3.131, lon: 101.549, speed: 0,   time: "00:00" }
-        - { lat: 3.131, lon: 101.549, speed: 0,   time: "00:08" }
-        # Airborne — transit NW to scene
-        - { lat: 3.200, lon: 101.450, speed: 150, time: "00:11" }
-        - { lat: 3.320, lon: 101.320, speed: 150, time: "00:16" }
-        # On scene — establishing low orbit over tanker for FLIR
-        - { lat: 3.530, lon: 101.170, speed: 120, time: "00:22" }
-        # Holding orbit — FLIR coverage, coordinating UTK insertion
-        - { lat: 3.580, lon: 101.130, speed: 80,  time: "00:28" }
-        - { lat: 3.540, lon: 101.110, speed: 80,  time: "00:34" }
-        - { lat: 3.555, lon: 101.160, speed: 80,  time: "00:42" }
-        - { lat: 3.580, lon: 101.140, speed: 80,  time: "00:50" }
-        # Pursues fleeing pirate boats
-        - { lat: 3.510, lon: 101.070, speed: 130, time: "01:03" }
-        - { lat: 3.450, lon: 100.990, speed: 130, time: "01:09" }
-        # RTB — tanker secured
-        - { lat: 3.350, lon: 101.150, speed: 120, time: "01:15" }
-      metadata:
-        skip_terrain_check: true
-        aircraft_type: "Airbus H225M (EC725) Caracal"
-        home_base: "RMAF Subang"
-        altitude_ft: 500
-        sensors: ["FLIR", "searchlight", "NVG"]
-        armament: ["FN MAG 7.62mm"]
-        notes: "Night ops — FLIR essential. UTK insertion support."
-
-    # ── RMP UTK TACTICAL TEAM ────────────────────────────────────
-    # UTK (Unit Tindakan Khas) — RMP counter-terrorism unit, 12 operators.
-    # Transported via MMEA patrol vessel. Boards tanker at T+72.
-    # Classified as PERSONNEL domain — on MMEA vessel until insertion.
-    - id: "RMP-UTK-001"
-      type: RMP_TACTICAL_TEAM
-      callsign: "UTK Team Alpha"
-      agency: RMP
-      initial_position: { lat: 3.200, lon: 101.000 }   # Co-located with MMEA-PV-001
-      behavior: "standby"
-      waypoints:
-        # Travels with KM Perantau — same waypoints, slightly offset
-        - { lat: 3.200, lon: 101.000, speed: 0,  time: "00:00" }
-        - { lat: 3.225, lon: 100.975, speed: 22, time: "00:12" }
-        - { lat: 3.420, lon: 101.065, speed: 22, time: "00:38" }
-        - { lat: 3.555, lon: 101.140, speed: 22, time: "01:11" }
-        # Boarding insertion via RHIB
-        - { lat: 3.563, lon: 101.145, speed: 4,  time: "01:12" }
-        # On tanker
-        - { lat: 3.565, lon: 101.145, speed: 0,  time: "01:14" }
-        - { lat: 3.565, lon: 101.145, speed: 0,  time: "01:15" }
-      metadata:
-        skip_terrain_check: true
-        unit_size: 12
-        equipment: ["MP5", "body_armor", "NVG", "flash_bang", "breaching_kit"]
-        unit_name: "UTK Team Alpha — RMP Counter-Terrorism"
-        notes: "Tactical boarding team. Fast-rope insertion if required."
-
-  # ================================================================
-  # EVENTS TIMELINE
-  # ================================================================
+  - id: TANKER-001
+    type: CIVILIAN_TANKER
+    callsign: MT Labuan Palm
+    initial_position:
+      lat: 3.48
+      lon: 100.96
+    waypoints:
+    - lat: 3.48
+      lon: 100.96
+      speed: 14
+      time: 00:00
+    - lat: 3.51
+      lon: 100.92999999999999
+      speed: 14
+      time: 00:03
+    - lat: 3.53
+      lon: 100.91
+      speed: 14
+      time: 00:05
+    - lat: 3.55
+      lon: 100.885
+      speed: 8
+      time: 00:10
+    - lat: 3.56
+      lon: 100.87
+      speed: 4
+      time: 00:15
+    - lat: 3.565
+      lon: 100.865
+      speed: 0
+      time: 00:20
+    - lat: 3.565
+      lon: 100.865
+      speed: 0
+      time: 01:12
+    - lat: 3.56
+      lon: 100.87
+      speed: 3
+      time: 01:15
+    metadata:
+      skip_terrain_check: true
+      ais_active: true
+      mmsi: '533000777'
+      flag: MYS
+      vessel_type: VLCC Crude Tanker
+      length_m: 300
+      draught_m: 18.5
+      estimated_crew: 28
+      cargo: Crude oil — 280,000 DWT
+      destination_declared: Port Dickson
+      last_port: Miri, Sarawak
+  - id: PIRATE-001
+    type: SUSPECT_VESSEL
+    callsign: Unknown Fast Boat 1
+    initial_position:
+      lat: 3.52
+      lon: 100.92
+    waypoints:
+    - lat: 3.52
+      lon: 100.92
+      speed: 3
+      time: 00:00
+    - lat: 3.525
+      lon: 100.91499999999999
+      speed: 25
+      time: 00:02
+    - lat: 3.53
+      lon: 100.905
+      speed: 25
+      time: 00:04
+    - lat: 3.555
+      lon: 100.875
+      speed: 5
+      time: 00:10
+    - lat: 3.558
+      lon: 100.87
+      speed: 0
+      time: 00:15
+    - lat: 3.558
+      lon: 100.87
+      speed: 0
+      time: 00:54
+    - lat: 3.52
+      lon: 100.81
+      speed: 28
+      time: 01:02
+    - lat: 3.47
+      lon: 100.73
+      speed: 28
+      time: 01:10
+    - lat: 3.42
+      lon: 100.69
+      speed: 0
+      time: 01:15
+    metadata:
+      skip_terrain_check: true
+      ais_active: false
+      vessel_type: High-speed fibreglass boat, ~10m
+      armed: true
+      estimated_crew: 6
+  - id: PIRATE-002
+    type: SUSPECT_VESSEL
+    callsign: Unknown Fast Boat 2
+    initial_position:
+      lat: 3.51
+      lon: 100.92999999999999
+    waypoints:
+    - lat: 3.51
+      lon: 100.92999999999999
+      speed: 3
+      time: 00:00
+    - lat: 3.518
+      lon: 100.92
+      speed: 25
+      time: 00:02
+    - lat: 3.525
+      lon: 100.905
+      speed: 25
+      time: 00:05
+    - lat: 3.562
+      lon: 100.88
+      speed: 4
+      time: 00:11
+    - lat: 3.57
+      lon: 100.86
+      speed: 4
+      time: 00:20
+    - lat: 3.56
+      lon: 100.85
+      speed: 4
+      time: 00:30
+    - lat: 3.55
+      lon: 100.865
+      speed: 4
+      time: 00:40
+    - lat: 3.56
+      lon: 100.875
+      speed: 4
+      time: 00:52
+    - lat: 3.51
+      lon: 100.8
+      speed: 28
+      time: 01:00
+    - lat: 3.46
+      lon: 100.72
+      speed: 28
+      time: 01:08
+    - lat: 3.43
+      lon: 100.69
+      speed: 0
+      time: 01:12
+    metadata:
+      skip_terrain_check: true
+      ais_active: false
+      vessel_type: High-speed fibreglass boat, ~10m
+      armed: true
+      estimated_crew: 5
+  - id: MMEA-PV-001
+    type: MMEA_PATROL
+    callsign: KM Perantau
+    agency: MMEA
+    initial_position:
+      lat: 3.35
+      lon: 100.8
+    behavior: patrol
+    waypoints:
+    - lat: 3.35
+      lon: 100.8
+      speed: 12
+      time: 00:00
+    - lat: 3.355
+      lon: 100.785
+      speed: 12
+      time: 00:06
+    - lat: 3.225
+      lon: 100.695
+      speed: 22
+      time: 00:12
+    - lat: 3.32
+      lon: 100.74
+      speed: 22
+      time: 00:25
+    - lat: 3.42
+      lon: 100.785
+      speed: 22
+      time: 00:38
+    - lat: 3.51
+      lon: 100.83
+      speed: 22
+      time: 00:50
+    - lat: 3.555
+      lon: 100.86
+      speed: 10
+      time: 01:01
+    - lat: 3.555
+      lon: 100.86
+      speed: 2
+      time: 01:11
+    - lat: 3.555
+      lon: 100.86
+      speed: 2
+      time: 01:15
+    metadata:
+      skip_terrain_check: true
+      vessel_type: Langkawi-class Offshore Patrol Vessel
+      callsign_radio: MMEA PERANTAU
+      boarding_team: true
+      boarding_team_size: 6
+  - id: RMN-OPV-001
+    type: MIL_NAVAL
+    callsign: KD Perak
+    agency: MIL
+    initial_position:
+      lat: 3.3
+      lon: 100.62
+    behavior: patrol
+    waypoints:
+    - lat: 3.3
+      lon: 100.62
+      speed: 10
+      time: 00:00
+    - lat: 3.31
+      lon: 100.605
+      speed: 10
+      time: 00:08
+    - lat: 3.28
+      lon: 100.59
+      speed: 22
+      time: 00:14
+    - lat: 3.2
+      lon: 100.59
+      speed: 22
+      time: 00:26
+    - lat: 3.1
+      lon: 100.6
+      speed: 22
+      time: 00:39
+    - lat: 3.02
+      lon: 100.61
+      speed: 5
+      time: 01:02
+    - lat: 3.02
+      lon: 100.61
+      speed: 5
+      time: 01:15
+    metadata:
+      skip_terrain_check: true
+      vessel_type: Kedah-class Offshore Patrol Vessel
+      hull_number: '173'
+      callsign_radio: KD PERAK
+      notes: Blocking SW escape route toward Indonesian EEZ.
+  - id: RMAF-HELI-001
+    type: RMAF_HELICOPTER
+    callsign: TUDM Caracal 1
+    agency: RMAF
+    initial_position:
+      lat: 3.131
+      lon: 101.549
+    behavior: standby
+    waypoints:
+    - lat: 3.131
+      lon: 101.549
+      speed: 0
+      time: 00:00
+    - lat: 3.131
+      lon: 101.549
+      speed: 0
+      time: 00:08
+    - lat: 3.2
+      lon: 101.17
+      speed: 150
+      time: 00:11
+    - lat: 3.32
+      lon: 101.03999999999999
+      speed: 150
+      time: 00:16
+    - lat: 3.53
+      lon: 100.89
+      speed: 120
+      time: 00:28
+    - lat: 3.58
+      lon: 100.85
+      speed: 80
+      time: 00:34
+    - lat: 3.54
+      lon: 100.83
+      speed: 80
+      time: 00:40
+    - lat: 3.555
+      lon: 100.88
+      speed: 80
+      time: 00:48
+    - lat: 3.58
+      lon: 100.86
+      speed: 80
+      time: 00:56
+    - lat: 3.51
+      lon: 100.78999999999999
+      speed: 130
+      time: 01:09
+    - lat: 3.45
+      lon: 100.71
+      speed: 130
+      time: 01:15
+    - lat: 3.35
+      lon: 100.87
+      speed: 120
+      time: 01:21
+    metadata:
+      skip_terrain_check: true
+      aircraft_type: Airbus H225M (EC725) Caracal
+      home_base: RMAF Subang
+      altitude_ft: 500
+      sensors:
+      - FLIR
+      - searchlight
+      - NVG
+      armament:
+      - FN MAG 7.62mm
+      notes: Night ops — FLIR essential. UTK insertion support.
+  - id: RMP-UTK-001
+    type: RMP_TACTICAL_TEAM
+    callsign: UTK Team Alpha
+    agency: RMP
+    initial_position:
+      lat: 3.35
+      lon: 100.8
+    behavior: standby
+    waypoints:
+    - lat: 3.35
+      lon: 100.8
+      speed: 0
+      time: 00:00
+    - lat: 3.225
+      lon: 100.695
+      speed: 22
+      time: 00:12
+    - lat: 3.42
+      lon: 100.785
+      speed: 22
+      time: 00:38
+    - lat: 3.555
+      lon: 100.86
+      speed: 22
+      time: 01:11
+    - lat: 3.563
+      lon: 100.865
+      speed: 4
+      time: 01:12
+    - lat: 3.565
+      lon: 100.865
+      speed: 0
+      time: 01:14
+    - lat: 3.565
+      lon: 100.865
+      speed: 0
+      time: 01:15
+    metadata:
+      skip_terrain_check: true
+      unit_size: 12
+      equipment:
+      - MP5
+      - body_armor
+      - NVG
+      - flash_bang
+      - breaching_kit
+      unit_name: UTK Team Alpha — RMP Counter-Terrorism
+      notes: Tactical boarding team. Fast-rope insertion if required.
   events:
-
-    - time: "00:00"
-      type: "DETECTION"
-      description: "MRCC Lumut: MT Labuan Palm (MMSI 533000777) tracking normally on AIS. Position 3.48°N 101.24°E, speed 14 knots, heading 315° NW. VLCC, 300m, crude oil cargo. Malaysian flag. Normal traffic — night transit through southern Malacca TSS."
-      position: { lat: 3.480, lon: 101.240 }
-      alert_agencies: [MMEA]
-      severity: "INFO"
-
-    - time: "00:05"
-      type: "DISTRESS"
-      description: "SSAS ALERT — COVERT DISTRESS. MT Labuan Palm Ship Security Alert System activated. Signal received at MRCC Lumut and forwarded to Malaysian Maritime Enforcement Agency. SSAS activation is silent — no audible alarm on vessel. Master has indicated armed boarding in progress without alerting attackers. Two fast boats sighted approaching from Indonesian side."
-      target: "TANKER-001"
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: "CRITICAL"
-
-    - time: "00:07"
-      type: "ALERT"
-      description: "MMEA Director of Operations activates Armed Robbery at Sea (ARAS) response protocol. All agencies notified on secure channel. Vessel position confirmed — 3.53°N 101.19°E, continuing NW but speed dropping. Pirates estimated to be boarding now. Radio silence imposed — no open VHF contact with MT Labuan Palm to avoid alerting attackers."
-      alert_agencies: [MMEA, MIL, RMP, CI]
-      severity: "CRITICAL"
-
-    - time: "00:08"
-      type: "ORDER"
-      description: "MMEA requests immediate RMAF helicopter support. TUDM Caracal 1 (EC725) scrambled from RMAF Subang. ETA on scene 14 minutes. FLIR and night observation priority — covert overwatch, do NOT illuminate until ordered."
-      target: "RMAF-HELI-001"
-      action: "deploy"
-      destination: { lat: 3.565, lon: 101.145 }
-
-    - time: "00:10"
-      type: "ORDER"
-      description: "MMEA KM Perantau ordered to proceed at best speed to tanker position. RMP UTK Team Alpha (12 operators) embarked on KM Perantau — counter-terrorism boarding team activated. KM Perantau ETA on scene 61 minutes."
-      targets: ["MMEA-PV-001", "RMP-UTK-001"]
-      action: "intercept"
-      intercept_target: "TANKER-001"
-
-    - time: "00:12"
-      type: "ORDER"
-      description: "MMEA notifies RMN. KD Perak (173) ordered to establish blocking position to the SW — cut off pirate escape route toward Indonesian EEZ and Sumatran coast. KD Perak ETA blocking position 50 minutes."
-      target: "RMN-OPV-001"
-      action: "deploy"
-      destination: { lat: 3.020, lon: 100.890 }
-
-    - time: "00:15"
-      type: "ALERT"
-      description: "SSAS secondary pulse received. Maritime Intelligence assessment: incident consistent with Strait of Malacca ARAS profile — two fast boats, 8-12 armed perpetrators, approach from Riau Islands direction. Pirates typically seek cash, valuables, and portable equipment. Crew of 28 — hostage situation assessed HIGH RISK. Night operation adds complexity."
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: "CRITICAL"
-
-    - time: "00:22"
-      type: "DETECTION"
-      description: "TUDM Caracal 1 on scene. FLIR confirms: MT Labuan Palm stationary, position 3.565°N 101.145°E. Two small fast boats alongside — one port quarter, one circling. Crew activity on foredeck — crew mustered by armed individuals. Perpetrator count: estimated 10-12 armed persons. Helicopter maintaining 500ft, covert observation — no searchlight. FLIR imagery transmitting to MMEA MRCC."
-      source: "RMAF-HELI-001"
-      position: { lat: 3.565, lon: 101.145 }
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: "CRITICAL"
-
-    - time: "00:28"
-      type: "ALERT"
-      description: "RMAF Caracal 1: FLIR update — perpetrators moving between bridge and crew accommodation. Master and chief officer appear to be on bridge under guard. No visible weapons discharge. Crew appears compliant — no casualties visible at this stage. One perpetrator on each fast boat maintaining lookout."
-      source: "RMAF-HELI-001"
-      alert_agencies: [MMEA, RMP]
-      severity: "WARNING"
-
-    - time: "00:35"
-      type: "ALERT"
-      description: "MMEA MRCC Incident Command: KM Perantau ETA 36 minutes. UTK Team Alpha briefed on FLIR intelligence — 10-12 perpetrators, crew mustered foredeck, two boats alongside. UTK commander assessing insertion options: RHIB approach, fast-rope from helicopter, or combined. Negotiation strategy under review — PDRM Crisis Negotiation Team activated, standing by via satellite phone."
-      alert_agencies: [MMEA, RMP]
-      severity: "INFO"
-
-    - time: "00:45"
-      type: "DETECTION"
-      description: "RMAF Caracal 1: pirate activity increasing on bridge. FLIR shows possible radio equipment — perpetrators may be aware of response. Fast boat 2 increasing speed — circling wider. Recommend Caracal illuminate in 10 minutes to assert presence and deter violence against crew."
-      source: "RMAF-HELI-001"
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: "WARNING"
-
-    - time: "00:50"
-      type: "ALERT"
-      description: "MMEA Incident Commander authorises helicopter to illuminate. TUDM Caracal 1 activates searchlight and loudhailer. Announcement in Malay, English, and Indonesian: 'This is the Malaysian Maritime Enforcement Agency. You are surrounded. Release the crew and surrender your weapons.' Pirates observed reacting — movement on foredeck increasing."
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: "WARNING"
-
-    - time: "00:55"
-      type: "ALERT"
-      description: "Pirates respond by firing flares — no weapons discharge at helicopter. KD Perak has reached blocking position 3.02°N 100.89°E — all SW escape routes covered. KM Perantau 16 minutes out. UTK Team Alpha preparing RHIB for insertion. PDRM Crisis Negotiator attempting satellite phone contact with Master — no response yet."
-      source: "RMN-OPV-001"
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: "WARNING"
-
-    - time: "01:00"
-      type: "ALERT"
-      description: "Fast Boat 1 breaking away — heading SW at high speed. KD Perak has visual. RMAF Caracal 1 in pursuit. Fast Boat 2 following. Perpetrators on tanker now isolated — those remaining may be a reduced group. UTK insertion window opening — KM Perantau 11 minutes."
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: "CRITICAL"
-
-    - time: "01:05"
-      type: "DETECTION"
-      description: "KD Perak: both fast boats sighted bearing 235°, speed 28 knots, heading SW. KD Perak intercepting. RMAF Caracal 1 overhead — illuminating with searchlight, loudhailer demands to stop. KD Perak closing at 22 knots. Riau Islands 45nm SW — escape unlikely."
-      source: "RMN-OPV-001"
-      alert_agencies: [MMEA, MIL]
-      severity: "WARNING"
-
-    - time: "01:10"
-      type: "DETECTION"
-      description: "KD Perak: fast boats slowing — apparent compliance. Helicopter overhead. Weapons visible but not raised. KD Perak preparing boarding party. Simultaneously: KM Perantau 1 minute from tanker. UTK Team Alpha deploying RHIB."
-      source: "RMN-OPV-001"
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: "INFO"
-
-    - time: "01:12"
-      type: "BOARDING"
-      description: "UTK Team Alpha RHIB alongside MT Labuan Palm. Fast-rope ascent — two teams, port and starboard simultaneously. Helicopter providing overwatch. Remaining perpetrators on tanker: 4 persons on bridge. UTK securing crew muster point — foredeck clear. Breaching bridge now."
-      target: "RMP-UTK-001"
-      boarding_target: "TANKER-001"
-      severity: "CRITICAL"
-
-    - time: "01:14"
-      type: "ALERT"
-      description: "UTK Team Alpha: BRIDGE SECURE. 4 perpetrators detained, weapons secured. Master and officers released unharmed. Crew of 28 accounted for — all alive. 3 crew with minor injuries (cuts, bruising). No UTK casualties. Vessel secure. KD Perak alongside fast boats — 11 perpetrators detained at sea. All suspects in custody."
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: "INFO"
-
-    - time: "01:15"
-      type: "ALERT"
-      description: "ENDSTATE — MT Labuan Palm secured. 15 perpetrators in custody (4 from tanker, 11 from fast boats). Crew of 28 safe. Vessel proceeding to Port Klang under escort for investigation. RMP Marine Police en route for formal custody transfer. MRCC case file opened. Malaysian Customs and Immigration notified for crew welfare processing. Multi-agency ARAS response successful — SSAS to UTK boarding in 69 minutes."
-      alert_agencies: [MMEA, MIL, RMP, CI]
-      severity: "INFO"
+  - time: 00:00
+    type: DETECTION
+    description: 'MRCC Lumut: MT Labuan Palm (MMSI 533000777) tracking normally on
+      AIS. Position 3.48°N 101.24°E, speed 14 knots, heading 315° NW. VLCC, 300m,
+      crude oil cargo. Malaysian flag. Normal traffic — night transit through southern
+      Malacca TSS.'
+    position:
+      lat: 3.48
+      lon: 101.24
+    alert_agencies:
+    - MMEA
+    severity: INFO
+  - time: 00:05
+    type: DISTRESS
+    description: SSAS ALERT — COVERT DISTRESS. MT Labuan Palm Ship Security Alert
+      System activated. Signal received at MRCC Lumut and forwarded to Malaysian Maritime
+      Enforcement Agency. SSAS activation is silent — no audible alarm on vessel.
+      Master has indicated armed boarding in progress without alerting attackers.
+      Two fast boats sighted approaching from Indonesian side.
+    target: TANKER-001
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    severity: CRITICAL
+  - time: 00:07
+    type: ALERT
+    description: MMEA Director of Operations activates Armed Robbery at Sea (ARAS)
+      response protocol. All agencies notified on secure channel. Vessel position
+      confirmed — 3.53°N 101.19°E, continuing NW but speed dropping. Pirates estimated
+      to be boarding now. Radio silence imposed — no open VHF contact with MT Labuan
+      Palm to avoid alerting attackers.
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    - CI
+    severity: CRITICAL
+  - time: 00:08
+    type: ORDER
+    description: MMEA requests immediate RMAF helicopter support. TUDM Caracal 1 (EC725)
+      scrambled from RMAF Subang. ETA on scene 14 minutes. FLIR and night observation
+      priority — covert overwatch, do NOT illuminate until ordered.
+    target: RMAF-HELI-001
+    action: deploy
+    destination:
+      lat: 3.565
+      lon: 101.145
+  - time: 00:10
+    type: ORDER
+    description: MMEA KM Perantau ordered to proceed at best speed to tanker position.
+      RMP UTK Team Alpha (12 operators) embarked on KM Perantau — counter-terrorism
+      boarding team activated. KM Perantau ETA on scene 61 minutes.
+    targets:
+    - MMEA-PV-001
+    - RMP-UTK-001
+    action: intercept
+    intercept_target: TANKER-001
+  - time: 00:12
+    type: ORDER
+    description: MMEA notifies RMN. KD Perak (173) ordered to establish blocking position
+      to the SW — cut off pirate escape route toward Indonesian EEZ and Sumatran coast.
+      KD Perak ETA blocking position 50 minutes.
+    target: RMN-OPV-001
+    action: deploy
+    destination:
+      lat: 3.02
+      lon: 100.89
+  - time: 00:15
+    type: ALERT
+    description: 'SSAS secondary pulse received. Maritime Intelligence assessment:
+      incident consistent with Strait of Malacca ARAS profile — two fast boats, 8-12
+      armed perpetrators, approach from Riau Islands direction. Pirates typically
+      seek cash, valuables, and portable equipment. Crew of 28 — hostage situation
+      assessed HIGH RISK. Night operation adds complexity.'
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    severity: CRITICAL
+  - time: 00:22
+    type: DETECTION
+    description: 'TUDM Caracal 1 on scene. FLIR confirms: MT Labuan Palm stationary,
+      position 3.565°N 101.145°E. Two small fast boats alongside — one port quarter,
+      one circling. Crew activity on foredeck — crew mustered by armed individuals.
+      Perpetrator count: estimated 10-12 armed persons. Helicopter maintaining 500ft,
+      covert observation — no searchlight. FLIR imagery transmitting to MMEA MRCC.'
+    source: RMAF-HELI-001
+    position:
+      lat: 3.565
+      lon: 101.145
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    severity: CRITICAL
+  - time: 00:28
+    type: ALERT
+    description: 'RMAF Caracal 1: FLIR update — perpetrators moving between bridge
+      and crew accommodation. Master and chief officer appear to be on bridge under
+      guard. No visible weapons discharge. Crew appears compliant — no casualties
+      visible at this stage. One perpetrator on each fast boat maintaining lookout.'
+    source: RMAF-HELI-001
+    alert_agencies:
+    - MMEA
+    - RMP
+    severity: WARNING
+  - time: 00:35
+    type: ALERT
+    description: 'MMEA MRCC Incident Command: KM Perantau ETA 36 minutes. UTK Team
+      Alpha briefed on FLIR intelligence — 10-12 perpetrators, crew mustered foredeck,
+      two boats alongside. UTK commander assessing insertion options: RHIB approach,
+      fast-rope from helicopter, or combined. Negotiation strategy under review —
+      PDRM Crisis Negotiation Team activated, standing by via satellite phone.'
+    alert_agencies:
+    - MMEA
+    - RMP
+    severity: INFO
+  - time: 00:45
+    type: DETECTION
+    description: 'RMAF Caracal 1: pirate activity increasing on bridge. FLIR shows
+      possible radio equipment — perpetrators may be aware of response. Fast boat
+      2 increasing speed — circling wider. Recommend Caracal illuminate in 10 minutes
+      to assert presence and deter violence against crew.'
+    source: RMAF-HELI-001
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    severity: WARNING
+  - time: 00:50
+    type: ALERT
+    description: 'MMEA Incident Commander authorises helicopter to illuminate. TUDM
+      Caracal 1 activates searchlight and loudhailer. Announcement in Malay, English,
+      and Indonesian: ''This is the Malaysian Maritime Enforcement Agency. You are
+      surrounded. Release the crew and surrender your weapons.'' Pirates observed
+      reacting — movement on foredeck increasing.'
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    severity: WARNING
+  - time: 00:55
+    type: ALERT
+    description: Pirates respond by firing flares — no weapons discharge at helicopter.
+      KD Perak has reached blocking position 3.02°N 100.89°E — all SW escape routes
+      covered. KM Perantau 16 minutes out. UTK Team Alpha preparing RHIB for insertion.
+      PDRM Crisis Negotiator attempting satellite phone contact with Master — no response
+      yet.
+    source: RMN-OPV-001
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    severity: WARNING
+  - time: 01:00
+    type: ALERT
+    description: Fast Boat 1 breaking away — heading SW at high speed. KD Perak has
+      visual. RMAF Caracal 1 in pursuit. Fast Boat 2 following. Perpetrators on tanker
+      now isolated — those remaining may be a reduced group. UTK insertion window
+      opening — KM Perantau 11 minutes.
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    severity: CRITICAL
+  - time: 01:05
+    type: DETECTION
+    description: 'KD Perak: both fast boats sighted bearing 235°, speed 28 knots,
+      heading SW. KD Perak intercepting. RMAF Caracal 1 overhead — illuminating with
+      searchlight, loudhailer demands to stop. KD Perak closing at 22 knots. Riau
+      Islands 45nm SW — escape unlikely.'
+    source: RMN-OPV-001
+    alert_agencies:
+    - MMEA
+    - MIL
+    severity: WARNING
+  - time: 01:10
+    type: DETECTION
+    description: 'KD Perak: fast boats slowing — apparent compliance. Helicopter overhead.
+      Weapons visible but not raised. KD Perak preparing boarding party. Simultaneously:
+      KM Perantau 1 minute from tanker. UTK Team Alpha deploying RHIB.'
+    source: RMN-OPV-001
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    severity: INFO
+  - time: 01:12
+    type: BOARDING
+    description: 'UTK Team Alpha RHIB alongside MT Labuan Palm. Fast-rope ascent —
+      two teams, port and starboard simultaneously. Helicopter providing overwatch.
+      Remaining perpetrators on tanker: 4 persons on bridge. UTK securing crew muster
+      point — foredeck clear. Breaching bridge now.'
+    target: RMP-UTK-001
+    boarding_target: TANKER-001
+    severity: CRITICAL
+  - time: 01:14
+    type: ALERT
+    description: 'UTK Team Alpha: BRIDGE SECURE. 4 perpetrators detained, weapons
+      secured. Master and officers released unharmed. Crew of 28 accounted for — all
+      alive. 3 crew with minor injuries (cuts, bruising). No UTK casualties. Vessel
+      secure. KD Perak alongside fast boats — 11 perpetrators detained at sea. All
+      suspects in custody.'
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    severity: INFO
+  - time: 01:15
+    type: ALERT
+    description: ENDSTATE — MT Labuan Palm secured. 15 perpetrators in custody (4
+      from tanker, 11 from fast boats). Crew of 28 safe. Vessel proceeding to Port
+      Klang under escort for investigation. RMP Marine Police en route for formal
+      custody transfer. MRCC case file opened. Malaysian Customs and Immigration notified
+      for crew welfare processing. Multi-agency ARAS response successful — SSAS to
+      UTK boarding in 69 minutes.
+    alert_agencies:
+    - MMEA
+    - MIL
+    - RMP
+    - CI
+    severity: INFO
