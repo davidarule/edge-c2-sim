@@ -1,0 +1,366 @@
+# SCN-MAL-04: Unknown Submarine Contact — ASW Response, Northern Malacca Strait
+# Version: 1.0 | Built: April 2026
+#
+# ── METHODOLOGY ─────────────────────────────────────────────────────────────
+# Built using edge-c2-scenario-SKILL.md 8-step methodology.
+# Forces from reference/orbat/malaysia.yaml.
+# All maritime positions: skip_terrain_check: true (GLOBE coverage hole).
+# Region: Northern Malacca Strait, ~5.0-5.8°N, 99.6-100.4°E
+#
+# ── PHYSICS VALIDATION ──────────────────────────────────────────────────────
+# cos(5.3°) ≈ 0.9957, 1°lon ≈ 59.7nm
+#
+#   KD Lekiu to intercept:     9.97nm @ 28kn = 21.4min  ORDER T+05  POS T+26  ✓
+#   KD Kedah to barrier:        9.6nm @ 22kn = 26.3min  ORDER T+08  POS T+34  ✓
+#   MPA-002 Subang to scene:  148.0nm @ 220kn = 40.4min  ORDER T+05  POS T+45  ✓
+#
+# ── FORCES ──────────────────────────────────────────────────────────────────
+# Source: reference/orbat/malaysia.yaml
+#   TUDM Peregrine 2: Beechcraft B200T MPA — already on patrol, detects contact
+#   TUDM Peregrine 3: second B200T — scrambled from RMAF Subang
+#   KD Lekiu (30): Lekiu-class frigate — primary ASW asset, max 28kn
+#   KD Kedah (171): Kedah-class NGPV — surface barrier, max 22kn
+#   CONTACT-001: Submerged contact — non-acoustic track, estimated 9kn SE
+#
+# ── DEMO NOTES ──────────────────────────────────────────────────────────────
+# Duration: 60 min. Recommended: 3x (20 min), 5x (12 min).
+# This is the scenario that shows MILITARY capability — not coast guard.
+# Pause at T+05 (MAD contact confirmed) for audience impact.
+# Explain: this scenario could NOT be run without a COP — too many assets,
+# too many handoffs, too much information to coordinate by radio alone.
+# CONTACT-001 is tracked as a SUSPECT — operators see a hostile symbol
+# moving underwater — very dramatic on the Cesium globe at depth.
+
+scenario:
+  name: "SCN-MAL-04: Unknown Submarine Contact — ASW Response, Northern Malacca Strait"
+  description: |
+    During a routine maritime patrol of the northern Malacca Strait, a Royal
+    Malaysian Air Force Beechcraft B200T maritime patrol aircraft detects an
+    anomalous Magnetic Anomaly Detection (MAD) contact and corroborating
+    acoustic data suggesting a submerged vessel transiting the northern strait
+    Traffic Separation Scheme at periscope depth.
+
+    The contact is classified Unknown — it does not match any declared
+    submarine transit notification received by Malaysia Maritime Operations
+    Centre. RMN Western Fleet is notified. KD Lekiu (Lekiu-class frigate),
+    Malaysia's primary ASW surface platform, is diverted to investigate.
+    A second MPA is scrambled from RMAF Subang. KD Kedah establishes a
+    northern surface barrier to prevent the contact from transiting into
+    the Andaman Sea unidentified.
+
+    The contact is eventually classified as a probable diesel-electric
+    submarine of a regional navy. Diplomatic notification protocol is
+    activated. The contact surfaces and declares itself — an Indonesian
+    submarine, KRI Nagapasa, on authorised transit that was not communicated
+    to Malaysian authorities due to an administrative error.
+
+    Demonstrates: multi-domain ASW operations, MPA-surface coordination,
+    RMN military response capability, submarine contact prosecution,
+    diplomatic notification protocol, and the value of COP in coordinating
+    fast-moving multi-asset operations.
+  duration_minutes: 60
+  center: { lat: 5.30, lon: 100.00 }
+  zoom: 9
+
+  background_entities: []
+
+  # ================================================================
+  # SCENARIO ENTITIES
+  # ================================================================
+  scenario_entities:
+
+    # ── TUDM PEREGRINE 2 — FIRST MPA (ON PATROL) ────────────────
+    # Already airborne on routine patrol when contact detected.
+    # Carries MAD boom, sonobuoys, search radar.
+    # Detects contact at T+03, drops datum buoy, begins prosecution.
+    - id: "RMN-MPA-001"
+      type: RMAF_MPA
+      callsign: "TUDM Peregrine 2"
+      agency: RMAF
+      initial_position: { lat: 5.400, lon: 100.100 }
+      behavior: "patrol"
+      waypoints:
+        # On patrol — northern strait
+        - { lat: 5.400, lon: 100.100, speed: 180, time: "00:00" }
+        - { lat: 5.300, lon: 100.050, speed: 180, time: "00:03" }
+        # MAD contact detected — tight turn onto contact bearing
+        - { lat: 5.230, lon: 99.970,  speed: 160, time: "00:06" }
+        # Low-level prosecution pass — MAD confirmation run
+        - { lat: 5.210, lon: 99.940,  speed: 140, time: "00:09" }
+        - { lat: 5.195, lon: 99.915,  speed: 140, time: "00:12" }
+        # Sonobuoy pattern deployment — orbit above datum
+        - { lat: 5.185, lon: 99.900,  speed: 120, time: "00:16" }
+        - { lat: 5.190, lon: 99.875,  speed: 120, time: "00:21" }
+        - { lat: 5.175, lon: 99.860,  speed: 120, time: "00:27" }
+        # Contact moving SE — MPA follows
+        - { lat: 5.162, lon: 99.845,  speed: 120, time: "00:33" }
+        - { lat: 5.155, lon: 99.830,  speed: 120, time: "00:40" }
+        # Second MPA arriving — Peregrine 2 extends orbit for fuel management
+        - { lat: 5.160, lon: 99.810,  speed: 150, time: "00:48" }
+        - { lat: 5.170, lon: 99.800,  speed: 150, time: "00:55" }
+        # RTB — contact handed to Peregrine 3 and KD Lekiu
+        - { lat: 5.300, lon: 100.100, speed: 200, time: "01:00" }
+      metadata:
+        skip_terrain_check: true
+        aircraft_type: "Beechcraft Super King Air B200T"
+        home_base: "RMAF Butterworth"
+        altitude_ft: 500
+        sensors: ["MAD_boom", "sonobuoys", "APS-143_radar", "FLIR"]
+        endurance_hrs: 7
+
+    # ── TUDM PEREGRINE 3 — SECOND MPA (SCRAMBLED) ───────────────
+    # Scrambled from RMAF Subang at T+05. 148nm transit @ 220kn = 40min.
+    # Arrives T+45 with fresh sonobuoys and full fuel load.
+    - id: "RMN-MPA-002"
+      type: RMAF_MPA
+      callsign: "TUDM Peregrine 3"
+      agency: RMAF
+      initial_position: { lat: 3.131, lon: 101.549 }
+      behavior: "standby"
+      waypoints:
+        # On ground RMAF Subang until scramble
+        - { lat: 3.131, lon: 101.549, speed: 0,   time: "00:00" }
+        - { lat: 3.131, lon: 101.549, speed: 0,   time: "00:05" }
+        # Airborne — transit NW to datum
+        - { lat: 3.500, lon: 101.200, speed: 220, time: "00:11" }
+        - { lat: 4.000, lon: 100.800, speed: 220, time: "00:22" }
+        - { lat: 4.700, lon: 100.300, speed: 220, time: "00:35" }
+        # Arriving datum — contact now at ~(5.155, 99.830)
+        - { lat: 5.100, lon: 99.950,  speed: 180, time: "00:44" }
+        # On station — taking over prosecution from Peregrine 2
+        - { lat: 5.145, lon: 99.825,  speed: 130, time: "00:50" }
+        - { lat: 5.155, lon: 99.800,  speed: 130, time: "00:55" }
+        - { lat: 5.148, lon: 99.785,  speed: 130, time: "01:00" }
+      metadata:
+        skip_terrain_check: true
+        aircraft_type: "Beechcraft Super King Air B200T"
+        home_base: "RMAF Subang"
+        altitude_ft: 300
+        sensors: ["MAD_boom", "sonobuoys", "APS-143_radar", "FLIR"]
+        endurance_hrs: 7
+
+    # ── KD LEKIU (30) — PRIMARY ASW FRIGATE ─────────────────────
+    # Lekiu-class frigate — Malaysia's primary ASW surface platform.
+    # Hull-mounted sonar, towed array, Lynx helicopter (not modelled).
+    # Pre-positioned central strait. ORDER T+05. Intercept T+26. ✓
+    - id: "RMN-FF-001"
+      type: MIL_NAVAL
+      callsign: "KD Lekiu"
+      agency: MIL
+      initial_position: { lat: 5.300, lon: 100.050 }
+      behavior: "patrol"
+      waypoints:
+        # Patrol — northern strait
+        - { lat: 5.300, lon: 100.050, speed: 15, time: "00:00" }
+        - { lat: 5.295, lon: 100.035, speed: 15, time: "00:04" }
+        # ORDER T+05 — sprint to datum at 28kn
+        - { lat: 5.285, lon: 100.020, speed: 28, time: "00:06" }
+        - { lat: 5.250, lon: 99.998,  speed: 28, time: "00:11" }
+        - { lat: 5.210, lon: 99.975,  speed: 28, time: "00:16" }
+        # Approaching datum — reducing speed for sonar
+        - { lat: 5.175, lon: 99.960,  speed: 15, time: "00:22" }
+        # On datum — beginning sonar prosecution, coordinating with MPA
+        - { lat: 5.155, lon: 99.950,  speed: 10, time: "00:26" }
+        # Tracking contact SE — following at safe separation
+        - { lat: 5.145, lon: 99.920,  speed: 12, time: "00:32" }
+        - { lat: 5.135, lon: 99.885,  speed: 12, time: "00:39" }
+        - { lat: 5.125, lon: 99.850,  speed: 12, time: "00:46" }
+        # Contact surfaces — KD Lekiu moves alongside
+        - { lat: 5.118, lon: 99.825,  speed: 8,  time: "00:53" }
+        - { lat: 5.115, lon: 99.815,  speed: 3,  time: "00:58" }
+        - { lat: 5.115, lon: 99.815,  speed: 3,  time: "01:00" }
+      metadata:
+        skip_terrain_check: true
+        vessel_type: "Lekiu-class Guided Missile Frigate"
+        hull_number: "30"
+        displacement_t: 2270
+        callsign_radio: "KD LEKIU"
+        sensors: ["hull_mounted_sonar", "towed_array", "Type-996_radar"]
+        armament: ["Sea_Wolf_SAM", "Exocet_MM40", "Bofors_57mm", "324mm_torpedo"]
+        notes: "Primary RMN ASW asset. Lynx helicopter not modelled in this scenario."
+
+    # ── KD KEDAH (171) — NORTHERN SURFACE BARRIER ───────────────
+    # NGPV establishing northern barrier — prevent contact transiting
+    # into Andaman Sea unidentified. ORDER T+08. In position T+34. ✓
+    - id: "RMN-OPV-001"
+      type: MIL_NAVAL
+      callsign: "KD Kedah"
+      agency: MIL
+      initial_position: { lat: 5.600, lon: 99.800 }
+      behavior: "patrol"
+      waypoints:
+        # Northern patrol
+        - { lat: 5.600, lon: 99.800, speed: 12, time: "00:00" }
+        - { lat: 5.610, lon: 99.785, speed: 12, time: "00:06" }
+        # ORDER T+08 — move to barrier position
+        - { lat: 5.595, lon: 99.775, speed: 22, time: "00:10" }
+        - { lat: 5.560, lon: 99.745, speed: 22, time: "00:16" }
+        - { lat: 5.510, lon: 99.715, speed: 22, time: "00:22" }
+        # Barrier position — northern chokepoint
+        - { lat: 5.482, lon: 99.698, speed: 8,  time: "00:33" }
+        - { lat: 5.478, lon: 99.695, speed: 5,  time: "00:35" }
+        # Hold barrier — slow back-and-forth
+        - { lat: 5.490, lon: 99.680, speed: 8,  time: "00:40" }
+        - { lat: 5.475, lon: 99.700, speed: 8,  time: "00:50" }
+        - { lat: 5.490, lon: 99.680, speed: 8,  time: "01:00" }
+      metadata:
+        skip_terrain_check: true
+        vessel_type: "Kedah-class Offshore Patrol Vessel"
+        hull_number: "171"
+        callsign_radio: "KD KEDAH"
+        notes: "Northern barrier — prevent unidentified contact transiting to Andaman."
+
+    # ── CONTACT-001: SUBMERGED SUBMARINE CONTACT ─────────────────
+    # Non-declared submarine transiting northern Malacca Strait SE.
+    # Tracked as SUSPECT — identity unknown until T+52.
+    # Eventually identified: KRI Nagapasa (Indonesian Type 209/1300).
+    # Administrative error — transit not communicated to Malaysian MOC.
+    - id: "CONTACT-001"
+      type: MIL_SUBMARINE
+      callsign: "SUBMERGED CONTACT ALPHA"
+      initial_position: { lat: 5.220, lon: 99.890 }
+      waypoints:
+        # Submerged transit SE at 9kn — periscope depth
+        - { lat: 5.220, lon: 99.890, speed: 9, time: "00:00" }
+        - { lat: 5.210, lon: 99.912, speed: 9, time: "00:03" }
+        # MAD detected — contact continues transit unaware
+        - { lat: 5.198, lon: 99.934, speed: 9, time: "00:07" }
+        - { lat: 5.183, lon: 99.958, speed: 8, time: "00:12" }
+        # Sonobuoys in water — contact slows slightly
+        - { lat: 5.168, lon: 99.975, speed: 8, time: "00:18" }
+        - { lat: 5.155, lon: 99.990, speed: 8, time: "00:24" }
+        # KD Lekiu closing — contact alters course slightly
+        - { lat: 5.145, lon: 100.002,speed: 7, time: "00:30" }
+        - { lat: 5.135, lon: 100.010,speed: 7, time: "00:36" }
+        - { lat: 5.125, lon: 100.018,speed: 7, time: "00:42" }
+        # Peregrine 3 arrives — contact comes to periscope depth
+        - { lat: 5.118, lon: 100.025,speed: 5, time: "00:48" }
+        # RMN demands surface — contact complies
+        - { lat: 5.115, lon: 100.028,speed: 3, time: "00:52" }
+        # Surfaced — KRI Nagapasa visible
+        - { lat: 5.115, lon: 100.028,speed: 2, time: "00:55" }
+        - { lat: 5.115, lon: 100.028,speed: 2, time: "01:00" }
+      metadata:
+        skip_terrain_check: true
+        ais_active: false
+        vessel_type: "Diesel-electric submarine (Type 209/1300)"
+        estimated_depth_m: 45
+        notes: "Later identified: KRI Nagapasa (403), TNI-AL. Undeclared transit — admin error."
+
+  # ================================================================
+  # EVENTS TIMELINE
+  # ================================================================
+  events:
+
+    - time: "00:00"
+      type: "DETECTION"
+      description: "TUDM Peregrine 2 on routine maritime patrol, northern Malacca Strait. Position 5.40°N 100.10°E, altitude 1,500ft. Radar track normal — commercial traffic TSS. No anomalies. Malaysia Maritime Operations Centre (MMOC) monitoring."
+      alert_agencies: [RMAF]
+      severity: "INFO"
+
+    - time: "00:03"
+      type: "DETECTION"
+      description: "TUDM Peregrine 2: MAD ALERT — Magnetic Anomaly Detection system triggered. Bearing 235°, range 2nm. MAD signature consistent with large ferrous mass at shallow depth. Peregrine 2 executing contact protocol: immediate 180° turn, descending to 500ft for confirmation pass. Recording commenced."
+      source: "RMN-MPA-001"
+      position: { lat: 5.220, lon: 99.890 }
+      alert_agencies: [RMAF, MIL]
+      severity: "WARNING"
+
+    - time: "00:05"
+      type: "ALERT"
+      description: "TUDM Peregrine 2: MAD CONFIRMED — second pass confirms submerged contact. MAD strength and profile consistent with diesel-electric submarine. Contact moving SE at estimated 8-9 knots. Datum established 5.21°N 99.91°E. MMOC notified. No submarine transit notification on file for this datum. Classify UNKNOWN SUBMARINE CONTACT ALPHA. RMN Western Fleet alerted."
+      source: "RMN-MPA-001"
+      position: { lat: 5.210, lon: 99.912 }
+      alert_agencies: [RMAF, MIL]
+      severity: "CRITICAL"
+
+    - time: "00:05"
+      type: "ORDER"
+      description: "RMN Western Fleet Command: UNKNOWN SUBMARINE CONTACT — ASW response activated. KD Lekiu (30) diverted at best speed to datum. RMAF scramble order for TUDM Peregrine 3 (second B200T MPA) from RMAF Subang — additional sonobuoys required. KD Kedah ordered to establish northern barrier — prevent contact transiting Andaman Sea unidentified. MMOC checking transit notification database."
+      targets: ["RMN-FF-001", "RMN-OPV-001", "RMN-MPA-002"]
+      action: "deploy"
+      severity: "CRITICAL"
+
+    - time: "00:08"
+      type: "ORDER"
+      description: "KD Kedah ordered north to barrier position — cut off Andaman Sea exit route. Peregrine 2 deploying passive sonobuoy pattern — LOFAR analysis commencing. Three sonobuoys in water. Contact track consistent: SE heading, diesel-electric propulsion signature. MMOC confirms: NO submarine transit notification received in 72-hour window. Contact is undeclared."
+      target: "RMN-OPV-001"
+      action: "deploy"
+      severity: "CRITICAL"
+
+    - time: "00:12"
+      type: "DETECTION"
+      description: "Peregrine 2 LOFAR analysis: narrowband contact — propulsion frequency signature. Analysis suggests Type 209 or similar export diesel-electric. Regional operators: Indonesia (3 × Nagapasa-class Type 209/1400), Singapore (4 × Archer-class), Myanmar. Contact bearing consistent with origin from Strait of Malacca south — Indonesia most probable. RMN Western Fleet advising Indonesian naval attaché."
+      source: "RMN-MPA-001"
+      alert_agencies: [MIL]
+      severity: "WARNING"
+
+    - time: "00:18"
+      type: "DETECTION"
+      description: "Peregrine 2: contact now tracked by sonobuoy pattern. Track quality improving. Contact speed 8 knots, heading 095°-105° (SE). Depth estimate 40-55m — periscope depth regime. Contact has not increased speed or altered course significantly — likely unaware of prosecution. KD Lekiu 8 minutes from datum."
+      source: "RMN-MPA-001"
+      position: { lat: 5.168, lon: 99.975 }
+      alert_agencies: [MIL]
+      severity: "WARNING"
+
+    - time: "00:22"
+      type: "ALERT"
+      description: "MMOC: Indonesian naval attaché contacted — confirming no knowledge of authorised transit notification. Indonesian submarine squadron contacted directly. Response pending. RMN Western Fleet Commander activating DIPLOMATIC NOTIFICATION PROTOCOL — Malaysian Chief of Navy notified. Contact continues SE transit toward Singapore Strait. KD Lekiu approaching datum — 4 minutes."
+      alert_agencies: [MIL]
+      severity: "CRITICAL"
+
+    - time: "00:26"
+      type: "DETECTION"
+      description: "KD Lekiu on datum. Hull-mounted sonar ACTIVE — first active ping transmitted. Contact echo returned — CPA estimated 1.8nm, bearing 275°. Contact at 45m depth, heading 098°, speed 8kn. Towed array streaming. KD Lekiu coordinating track with Peregrine 2 via datalink. Contact track on MMOC COP confirmed — 5.16°N 99.97°E."
+      source: "RMN-FF-001"
+      position: { lat: 5.155, lon: 99.990 }
+      alert_agencies: [MIL]
+      severity: "WARNING"
+
+    - time: "00:32"
+      type: "ALERT"
+      description: "Indonesian Navy HQ response: preliminary — no record of Nagapasa-class submarine in Malacca Strait transit corridor this week. Checking with submarine squadron directly. RMN Western Fleet Commander authorises SURFACE DEMAND — international maritime law requires submerged vessels in foreign territorial waters to surface and identify. Peregrine 2 will transmit demand on underwater telephone (UWT)."
+      alert_agencies: [MIL]
+      severity: "CRITICAL"
+
+    - time: "00:38"
+      type: "ALERT"
+      description: "Peregrine 2: UWT demand transmitted — no response. KD Lekiu: second active sonar ping — contact fading slightly, possible depth change. Contact may be descending. KD Lekiu increases speed to maintain CPA. TUDM Peregrine 3 airborne from RMAF Subang — ETA 10 minutes. KD Kedah holding northern barrier position. No other submarine candidate identified — focus remains on single contact."
+      source: "RMN-MPA-001"
+      alert_agencies: [MIL]
+      severity: "CRITICAL"
+
+    - time: "00:45"
+      type: "DETECTION"
+      description: "TUDM Peregrine 3 on scene. Immediate sonobuoy drop — fresh pattern south of Peregrine 2's ageing buoys. Contact re-acquired immediately — sonobuoy 3: strong contact, bearing 087°, 3.4nm. Contact track re-established. Two MPAs now coordinating via MMOC COP. KD Lekiu has continuous active sonar track. Contact now classified HIGH CONFIDENCE — single submarine."
+      source: "RMN-MPA-002"
+      position: { lat: 5.125, lon: 100.018 }
+      alert_agencies: [RMAF, MIL]
+      severity: "WARNING"
+
+    - time: "00:48"
+      type: "ALERT"
+      description: "Indonesian Navy HQ CONFIRMATION: KRI Nagapasa (403), Nagapasa-class Type 209/1400, was authorised for Malacca Strait transit this week. Transit notification was filed with Indonesian liaison office only — NOT transmitted to Malaysian MMOC due to administrative error. CONTACT IDENTIFIED: KRI Nagapasa, TNI-AL. Friendly submarine — administrative failure, not hostile intent. RMN Western Fleet Commander informed."
+      alert_agencies: [MIL]
+      severity: "WARNING"
+
+    - time: "00:52"
+      type: "ORDER"
+      description: "RMN Western Fleet Commander: contact identified as KRI Nagapasa, friendly TNI-AL submarine. Surface demand renewed — diplomatic channel. Indonesian Navy HQ instructing KRI Nagapasa to surface and make identification. KD Lekiu instructed to maintain safe standoff. MPAs to cease active prosecution — passive monitoring only. Diplomatic record being prepared."
+      target: "CONTACT-001"
+      action: "intercept"
+      severity: "INFO"
+
+    - time: "00:55"
+      type: "DETECTION"
+      description: "KRI Nagapasa surfacing. KD Lekiu visual confirmation: Indonesian Navy submarine, pennant number 403 visible. VHF contact established — KRI Nagapasa commanding officer acknowledging Malaysian challenge. Vessel is surface-navigating. Indonesian flag hoisted. Crew visible on bridge. Incident tone: professional — no hostile action at any stage."
+      source: "RMN-FF-001"
+      position: { lat: 5.115, lon: 100.028 }
+      alert_agencies: [MIL]
+      severity: "INFO"
+
+    - time: "01:00"
+      type: "ALERT"
+      description: "ENDSTATE — KRI Nagapasa identified and surface-navigating under RMN escort through northern Malacca Strait. Incident cause: transit notification not transmitted to Malaysian MMOC — Indonesian liaison office administrative error. KD Lekiu accompanying until Singapore Strait entry. Diplomatic note being prepared by Malaysian Ministry of Defence. MMOC ASW response: detection T+03 to identification T+48 — 45 minutes. Two MPAs, one frigate, one OPV coordinated via single COP. Scenario demonstrates: without COP, this contact management would be impossible by radio alone."
+      alert_agencies: [RMAF, MIL]
+      severity: "INFO"
