@@ -1,226 +1,233 @@
 # SCN-MAL-01: AIS Dark Target Intercept — Strait of Malacca
+# Version: 2.0 | Rebuilt: April 2026
 #
-# A cargo vessel disables its AIS transponder while transiting the central
-# Strait of Malacca Traffic Separation Scheme, triggering a multi-agency
-# maritime intercept operation coordinated by MMEA.
+# ── METHODOLOGY ─────────────────────────────────────────────────────────────
+# Built using edge-c2-scenario-SKILL.md 8-step methodology.
+# Forces from reference/orbat/malaysia.yaml.
+# All coordinates from open-water reference grid (skill Step 3b).
+# All maritime positions carry skip_terrain_check: true — the GLOBE dataset
+# has a confirmed ~100km coverage hole over the Malacca Strait. Positions
+# are confirmed open water by chart geography (see skill STEP 3b reference
+# grid: MAL-NW-1 through MAL-CTR-2).
 #
-# Agencies: MMEA, RMN, RMAF, RMP Marine Police
-# Duration: 45 minutes (recommended demo speed: 3x–5x)
-# Area: Central Strait of Malacca (~2.5°N, 102.0°E)
+# ── PHYSICS VALIDATION ──────────────────────────────────────────────────────
+# All intercepts calculated BEFORE scenario was written. Formula:
+#   dist_nm = sqrt((dlat×60)² + (dlon×60×cos(lat))²)  [cos(5°)≈0.996]
 #
-# Physics validation (all intercepts confirmed achievable):
-#   MMEA-FI-001: 17nm @ 45kn = 23 min → arrives T+37 ✓
-#   MMEA-PV-001: 13nm @ 30kn = 26 min → arrives T+40 ✓
-#   RMAF MPA:   130km @ 220kn = 19 min → arrives T+34 ✓
-#   RMN-PV-001: pre-positioned backstop, no intercept sprint needed ✓
+#   MMEA-FI-001  (5.10,99.90)→(4.98,100.01)  9.8nm@45kn=13min  ORDER T+14  ARRIVES T+36 ✓
+#   MMEA-PV-001  (4.80,100.03)→(4.98,100.00) 10.9nm@22kn=30min ORDER T+14  ARRIVES T+44 ✓
+#   RMN-OPV-001  (4.20,100.00)→(4.05,99.85)  12.7nm@22kn=35min ORDER T+16  IN POS T+56  ✓
+#   RMAF-MPA-001 (3.13,101.55)→(4.98,100.05) 142.7nm@220kn=39min ORDER T+15 ON SCENE T+53 ✓
 #
-# Demo notes:
-#   - Run at 3x for a crisp 15-minute briefing segment
-#   - Pause at T+10 (AIS loss event) for audience impact
-#   - Slow to 1x during boarding sequence (T+40)
+# ── FORCES ──────────────────────────────────────────────────────────────────
+# Source: reference/orbat/malaysia.yaml
+#   SUSPECT-001:  MV Hai Long 7 — bulk carrier, Chinese flag, dark target
+#   MMEA-FI-001:  KM Penggalang — MMEA fast intercept, max 45kn
+#   MMEA-PV-001:  KM Marlin     — MMEA patrol vessel, max 22kn, boarding party embarked
+#   RMN-OPV-001:  KD Kedah (171)— Kedah-class OPV, Western Fleet, max 22kn
+#   RMAF-MPA-001: TUDM Peregrine 1 — Beechcraft B200T MPA from RMAF Subang
+#
+# ── DEMO NOTES ──────────────────────────────────────────────────────────────
+# Duration: 60 min. Recommended: 3x (20 min briefing), 5x (12 min overview)
+# Pause at T+10 (AIS loss) for audience impact — let them see the track vanish.
+# Slow to 1x at T+36 (intercept) and T+44 (boarding) for dramatic effect.
+# No background entities — Malacca TSS geodata not yet loaded. Add when available.
 
 scenario:
   name: "SCN-MAL-01: AIS Dark Target Intercept — Strait of Malacca"
   description: |
-    A cargo vessel transiting the Strait of Malacca Traffic Separation Scheme
-    disables its AIS transponder in the central strait, triggering an immediate
-    response from the MMEA Maritime Surveillance Centre at Lumut. MMEA
-    coordinates a multi-agency intercept involving a patrol vessel, a fast
-    intercept craft, and RMAF maritime patrol aircraft. RMN provides a southern
-    blocking position. The vessel is intercepted, boarded by RMP Marine Police,
-    and escorted to Port Klang.
+    A bulk carrier transiting the Strait of Malacca Traffic Separation
+    Scheme deliberately disables its AIS transponder in the central strait,
+    triggering an immediate multi-agency response from the MMEA Maritime
+    Surveillance Centre.
 
-    Demonstrates: AIS anomaly detection, dark target tracking, multi-agency
-    maritime coordination, air-sea coordination, law enforcement boarding
-    operations, and COP track management.
-  duration_minutes: 45
-  center: { lat: 2.55, lon: 102.00 }
+    MMEA coordinates a fast intercept craft pre-positioned ahead of the
+    vessel's track, a patrol vessel with boarding party embarked, and RMAF
+    maritime patrol aircraft for aerial surveillance. RMN provides a southern
+    blocking position to prevent retreat toward the Riau Islands.
+
+    The vessel is intercepted, boarded, and a cargo discrepancy discovered —
+    the declared manifest does not match the thermal signature observed by
+    the MPA.
+
+    Demonstrates: AIS anomaly detection, dark target tracking via surface
+    radar, multi-agency maritime coordination, air-sea integration, law
+    enforcement boarding operations, and real-time COP track management.
+  duration_minutes: 60
+  center: { lat: 4.80, lon: 100.00 }
   zoom: 9
 
-  # ================================================================
-  # BACKGROUND TRAFFIC — Strait of Malacca TSS
-  # ================================================================
-  background_entities:
-
-    - type: CIVILIAN_CARGO
-      count: 8
-      route: "malacca_tss_southeastbound"
-      speed_variation: 0.1
-      metadata:
-        ais_active: true
-
-    - type: CIVILIAN_CARGO
-      count: 7
-      route: "malacca_tss_northwestbound"
-      speed_variation: 0.1
-      metadata:
-        ais_active: true
-
-    - type: CIVILIAN_TANKER
-      count: 6
-      route: "malacca_tss_northwestbound"
-      speed_variation: 0.08
-      metadata:
-        ais_active: true
-
-    - type: CIVILIAN_TANKER
-      count: 5
-      route: "malacca_tss_southeastbound"
-      speed_variation: 0.08
-      metadata:
-        ais_active: true
-
-    - type: CIVILIAN_FISHING
-      count: 8
-      area: "malacca_malaysian_coast_fishing"
-      speed_variation: 0.2
-      metadata:
-        ais_active: true
-        flag: "MYS"
-
-    - type: CIVILIAN_COMMERCIAL
-      count: 4
-      route: "klia_malacca_approach"
-      speed_variation: 0.05
-
-    - type: CIVILIAN_LIGHT
-      count: 2
-      route: "malacca_ipoh_corridor"
+  # No background_entities — Malacca TSS geodata routes not yet created.
+  # Add when Claude Code creates geodata/routes/malacca_routes.geojson.
+  background_entities: []
 
   # ================================================================
   # SCENARIO ENTITIES
   # ================================================================
   scenario_entities:
 
-    # --- SUSPECT VESSEL ---
-    # MV Hai Long 7 — bulk carrier, deliberately running dark
+    # ── SUSPECT VESSEL ───────────────────────────────────────────
+    # MV Hai Long 7 — Chinese-flagged bulk carrier.
+    # Transiting NW through TSS at 12kn before going dark at T+10.
+    # Increases speed to 14kn after AIS loss in attempt to evade.
+    # Position confirmed open water — central Malacca Strait TSS,
+    # NW-bound lane. ~100nm NW of Singapore Strait.
     - id: "SUSPECT-001"
       type: SUSPECT_VESSEL
       callsign: "MV Hai Long 7"
-      initial_position: { lat: 2.82, lon: 102.55 }
+      initial_position: { lat: 4.900, lon: 100.100 }
       waypoints:
-        - { lat: 2.78, lon: 102.48, speed: 12, time: "00:00" }
-        - { lat: 2.74, lon: 102.42, speed: 12, time: "00:05" }
-        - { lat: 2.70, lon: 102.36, speed: 12, time: "00:10" }
-        - { lat: 2.66, lon: 102.28, speed: 14, time: "00:17" }
-        - { lat: 2.60, lon: 102.18, speed: 15, time: "00:25" }
-        - { lat: 2.57, lon: 102.12, speed: 8,  time: "00:32" }
-        - { lat: 2.55, lon: 102.08, speed: 2,  time: "00:37" }
-        - { lat: 2.55, lon: 102.08, speed: 0,  time: "00:40" }
+        # Normal AIS-active transit, 12kn NW
+        - { lat: 4.900, lon: 100.100, speed: 12, time: "00:00" }
+        - { lat: 4.912, lon: 100.088, speed: 12, time: "00:05" }
+        # AIS transponder disabled at T+10 — vessel continues NW
+        - { lat: 4.924, lon: 100.076, speed: 12, time: "00:10" }
+        # Speed increase — evasion profile
+        - { lat: 4.945, lon: 100.055, speed: 14, time: "00:18" }
+        - { lat: 4.963, lon: 100.037, speed: 15, time: "00:25" }
+        # Still running NW, approaching Sumatran side of TSS
+        - { lat: 4.978, lon: 100.022, speed: 15, time: "00:32" }
+        # MMEA-FI-001 intercepts — vessel slows, attempts minor manoeuvre
+        - { lat: 4.982, lon: 100.008, speed: 5, time: "00:36" }
+        # Vessel hove to — boarding in progress
+        - { lat: 4.983, lon: 100.005, speed: 0, time: "00:40" }
+        - { lat: 4.983, lon: 100.005, speed: 0, time: "01:00" }
       metadata:
-        skip_terrain_check: true
-        ais_active: true
-        mmsi: "413000001"
+        skip_terrain_check: true     # GLOBE coverage hole — Malacca Strait
+        ais_active: true             # Goes false at T+10 via AIS_LOSS event
+        mmsi: "413112233"
         flag: "CHN"
         vessel_type: "Bulk carrier"
-        draught_m: 8.2
+        imo_number: "9876543"
+        draught_m: 8.4
+        length_m: 185
         estimated_crew: 22
+        destination_declared: "Port Klang"
+        last_port: "Guangzhou"
 
-    # --- MMEA FAST INTERCEPT CRAFT ---
-    # Pre-positioned on patrol, closest responder
-    # 17nm from intercept point, scrambles T+14, arrives T+37
+    # ── MMEA FAST INTERCEPT CRAFT ────────────────────────────────
+    # KM Penggalang — MMEA 39m fast intercept, max 45kn.
+    # Pre-positioned on patrol AHEAD (NW) of suspect's track.
+    # Sprints SE to intercept on ORDER at T+14. Arrives T+36. ✓
+    # Physics: 9.8nm @ 45kn = 13min. Available: 22min.
     - id: "MMEA-FI-001"
       type: MMEA_FAST_INTERCEPT
-      callsign: "KM Penggalang"
+      callsign: "KM Penggalang"           # fictional — represents class
       agency: MMEA
-      initial_position: { lat: 2.40, lon: 102.35 }
+      initial_position: { lat: 5.100, lon: 99.900 }
       behavior: "patrol"
       waypoints:
-        - { lat: 2.42, lon: 102.30, speed: 10, time: "00:00" }
-        - { lat: 2.40, lon: 102.35, speed: 10, time: "00:07" }
-        - { lat: 2.46, lon: 102.20, speed: 45, time: "00:16" }
-        - { lat: 2.52, lon: 102.10, speed: 45, time: "00:28" }
-        - { lat: 2.55, lon: 102.08, speed: 15, time: "00:37" }
-        - { lat: 2.55, lon: 102.09, speed: 2,  time: "00:40" }
+        # Routine patrol — NW of scenario, central strait
+        - { lat: 5.100, lon: 99.900, speed: 10, time: "00:00" }
+        - { lat: 5.110, lon: 99.880, speed: 10, time: "00:07" }
+        # ORDER at T+14 — sprint SE toward intercept course
+        - { lat: 5.090, lon: 99.910, speed: 45, time: "00:16" }
+        - { lat: 5.045, lon: 99.960, speed: 45, time: "00:26" }
+        # Intercept position — reducing speed, coming alongside
+        - { lat: 4.985, lon: 100.010, speed: 10, time: "00:35" }
+        - { lat: 4.983, lon: 100.007, speed: 3,  time: "00:37" }
+        # Station keeping alongside suspect
+        - { lat: 4.984, lon: 100.006, speed: 2,  time: "00:40" }
+        - { lat: 4.984, lon: 100.006, speed: 2,  time: "01:00" }
       metadata:
         skip_terrain_check: true
         vessel_type: "39m Fast Intercept Craft"
         callsign_radio: "MMEA PENGGALANG"
+        equipment: ["FLIR", "boarding_kit", "VHF_multichannel"]
 
-    # --- MMEA PATROL VESSEL ---
-    # Routine TSS patrol, ordered to converge as primary intercept vessel
-    # 13nm from intercept, arrives T+40 with boarding team
+    # ── MMEA PATROL VESSEL ───────────────────────────────────────
+    # KM Marlin — MMEA patrol vessel, max 22kn.
+    # Patrolling south of suspect, boarding party embarked.
+    # ORDER at T+14. Physics: 10.9nm @ 22kn = 30min. Arrives T+44. ✓
     - id: "MMEA-PV-001"
       type: MMEA_PATROL
-      callsign: "KM Marlin"
+      callsign: "KM Marlin"              # fictional — represents class
       agency: MMEA
-      initial_position: { lat: 2.60, lon: 102.20 }
+      initial_position: { lat: 4.800, lon: 100.030 }
       behavior: "patrol"
       waypoints:
-        - { lat: 2.63, lon: 102.15, speed: 12, time: "00:00" }
-        - { lat: 2.60, lon: 102.20, speed: 12, time: "00:05" }
-        - { lat: 2.58, lon: 102.15, speed: 28, time: "00:16" }
-        - { lat: 2.56, lon: 102.10, speed: 28, time: "00:30" }
-        - { lat: 2.55, lon: 102.07, speed: 5,  time: "00:40" }
-        - { lat: 2.55, lon: 102.07, speed: 2,  time: "00:45" }
+        # Routine TSS patrol — south of suspect
+        - { lat: 4.800, lon: 100.030, speed: 12, time: "00:00" }
+        - { lat: 4.815, lon: 100.015, speed: 12, time: "00:05" }
+        # ORDER at T+14 — proceed to intercept at best speed
+        - { lat: 4.830, lon: 100.005, speed: 22, time: "00:16" }
+        - { lat: 4.890, lon: 99.990,  speed: 22, time: "00:26" }
+        - { lat: 4.940, lon: 99.990,  speed: 22, time: "00:34" }
+        # Arriving at boarding position
+        - { lat: 4.978, lon: 100.000, speed: 8,  time: "00:42" }
+        - { lat: 4.982, lon: 100.003, speed: 2,  time: "00:44" }
+        # Station keeping — boarding team deployed
+        - { lat: 4.982, lon: 100.003, speed: 2,  time: "01:00" }
       metadata:
         skip_terrain_check: true
         vessel_type: "Offshore Patrol Vessel"
         callsign_radio: "MMEA MARLIN"
+        boarding_team: true
+        boarding_team_size: 8
+        equipment: ["boarding_kit", "FLIR", "evidence_collection"]
 
-    # --- RMN PATROL VESSEL (SOUTHERN BACKSTOP) ---
-    # Pre-positioned south, establishes blocking position
-    - id: "RMN-PV-001"
+    # ── RMN OFFSHORE PATROL VESSEL (SOUTHERN BACKSTOP) ──────────
+    # KD Kedah (171) — Kedah-class NGPV, Western Fleet, max 22kn.
+    # Home base: Lumut. On patrol in southern central strait.
+    # ORDER at T+16 to establish blocking position. Arrives T+56. ✓
+    # Physics: 12.7nm @ 22kn = 35min. Available: 40min.
+    - id: "RMN-OPV-001"
       type: MIL_NAVAL
-      callsign: "KD Keris"
+      callsign: "KD Kedah"
       agency: MIL
-      initial_position: { lat: 2.12, lon: 101.90 }
+      initial_position: { lat: 4.200, lon: 100.000 }
       behavior: "patrol"
       waypoints:
-        - { lat: 2.15, lon: 101.88, speed: 10, time: "00:00" }
-        - { lat: 2.12, lon: 101.93, speed: 10, time: "00:08" }
-        - { lat: 2.25, lon: 101.95, speed: 25, time: "00:20" }
-        - { lat: 2.30, lon: 102.00, speed: 5,  time: "00:28" }
-        - { lat: 2.30, lon: 102.00, speed: 5,  time: "00:45" }
+        # Southern patrol — central strait
+        - { lat: 4.200, lon: 100.000, speed: 10, time: "00:00" }
+        - { lat: 4.215, lon: 99.985,  speed: 10, time: "00:08" }
+        # ORDER at T+16 — move to southern blocking position
+        - { lat: 4.180, lon: 99.975,  speed: 20, time: "00:18" }
+        - { lat: 4.100, lon: 99.920,  speed: 20, time: "00:30" }
+        # Hold blocking position — prevents southern retreat
+        - { lat: 4.050, lon: 99.850,  speed: 5,  time: "00:45" }
+        - { lat: 4.050, lon: 99.850,  speed: 5,  time: "01:00" }
       metadata:
         skip_terrain_check: true
-        vessel_type: "Offshore Patrol Vessel"
+        vessel_type: "Kedah-class Offshore Patrol Vessel"
+        hull_number: "171"
+        displacement_t: 1650
+        callsign_radio: "KD KEDAH"
+        notes: "Western Fleet. Blocking southern retreat route."
 
-    # --- RMAF MARITIME PATROL AIRCRAFT ---
-    # Beechcraft Super King Air MPA, RMAF Subang
-    # 130km from scene, scrambles T+15, on scene T+34
+    # ── RMAF MARITIME PATROL AIRCRAFT ────────────────────────────
+    # TUDM Peregrine 1 — Beechcraft Super King Air B200T MPA.
+    # Based at RMAF Subang (3.13°N, 101.55°E — AIR domain, exempt).
+    # ORDER at T+15. Physics: 142.7nm @ 220kn = 39min. On scene T+53. ✓
     - id: "RMAF-MPA-001"
       type: RMAF_MPA
-      callsign: "TUDM Peregrine 1"
+      callsign: "TUDM Peregrine 1"       # fictional callsign — B200T class
       agency: RMAF
-      initial_position: { lat: 3.12, lon: 101.65 }
+      initial_position: { lat: 3.131, lon: 101.549 }  # RMAF Subang — on land (AIR)
       behavior: "standby"
       waypoints:
-        - { lat: 3.12, lon: 101.65, speed: 0,   time: "00:00" }
-        - { lat: 3.12, lon: 101.65, speed: 0,   time: "00:15" }
-        - { lat: 3.00, lon: 101.80, speed: 220, time: "00:18" }
-        - { lat: 2.75, lon: 102.10, speed: 220, time: "00:26" }
-        - { lat: 2.60, lon: 102.15, speed: 180, time: "00:34" }
-        - { lat: 2.58, lon: 102.10, speed: 150, time: "00:38" }
-        - { lat: 2.52, lon: 102.06, speed: 150, time: "00:42" }
-        - { lat: 2.56, lon: 102.04, speed: 150, time: "00:45" }
+        # On ground at RMAF Subang until ORDER
+        - { lat: 3.131, lon: 101.549, speed: 0,   time: "00:00" }
+        - { lat: 3.131, lon: 101.549, speed: 0,   time: "00:15" }
+        # Airborne — climbing to transit altitude, heading NW
+        - { lat: 3.300, lon: 101.350, speed: 220, time: "00:19" }
+        - { lat: 3.700, lon: 101.000, speed: 220, time: "00:29" }
+        - { lat: 4.300, lon: 100.600, speed: 220, time: "00:40" }
+        # On scene — establishing surveillance orbit over suspect
+        - { lat: 4.850, lon: 100.150, speed: 200, time: "00:49" }
+        - { lat: 4.980, lon: 100.050, speed: 150, time: "00:53" }
+        # Holding orbit — FLIR coverage on suspect and intercept vessels
+        - { lat: 5.020, lon: 99.980,  speed: 150, time: "00:57" }
+        - { lat: 4.950, lon: 99.960,  speed: 150, time: "01:00" }
       metadata:
+        # AIR domain — skip_terrain_check not required but set for clarity
         skip_terrain_check: true
-        aircraft_type: "Beechcraft Super King Air"
-        alt_range_ft: 5000
-        sensors: ["FLIR", "SAR", "AIS_receiver"]
-
-    # --- RMP MARINE POLICE (BOARDING TEAM) ---
-    # Deployed from Port Klang with boarding party
-    - id: "RMP-MP-001"
-      type: RMP_MARINE_PATROL
-      callsign: "PDRM Marine Klang 01"
-      agency: RMP
-      initial_position: { lat: 3.00, lon: 101.42 }
-      behavior: "standby"
-      waypoints:
-        - { lat: 3.00, lon: 101.42, speed: 0,  time: "00:00" }
-        - { lat: 3.00, lon: 101.42, speed: 0,  time: "00:18" }
-        - { lat: 2.85, lon: 101.55, speed: 35, time: "00:26" }
-        - { lat: 2.70, lon: 101.80, speed: 35, time: "00:34" }
-        - { lat: 2.58, lon: 102.00, speed: 35, time: "00:39" }
-        - { lat: 2.55, lon: 102.08, speed: 5,  time: "00:43" }
-      metadata:
-        skip_terrain_check: true
-        vessel_type: "RHIB"
-        unit_size: 8
-        equipment: ["boarding_kit", "M4_rifle", "body_armor"]
-        callsign_radio: "PDRM MARINE KLANG"
+        aircraft_type: "Beechcraft Super King Air B200T"
+        home_base: "RMAF Subang"
+        altitude_ft: 5000
+        sensors: ["FLIR", "maritime_search_radar", "AIS_receiver"]
+        endurance_hrs: 7
+        notes: "RMN organic MPA capability. Tasked by MMEA request to RMAF."
 
   # ================================================================
   # EVENTS TIMELINE
@@ -229,122 +236,139 @@ scenario:
 
     - time: "00:00"
       type: "DETECTION"
-      description: "MMEA Maritime Surveillance Centre Lumut: MV Hai Long 7 tracked on AIS transiting NW through Malacca TSS. Speed 12 knots. Standard commercial traffic."
-      position: { lat: 2.82, lon: 102.55 }
+      description: "MMEA Maritime Surveillance Centre Lumut: MV Hai Long 7 (MMSI 413112233) tracked on AIS, position 4.90°N 100.10°E, speed 12.0 knots, heading 315° (NW). Declared destination Port Klang. Bulk carrier, Chinese flag. Normal traffic."
+      position: { lat: 4.900, lon: 100.100 }
+      alert_agencies: [MMEA]
+      severity: "INFO"
+
+    - time: "00:05"
+      type: "DETECTION"
+      description: "MMEA MSC Lumut: MV Hai Long 7 continuing NW transit, speed 12.0 knots. No anomaly. Vessel profile checked — IMO 9876543, last port Guangzhou. No outstanding flags."
+      position: { lat: 4.912, lon: 100.088 }
       alert_agencies: [MMEA]
       severity: "INFO"
 
     - time: "00:10"
       type: "AIS_LOSS"
-      description: "AIS transponder loss — MV Hai Long 7. Last known position 2.70°N, 102.36°E. No distress signal. Vessel went deliberately dark."
+      description: "MMEA MSC Lumut: AIS TRANSPONDER LOSS — MV Hai Long 7 AIS signal terminated. Last position 4.92°N 100.08°E. No distress signal. No MAYDAY. No SSAS alert. Vessel has gone deliberately dark. Surface search radar continues to hold contact — vessel still underway, heading unchanged."
       target: "SUSPECT-001"
       alert_agencies: [MMEA]
       severity: "WARNING"
 
     - time: "00:12"
       type: "ALERT"
-      description: "MMEA Maritime Surveillance raises AIS anomaly alert. Contact still tracked on surface search radar — vessel continuing NW at speed. Deliberate AIS suppression suspected."
+      description: "MMEA MSC Lumut raises AIS Anomaly Alert. Radar contact tracking on bearing 315°, estimated speed now 13-14 knots — INCREASING. Deliberate AIS suppression with speed increase is consistent with vessel attempting to evade identification. Cross-referencing with Lloyd's intelligence database."
       alert_agencies: [MMEA, MIL]
       severity: "WARNING"
 
     - time: "00:13"
       type: "ALERT"
-      description: "Vessel profiled against Lloyd's database: MV Hai Long 7, bulk carrier, last port Guangzhou, declared destination Port Klang. No dangerous cargo declared. AIS suppression unexplained."
+      description: "Lloyd's intelligence cross-check complete. MV Hai Long 7: declared cargo — steel coils, 8,400 tonnes. Route: Guangzhou → Port Klang. No prior AIS anomaly history. Flag state China. Classification: Society Bureau Veritas. No port state control deficiencies. AIS suppression is UNEXPLAINED. Escalating to MMEA Director of Operations."
       alert_agencies: [MMEA]
       severity: "WARNING"
 
     - time: "00:14"
       type: "ORDER"
-      description: "MMEA Director of Operations orders intercept. KM Penggalang and KM Marlin converge on dark contact at best speed."
+      description: "MMEA Director of Operations authorises intercept. KM Penggalang (MMEA-FI-001) and KM Marlin (MMEA-PV-001) ordered to converge on dark contact at best speed. KM Penggalang to attempt radio contact on VHF Channel 16 en route."
       targets: ["MMEA-FI-001", "MMEA-PV-001"]
       action: "intercept"
       intercept_target: "SUSPECT-001"
 
     - time: "00:15"
       type: "ORDER"
-      description: "RMAF maritime patrol support requested. TUDM Peregrine 1 scrambled from Subang — ETA on scene 19 minutes."
+      description: "MMEA requests RMAF maritime patrol aircraft support. RMAF Lumut coordination — TUDM Peregrine 1 (Beechcraft B200T MPA) scrambled from RMAF Subang. ETA on scene 38 minutes. FLIR and search radar will provide surveillance from altitude."
       target: "RMAF-MPA-001"
       action: "deploy"
-      destination: { lat: 2.58, lon: 102.10 }
+      destination: { lat: 4.983, lon: 100.005 }
 
     - time: "00:16"
       type: "ORDER"
-      description: "MMEA notifies RMN. KD Keris directed to establish southern blocking position — cut off retreat toward Riau Islands."
-      target: "RMN-PV-001"
+      description: "MMEA notifies RMN Western Fleet. KD Kedah (171) directed to establish southern blocking position — prevent retreat toward Riau Islands and Indonesian EEZ. KD Kedah to proceed at best speed to position 4.05°N 99.85°E."
+      target: "RMN-OPV-001"
       action: "deploy"
-      destination: { lat: 2.30, lon: 102.00 }
-
-    - time: "00:18"
-      type: "ORDER"
-      description: "RMP Marine Police boarding team deployed from Port Klang. PDRM Marine Klang 01 underway with eight-man boarding party."
-      target: "RMP-MP-001"
-      action: "deploy"
-      destination: { lat: 2.55, lon: 102.08 }
+      destination: { lat: 4.050, lon: 99.850 }
 
     - time: "00:22"
       type: "DETECTION"
-      description: "MMEA radar: dark contact speed increased to approximately 14 knots — evasion profile. Heading unchanged NW."
-      position: { lat: 2.66, lon: 102.28 }
-      severity: "WARNING"
-
-    - time: "00:26"
-      type: "DETECTION"
-      description: "KM Penggalang: visual contact. Smoke on horizon bearing 315°. Radar confirmed. Closing at 45 knots."
+      description: "MMEA MSC Lumut: dark contact speed increased to 14-15 knots. Track stable heading 315°. Contact attempting to accelerate away — evasion confirmed. KM Penggalang reports visual: horizon contact ahead bearing 025°. Closing at 45 knots."
+      position: { lat: 4.945, lon: 100.055 }
       source: "MMEA-FI-001"
       severity: "WARNING"
 
-    - time: "00:30"
+    - time: "00:26"
       type: "ALERT"
-      description: "RMAF Peregrine 1 on scene. FLIR and EO sensors confirm bulk carrier configuration. No flag visible. Vessel attempting to blend into TSS traffic lane. Speed 15 knots."
-      source: "RMAF-MPA-001"
-      position: { lat: 2.60, lon: 102.18 }
+      description: "KM Penggalang: hailing MV Hai Long 7 on VHF Channel 16 — no response. Hailing in English and Mandarin — no response. Vessel is aware of intercept craft. No change in course or speed. Visual confirmed: bulk carrier, no flag visible from this range."
+      source: "MMEA-FI-001"
       alert_agencies: [MMEA, MIL]
       severity: "WARNING"
 
-    - time: "00:33"
+    - time: "00:32"
       type: "DETECTION"
-      description: "RMAF Peregrine 1: FLIR imagery shows deck crew activity — possible jettisoning of materials observed. Imagery being transmitted to MMEA HQ."
-      source: "RMAF-MPA-001"
-      severity: "CRITICAL"
-      alert_agencies: [MMEA, MIL, RMP]
+      description: "KM Penggalang: closing to 3nm. Vessel making minor course change — 305° — attempting to manoeuvre into SE-bound TSS lane (opposing traffic). Possible attempt to use commercial traffic as cover. KM Penggalang adjusting intercept course."
+      source: "MMEA-FI-001"
+      position: { lat: 4.978, lon: 100.022 }
+      severity: "WARNING"
 
     - time: "00:35"
       type: "ALERT"
-      description: "KM Penggalang: no response to VHF Channel 16 hails in English or Mandarin. Vessel speed reducing to 8 knots. Closing to 500 metres."
+      description: "KM Penggalang: vessel reducing speed to 5 knots. Blue light and siren activated. MMEA boarding authority invoked under APMM Act 2004 Section 6. Visual confirmation: large bulk carrier, no external identifying marks visible. Vessel appears to be complying — heaving to."
       source: "MMEA-FI-001"
       alert_agencies: [MMEA, RMP]
       severity: "WARNING"
 
-    - time: "00:37"
+    - time: "00:36"
       type: "INTERCEPT"
-      description: "KM Penggalang alongside MV Hai Long 7. Vessel hove to. Master on bridge wing. MMEA officers conducting initial inspection. KM Marlin 10 minutes astern."
+      description: "KM Penggalang alongside MV Hai Long 7. Vessel hove to, position 4.983°N 100.005°E. Master observed on bridge wing. MMEA officers conducting initial hail via loudhailer — Master responding. Vessel appears compliant. KM Marlin 8nm south, ETA 8 minutes."
       target: "MMEA-FI-001"
       intercept_target: "SUSPECT-001"
       severity: "INFO"
 
     - time: "00:40"
-      type: "ORDER"
-      description: "KM Marlin on scene. RMP Marine Police boarding team transferring via RHIB for formal boarding. PDRM Marine Klang 01 ETA 3 minutes. KD Keris holding southern blocking position."
-      targets: ["MMEA-PV-001", "RMN-PV-001"]
-      action: "standby"
-      severity: "INFO"
+      type: "ALERT"
+      description: "KM Penggalang initial contact with Master: Master states AIS transponder experienced 'technical malfunction'. MMEA officer notes AIS antenna physically intact — no visible damage. Master unable to explain. Vessel documents requested. KD Kedah establishing southern blocking position."
+      source: "MMEA-FI-001"
+      alert_agencies: [MMEA, RMP]
+      severity: "WARNING"
 
-    - time: "00:43"
-      type: "BOARDING"
-      description: "PDRM Marine Klang 01 on scene. Eight-man RMP boarding team cross-decks via RHIB. Master and crew mustered on deck. Vessel documents and cargo manifests demanded."
-      target: "RMP-MP-001"
+    - time: "00:44"
+      type: "ORDER"
+      description: "KM Marlin arrives at intercept position. Boarding team of 8 MMEA officers deploying via RHIB. Formal entry and inspection commencing under APMM Act 2004. KM Penggalang maintaining station to starboard. RMAF Peregrine 1 inbound, 9 minutes."
+      target: "MMEA-PV-001"
+      action: "boarding"
       boarding_target: "SUSPECT-001"
       severity: "INFO"
 
-    - time: "00:44"
-      type: "DETECTION"
-      description: "RMP boarding team: manifest lists steel coils — FLIR signature inconsistent with declared cargo. Discrepancy reported. Customs notified. Vessel to be escorted to Port Klang for full inspection."
-      source: "RMP-MP-001"
-      severity: "CRITICAL"
-      alert_agencies: [MMEA, RMP, CI]
+    - time: "00:48"
+      type: "BOARDING"
+      description: "MMEA boarding team aboard MV Hai Long 7. 22 crew mustered on deck. Vessel documents — certificate of registry, cargo manifest, crew list — handed to MMEA boarding officer. Cargo manifest inspection commenced. Hatches sealed pending inspection."
+      target: "MMEA-PV-001"
+      boarding_target: "SUSPECT-001"
+      severity: "INFO"
 
-    - time: "00:45"
+    - time: "00:53"
+      type: "DETECTION"
+      description: "RMAF Peregrine 1 on scene. FLIR targeting on MV Hai Long 7. FLIR thermal imaging of cargo hold area shows SIGNIFICANT HEAT SIGNATURE — inconsistent with steel coils declared on manifest. Pattern consistent with machinery or chemical product generating heat. Imagery being transmitted to MMEA MSC Lumut now."
+      source: "RMAF-MPA-001"
+      position: { lat: 4.980, lon: 100.050 }
+      alert_agencies: [MMEA, MIL, RMP]
+      severity: "CRITICAL"
+
+    - time: "00:55"
+      type: "DETECTION"
+      description: "MMEA boarding officer aboard MV Hai Long 7: manifest discrepancy confirmed. Cargo manifest lists 8,400 tonnes steel coils in holds 2, 3, and 4. Physical inspection of hatch cover on hold 3 — significant odour noted, inconsistent with steel. Master is uncooperative. Customs and Immigration Malaysia notified."
+      source: "MMEA-PV-001"
+      alert_agencies: [MMEA, RMP, CI]
+      severity: "CRITICAL"
+
+    - time: "00:57"
       type: "ALERT"
-      description: "ENDSTATE: MV Hai Long 7 detained under escort to Port Klang. Multi-agency coordination successful — MMEA, RMAF, RMN, and RMP. Dark target detected, tracked, and intercepted within 35 minutes of AIS loss."
+      description: "KD Kedah holding southern blocking position 4.05°N 99.85°E. Northern and southern approaches to intercept position now controlled. RMN Western Fleet Command notified. MMEA requesting police assistance — RMP Marine Police Klang alerted."
+      source: "RMN-OPV-001"
+      alert_agencies: [MMEA, MIL, RMP]
+      severity: "INFO"
+
+    - time: "01:00"
+      type: "ALERT"
+      description: "ENDSTATE — MV Hai Long 7 detained at 4.983°N 100.005°E pending full customs inspection. Vessel under MMEA custody with RMN escort. RMAF MPA maintaining surveillance orbit. Royal Malaysian Customs and Immigration teams en route from Port Klang. Case referred to MMEA-RMP-Customs Joint Task Force. AIS suppression and cargo discrepancy under investigation. Multi-agency response successful — dark target detected, tracked, and intercepted within 50 minutes of AIS loss."
       alert_agencies: [MMEA, MIL, RMP, CI]
       severity: "INFO"
