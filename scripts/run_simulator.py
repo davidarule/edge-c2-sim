@@ -320,36 +320,32 @@ async def run(
 
         ws_adapter.set_command_handler("update_sidc", handle_sidc_update)
 
-        async def handle_restart(msg):
-            """Reset clock to beginning, reload scenario, and re-broadcast snapshot."""
-            logger.info("Restart requested by client")
+        # Mutable container so handle_load_scenario can swap the active path
+        active_scenario = [scenario]
+
+        async def _do_restart(scenario_path):
+            """Core restart logic — reload scenario_path and re-broadcast snapshot."""
             clock.pause()
             clock.reset()
-            # Clear trail and event history
             ws_adapter._trail_history.clear()
             ws_adapter._event_history.clear()
-            # Reload scenario from scratch to get clean entities and movements
-            if scenario:
-                fresh = ScenarioLoader().load(scenario)
+            if scenario_path:
+                fresh = ScenarioLoader().load(scenario_path)
                 sim_context["scenario_state"] = fresh
-                scenario_state = fresh
-                # Clear and repopulate entity store
                 with store._lock:
                     store._entities.clear()
-                for entity in scenario_state.entities.values():
+                for entity in fresh.entities.values():
                     store.add_entity(entity)
-                # Recreate event engine with fresh movements
                 sim_context["event_engine"] = EventEngine(
-                    events=scenario_state.events,
+                    events=fresh.events,
                     entity_store=store,
-                    movements=scenario_state.movements,
-                    scenario_start=scenario_state.start_time,
+                    movements=fresh.movements,
+                    scenario_start=fresh.start_time,
                 )
-                # Re-extract planned routes for COP display
                 from simulator.movement.waypoint import WaypointMovement
                 from simulator.movement.patrol import PatrolMovement
                 route_data = {}
-                for eid, mov in scenario_state.movements.items():
+                for eid, mov in fresh.movements.items():
                     if isinstance(mov, WaypointMovement):
                         route_data[eid] = [
                             {"lat": wp.lat, "lon": wp.lon, "alt_m": wp.alt_m}
@@ -365,19 +361,37 @@ async def run(
                         except Exception:
                             pass
                 ws_adapter.set_route_data(route_data)
-            # Broadcast fresh snapshot so COP clients clear stale trail data
             entities = store.get_all_entities()
             snapshot = json.dumps({
                 "type": "snapshot",
                 "entities": [e.to_dict() for e in entities],
             })
             await ws_adapter._broadcast(snapshot)
-            # Re-send routes if available
             if ws_adapter._route_data:
                 routes_msg = json.dumps({"type": "routes", "routes": ws_adapter._route_data})
                 await ws_adapter._broadcast(routes_msg)
             clock.start()
+
+        async def handle_restart(msg):
+            logger.info("Restart requested by client")
+            await _do_restart(active_scenario[0])
             logger.info("Scenario reset complete")
+
+        async def handle_load_scenario(msg):
+            """Load a different scenario file and restart the simulation."""
+            new_path = msg.get("scenario", "")
+            # Security: restrict to config/scenarios/*.yaml only
+            if not (new_path.startswith("config/scenarios/") and new_path.endswith(".yaml")):
+                logger.warning(f"load_scenario: rejected invalid path: {new_path!r}")
+                return
+            logger.info(f"Loading new scenario: {new_path}")
+            active_scenario[0] = new_path
+            try:
+                await _do_restart(new_path)
+            except Exception as e:
+                logger.error(f"load_scenario failed: {e}")
+                return
+            logger.info(f"Scenario switched to: {new_path}")
 
         async def handle_return_to_start(msg):
             """Send an entity back to its initial position."""
@@ -430,6 +444,7 @@ async def run(
         ws_adapter.set_command_handler("return_to_start", handle_return_to_start)
         ws_adapter.set_command_handler("restart", handle_restart)
         ws_adapter.set_command_handler("reset", handle_restart)
+        ws_adapter.set_command_handler("load_scenario", handle_load_scenario)
         print(f"WebSocket server on ws://0.0.0.0:{port}")
 
     if "console" in transport_names:

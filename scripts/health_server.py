@@ -11,7 +11,9 @@ import json
 import logging
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
+import yaml
 from aiohttp import web
 
 logger = logging.getLogger(__name__)
@@ -36,6 +38,7 @@ class HealthServer:
         self.transports = {}
 
         self._app.router.add_get("/health", self._handle_health)
+        self._app.router.add_get("/api/scenarios", self._handle_scenarios)
 
     async def start(self):
         self._runner = web.AppRunner(self._app)
@@ -62,3 +65,22 @@ class HealthServer:
             "transports": self.transports,
         }
         return web.json_response(data)
+
+    async def _handle_scenarios(self, request):
+        """Return list of available scenario files with display names."""
+        scenarios_dir = Path("config/scenarios")
+        scenarios = []
+        for path in sorted(scenarios_dir.glob("*.yaml")):
+            name = path.stem  # fallback display name
+            try:
+                with open(path) as f:
+                    data = yaml.safe_load(f)
+                meta = (data or {}).get("scenario", {}).get("metadata", {})
+                name = meta.get("name") or name
+            except Exception:
+                pass
+            scenarios.append({"name": name, "file": str(path)})
+        response = web.json_response(scenarios)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        return response
+

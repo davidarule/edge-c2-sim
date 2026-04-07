@@ -85,6 +85,9 @@ export function connectWebSocket(url, handlers) {
     })),
     returnToStart: (entityId) => ws.send(JSON.stringify({
       cmd: 'return_to_start', entity_id: entityId
+    })),
+    loadScenario: (file) => ws.send(JSON.stringify({
+      cmd: 'load_scenario', scenario: file
     }))
   };
 }

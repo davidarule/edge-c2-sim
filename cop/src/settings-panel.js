@@ -71,8 +71,18 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
       <!-- SIMULATION -->
       <div class="settings-section">
         <div class="settings-section-title">SIMULATION</div>
-        <div class="settings-row">
-          <button id="btn-restart-sim" class="settings-btn">Restart Simulator</button>
+        <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 4px;">
+          <select id="scenario-select" style="
+            background: #0D1117; color: #C9D1D9; border: 1px solid #30363D;
+            border-radius: 3px; padding: 4px 6px; font-size: 11px;
+            font-family: 'IBM Plex Mono', monospace; cursor: pointer; width: 100%;
+          ">
+            <option value="">Loading scenarios…</option>
+          </select>
+          <div style="display: flex; gap: 4px;">
+            <button id="btn-load-scenario" class="settings-btn" style="flex: 1;">Load</button>
+            <button id="btn-restart-sim" class="settings-btn" style="flex: 1;">Restart</button>
+          </div>
         </div>
       </div>
 
@@ -192,6 +202,45 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
   // ── Wire events ──
 
   panel.querySelector('#settings-close').addEventListener('click', () => showPanel(false));
+
+  // Scenario select — populate on panel open
+  const scenarioSelect = panel.querySelector('#scenario-select');
+  const btnLoad = panel.querySelector('#btn-load-scenario');
+
+  function populateScenarios() {
+    fetch('/api/scenarios')
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(list => {
+        scenarioSelect.innerHTML = list.map(s =>
+          `<option value="${s.file}">${s.name}</option>`
+        ).join('');
+      })
+      .catch(() => {
+        scenarioSelect.innerHTML = '<option value="">Failed to load scenarios</option>';
+      });
+  }
+
+  btnLoad.addEventListener('click', () => {
+    const file = scenarioSelect.value;
+    if (!file) return;
+    btnLoad.textContent = 'Loading…';
+    btnLoad.disabled = true;
+    ws.loadScenario(file);
+    setTimeout(() => {
+      btnLoad.textContent = 'Load';
+      btnLoad.disabled = false;
+    }, 4000);
+  });
+
+  // Populate scenarios when panel first opens
+  const _origShowPanel = showPanel;
+  let _scenariosLoaded = false;
+  toggleBtn.addEventListener('click', () => {
+    if (!_scenariosLoaded) {
+      populateScenarios();
+      _scenariosLoaded = true;
+    }
+  }, true);  // capture phase, runs before showPanel
 
   // Restart
   panel.querySelector('#btn-restart-sim').addEventListener('click', () => {
