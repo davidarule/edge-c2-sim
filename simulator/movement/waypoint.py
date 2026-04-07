@@ -5,6 +5,11 @@ Given a list of waypoints with (lat, lon, speed, time), interpolates
 the entity's position at any simulation time. Uses great-circle
 (geodesic) math for accurate lat/lon interpolation over distances
 up to hundreds of kilometers.
+
+Turn physics: heading changes at waypoints are smoothed using a
+first-order lag model based on vessel length and class coefficient.
+  ω_max = (V_ms × 57.3) / (K × LOA)   [deg/s, steady-state]
+  τ     = (LOA / V_ms) × C             [seconds, time constant]
 """
 
 import math
@@ -13,6 +18,70 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from geopy.distance import geodesic
+
+
+@dataclass
+class TurnParams:
+    """Physical turning characteristics for a vessel class."""
+    loa_m: float    # Length overall (metres)
+    k_coef: float   # Turning radius coefficient (vessel class)
+    c_coef: float   # Time-constant coefficient
+
+
+def _angle_diff(a: float, b: float) -> float:
+    """Signed shortest angular difference b − a, in (−180, 180]."""
+    d = (b - a) % 360.0
+    if d > 180.0:
+        d -= 360.0
+    return d
+
+
+def _smooth_heading(
+    t_since_wp: float,
+    heading_in: float,
+    heading_out: float,
+    speed_knots: float,
+    tp: TurnParams,
+) -> float:
+    """Return smoothed heading using first-order lag turn model.
+
+    t_since_wp  – seconds elapsed since the vessel passed the waypoint
+    heading_in  – course of the preceding segment (deg)
+    heading_out – course of the following segment (deg)
+    speed_knots – vessel speed at the waypoint
+    tp          – TurnParams for this vessel class
+    """
+    delta = _angle_diff(heading_in, heading_out)
+    if abs(delta) < 0.5:
+        return heading_out
+
+    speed_ms = speed_knots * 0.51444
+    if speed_ms < 0.1:
+        return heading_out  # stationary — snap
+
+    # Steady-state turn rate (deg/s), clamped to sane bounds
+    omega = (speed_ms * 57.3) / (tp.k_coef * tp.loa_m)
+    omega = max(0.05, min(omega, 45.0))
+
+    # Time to complete the heading change at steady-state rate
+    turn_duration = abs(delta) / omega  # seconds
+
+    if t_since_wp >= turn_duration:
+        return heading_out
+
+    # Time constant for the first-order lag
+    tau = (tp.loa_m / speed_ms) * tp.c_coef
+    tau = max(tau, 0.1)
+
+    # Normalized exponential progress: reaches 1.0 at t = turn_duration
+    denom = 1.0 - math.exp(-turn_duration / tau)
+    if denom < 1e-6:
+        progress = t_since_wp / turn_duration  # linear fallback
+    else:
+        progress = (1.0 - math.exp(-t_since_wp / tau)) / denom
+
+    progress = max(0.0, min(progress, 1.0))
+    return (heading_in + delta * progress) % 360.0
 
 
 @dataclass
@@ -94,13 +163,24 @@ def _interpolate_geodesic(
 
 class WaypointMovement:
     """Moves an entity along a series of time-stamped waypoints using
-    great-circle interpolation."""
+    great-circle interpolation.
 
-    def __init__(self, waypoints: list[Waypoint], scenario_start: datetime) -> None:
+    Optional *turn_params* enables physically-based heading smoothing at
+    waypoint transitions (first-order lag proportional to vessel length).
+    Without turn_params the heading snaps instantly at each waypoint.
+    """
+
+    def __init__(
+        self,
+        waypoints: list[Waypoint],
+        scenario_start: datetime,
+        turn_params: TurnParams | None = None,
+    ) -> None:
         if not waypoints:
             raise ValueError("At least one waypoint required")
         self._waypoints = sorted(waypoints, key=lambda w: w.time_offset)
         self._scenario_start = scenario_start
+        self._turn_params = turn_params
 
     def get_state(self, sim_time: datetime) -> MovementState:
         """Return interpolated position, heading, speed for given sim_time."""
@@ -160,6 +240,19 @@ class WaypointMovement:
                 # Heading: bearing from current position to next waypoint
                 heading = _initial_bearing(lat, lon, wp_b.lat, wp_b.lon)
                 course = _initial_bearing(wp_a.lat, wp_a.lon, wp_b.lat, wp_b.lon)
+
+                # Apply turn smoothing at waypoint i (start of this segment)
+                if self._turn_params and i > 0:
+                    wp_prev = wps[i - 1]
+                    heading_in = _initial_bearing(
+                        wp_prev.lat, wp_prev.lon, wp_a.lat, wp_a.lon
+                    )
+                    heading_out = course
+                    t_since_wp = (elapsed - wp_a.time_offset).total_seconds()
+                    heading = _smooth_heading(
+                        t_since_wp, heading_in, heading_out,
+                        wp_a.speed_knots or speed, self._turn_params,
+                    )
 
                 # Metadata overrides from the most recently passed waypoint
                 meta = wp_a.metadata_overrides

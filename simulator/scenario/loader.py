@@ -20,7 +20,7 @@ from shapely.geometry import LineString, MultiPolygon, Polygon, shape
 
 from simulator.core.entity import Agency, Domain, Entity, EntityStatus, Position
 from simulator.movement.patrol import PatrolMovement
-from simulator.movement.waypoint import Waypoint, WaypointMovement
+from simulator.movement.waypoint import TurnParams, Waypoint, WaypointMovement
 
 logger = logging.getLogger(__name__)
 
@@ -32,18 +32,22 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
     "SUSPECT_VESSEL": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
         "speed_range": (0, 35), "sidc": "SHSP------",
+        "turn": (100.0, 3.5, 2.5),   # ~100m cargo/bulk carrier
     },
     "CIVILIAN_FISHING": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
         "speed_range": (2, 8), "sidc": "SNSP------",
+        "turn": (25.0, 2.5, 1.5),    # ~25m fishing vessel
     },
     "CIVILIAN_CARGO": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
         "speed_range": (8, 16), "sidc": "SNSP------",
+        "turn": (130.0, 3.5, 2.5),   # ~130m general cargo
     },
     "CIVILIAN_TANKER": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
         "speed_range": (8, 14), "sidc": "SNSP------",
+        "turn": (180.0, 4.0, 3.0),   # ~180m product tanker
     },
     "CIVILIAN_LIGHT": {
         "domain": Domain.AIR, "agency": Agency.CIVILIAN,
@@ -56,26 +60,32 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
     "MMEA_PATROL": {
         "domain": Domain.MARITIME, "agency": Agency.MMEA,
         "speed_range": (8, 28), "sidc": "SFSP------",
+        "turn": (60.0, 3.0, 2.0),    # ~60m patrol vessel
     },
     "MMEA_FAST_INTERCEPT": {
         "domain": Domain.MARITIME, "agency": Agency.MMEA,
         "speed_range": (15, 50), "sidc": "SFSP------",
+        "turn": (12.0, 1.8, 1.0),    # ~12m RIB/fast intercept
     },
     "MIL_NAVAL": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
         "speed_range": (10, 35), "sidc": "SFSP------",
+        "turn": (80.0, 3.0, 2.5),    # ~80m corvette
     },
     "MIL_NAVAL_FRIGATE": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
         "speed_range": (15, 30), "sidc": "SFSP------",
+        "turn": (105.0, 3.0, 2.5),   # ~105m frigate (KD Lekiu-class)
     },
     "MIL_NAVAL_FIC": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
         "speed_range": (15, 35), "sidc": "SFSP------",
+        "turn": (50.0, 2.5, 1.5),    # ~50m fast intercept craft
     },
     "MIL_SUBMARINE": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
         "speed_range": (0, 20), "sidc": "SFUP------",
+        "turn": (60.0, 3.0, 2.0),    # ~60m submarine
     },
     "RMAF_TRANSPORT": {
         "domain": Domain.AIR, "agency": Agency.RMAF,
@@ -100,10 +110,12 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
     "RMP_PATROL_BOAT": {
         "domain": Domain.MARITIME, "agency": Agency.RMP,
         "speed_range": (10, 30), "sidc": "SFSP------",
+        "turn": (8.0, 1.8, 1.0),     # ~8m patrol boat
     },
     "RMP_MARINE_PATROL": {
         "domain": Domain.MARITIME, "agency": Agency.RMP,
         "speed_range": (10, 30), "sidc": "SFSP------",
+        "turn": (15.0, 2.0, 1.2),    # ~15m marine patrol vessel
     },
     "RMP_OFFICER": {
         "domain": Domain.PERSONNEL, "agency": Agency.RMP,
@@ -441,7 +453,9 @@ class ScenarioLoader:
                     time_offset=_parse_time_offset(wp["time"]),
                     metadata_overrides=wp.get("metadata"),
                 ))
-            movement = WaypointMovement(waypoints, start)
+            turn_tuple = type_def.get("turn")
+            turn_params = TurnParams(*turn_tuple) if turn_tuple else None
+            movement = WaypointMovement(waypoints, start, turn_params=turn_params)
             if waypoints:
                 entity.speed_knots = waypoints[0].speed_knots
 
@@ -578,7 +592,9 @@ class ScenarioLoader:
                 )
 
                 if len(waypoints) >= 1:
-                    movement = WaypointMovement(waypoints, start)
+                    turn_tuple = type_def.get("turn")
+                    turn_params = TurnParams(*turn_tuple) if turn_tuple else None
+                    movement = WaypointMovement(waypoints, start, turn_params=turn_params)
                     results.append((entity, movement))
                 else:
                     results.append((entity, None))
