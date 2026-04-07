@@ -65,7 +65,7 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
     "MMEA_FAST_INTERCEPT": {
         "domain": Domain.MARITIME, "agency": Agency.MMEA,
         "speed_range": (15, 50), "sidc": "SFSP------",
-        "turn": (12.0, 1.8, 1.0),    # ~12m RIB/fast intercept
+        "turn": (39.0, 2.0, 1.2),    # ~39m fast intercept craft
     },
     "MIL_NAVAL": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,

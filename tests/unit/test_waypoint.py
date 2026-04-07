@@ -190,9 +190,8 @@ class TestTurnPhysics:
             assert h <= 90.01, f"Heading overshot at t={t}: {h}"
             prev = h
 
-    def test_waypoint_heading_smoothed_at_turn(self, scenario_start):
-        """After a 90° waypoint turn, heading should be mid-transition, not snapped."""
-        # Three waypoints: go east then turn north
+    def test_arc_heading_at_start_of_turn(self, scenario_start):
+        """At the start of the arc window, heading should be near the incoming bearing."""
         tp = TurnParams(loa_m=100.0, k_coef=3.5, c_coef=2.5)
         wps = [
             Waypoint(lat=5.0, lon=100.0, speed_knots=12, time_offset=timedelta(0)),
@@ -201,14 +200,50 @@ class TestTurnPhysics:
         ]
         wm = WaypointMovement(wps, scenario_start, turn_params=tp)
 
-        # 1 second after the waypoint — heading should still be close to ~90° (east)
-        t_just_after = scenario_start + timedelta(hours=1, seconds=1)
-        state = wm.get_state(t_just_after)
-        # heading_in ≈ 90° (east), heading_out ≈ 0° (north)
-        # After 1 second it should still be much closer to 90 than 0
-        assert state.heading_deg > 45.0, (
-            f"Heading snapped too quickly: {state.heading_deg:.1f}°"
+        # At the very start of the arc (arc begins before waypoint), heading ≈ incoming (~90° east)
+        assert len(wm._turn_arcs) == 1
+        arc = wm._turn_arcs[0]
+        t_arc_start = scenario_start + arc.t_start + timedelta(seconds=0.1)
+        state = wm.get_state(t_arc_start)
+        assert state.heading_deg > 80.0, (
+            f"Heading at arc start should be near 90°, got {state.heading_deg:.1f}°"
         )
+
+    def test_arc_heading_at_end_of_turn(self, scenario_start):
+        """At the end of the arc window, heading should be near the outgoing bearing."""
+        tp = TurnParams(loa_m=100.0, k_coef=3.5, c_coef=2.5)
+        wps = [
+            Waypoint(lat=5.0, lon=100.0, speed_knots=12, time_offset=timedelta(0)),
+            Waypoint(lat=5.0, lon=101.0, speed_knots=12, time_offset=timedelta(hours=1)),
+            Waypoint(lat=6.0, lon=101.0, speed_knots=12, time_offset=timedelta(hours=2)),
+        ]
+        wm = WaypointMovement(wps, scenario_start, turn_params=tp)
+
+        arc = wm._turn_arcs[0]
+        t_arc_end = scenario_start + arc.t_end - timedelta(seconds=0.1)
+        state = wm.get_state(t_arc_end)
+        # heading_out ≈ 0° (north); accept 350°–10° range
+        assert state.heading_deg < 10.0 or state.heading_deg > 350.0, (
+            f"Heading at arc end should be near 0°, got {state.heading_deg:.1f}°"
+        )
+
+    def test_arc_position_is_curved(self, scenario_start):
+        """During arc, position should deviate from the straight corner path."""
+        tp = TurnParams(loa_m=100.0, k_coef=3.5, c_coef=2.5)
+        wps = [
+            Waypoint(lat=5.0, lon=100.0, speed_knots=12, time_offset=timedelta(0)),
+            Waypoint(lat=5.0, lon=101.0, speed_knots=12, time_offset=timedelta(hours=1)),
+            Waypoint(lat=6.0, lon=101.0, speed_knots=12, time_offset=timedelta(hours=2)),
+        ]
+        wm = WaypointMovement(wps, scenario_start, turn_params=tp)
+
+        # At mid-arc, position should be "inside" the corner (SW of waypoint for right turn)
+        arc = wm._turn_arcs[0]
+        t_mid = scenario_start + arc.t_start + (arc.t_end - arc.t_start) / 2
+        state = wm.get_state(t_mid)
+        # For this east→north right turn, mid-arc position should be SW of the waypoint
+        assert state.lat <= 5.0 + 0.001, "Mid-arc lat should be near/south of waypoint lat"
+        assert state.lon <= 101.0 + 0.001, "Mid-arc lon should be near/west of waypoint lon"
 
     def test_without_turn_params_heading_snaps(self, scenario_start):
         """Without TurnParams, heading should snap immediately at waypoint."""
@@ -218,10 +253,11 @@ class TestTurnPhysics:
             Waypoint(lat=6.0, lon=101.0, speed_knots=12, time_offset=timedelta(hours=2)),
         ]
         wm = WaypointMovement(wps, scenario_start, turn_params=None)
+        assert wm._turn_arcs == []
 
         t_just_after = scenario_start + timedelta(hours=1, seconds=1)
         state = wm.get_state(t_just_after)
-        # Without smoothing, heading should be near 0° (north) immediately
+        # Without arcs, heading should be near 0° (north) immediately
         assert state.heading_deg < 45.0, (
             f"Expected snapped heading near 0°, got {state.heading_deg:.1f}°"
         )
