@@ -75,8 +75,8 @@ class HealthServer:
             try:
                 with open(path) as f:
                     data = yaml.safe_load(f)
-                meta = (data or {}).get("scenario", {}).get("metadata", {})
-                name = meta.get("name") or name
+                scn = (data or {}).get("scenario", {})
+                name = scn.get("name") or scn.get("metadata", {}).get("name") or name
             except Exception:
                 pass
             scenarios.append({"name": name, "file": str(path)})
