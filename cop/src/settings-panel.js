@@ -310,7 +310,19 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
       // Also hide individual labels for clustered entities so they don't
       // show through the cluster icon.
       if (!cluster._settingsPanelListenerAdded) {
+        // Before each cluster pass, restore trails for all entities.
+        // The clusterEvent fires per-cluster, so we reset once at the start.
         cluster.clusterEvent.addEventListener((clusteredEntities, clusterObj) => {
+          // On first cluster of a recalculation pass, restore all trails
+          if (!cluster._passRestored) {
+            const allEntities = entityManager.getDataSource().entities.values;
+            for (const e of allEntities) {
+              if (e.id && e.id.startsWith('trail-')) e.show = true;
+            }
+            cluster._passRestored = true;
+            // Reset flag after microtask (all clusters in this pass fire synchronously)
+            Promise.resolve().then(() => { cluster._passRestored = false; });
+          }
           clusterObj.label.show = false;
           clusterObj.billboard.show = true;
           clusterObj.billboard.image = makeClusterIcon(clusteredEntities.length);
@@ -318,9 +330,16 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
           clusterObj.billboard.horizontalOrigin = Cesium.HorizontalOrigin.CENTER;
           clusterObj.billboard.disableDepthTestDistance = Number.POSITIVE_INFINITY;
 
-          // Hide labels on the individual entities absorbed into this cluster
+          // Hide labels and trails on individual entities absorbed into this cluster
+          const ds = entityManager.getDataSource();
           for (const ce of clusteredEntities) {
             if (ce.label) ce.label.show = false;
+            // Trail entities use id "trail-{entityId}" matching "entity-{entityId}"
+            if (ce.id && ce.id.startsWith('entity-')) {
+              const trailId = ce.id.replace('entity-', 'trail-');
+              const trailEntity = ds.entities.getById(trailId);
+              if (trailEntity) trailEntity.show = false;
+            }
           }
         });
         cluster._settingsPanelListenerAdded = true;
