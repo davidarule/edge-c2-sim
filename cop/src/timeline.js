@@ -192,7 +192,7 @@ export function initTimeline(containerId, viewer, config, entityManager) {
           destination: Cesium.Cartesian3.fromDegrees(lon, lat, 50000),
           orientation: {
             heading: Cesium.Math.toRadians(0),
-            pitch: Cesium.Math.toRadians(-60),
+            pitch: Cesium.Math.toRadians(-90),
             roll: 0
           },
           duration: 1.5
