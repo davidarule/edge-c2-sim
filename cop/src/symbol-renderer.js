@@ -88,17 +88,15 @@ function resolveIconPath(identity, symbolSet, entity6) {
   const code8  = `${symbolSet}${entity6}`;
   const suffix = IDENTITY_SUFFIX[identity] || '_1';
 
-  // Full-frame icon — exact match
+  // Full-frame icon — always use suffixed path (unsuffixed doesn't exist)
   if (FULL_FRAME_CODES.has(code8)) {
-    const path = `/svg/Appendices/${folder}/${code8}${suffix}.svg`;
-    if (svgTextCache.has(path)) return path;
+    return `/svg/Appendices/${folder}/${code8}${suffix}.svg`;
   }
 
   // Full-frame icon — parent (subtype = 00)
   const parentCode = `${symbolSet}${entity6.slice(0, 4)}00`;
   if (FULL_FRAME_CODES.has(parentCode)) {
-    const path = `/svg/Appendices/${folder}/${parentCode}${suffix}.svg`;
-    if (svgTextCache.has(path)) return path;
+    return `/svg/Appendices/${folder}/${parentCode}${suffix}.svg`;
   }
 
   // Standard icon — exact subtype

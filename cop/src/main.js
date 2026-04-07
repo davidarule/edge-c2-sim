@@ -92,8 +92,6 @@ async function main() {
 
   let settings;
 
-  let hasFlownToScenario = false;
-
   const ws = connectWebSocket(config.wsUrl, {
     onSnapshot: (entities) => {
       entityManager.loadSnapshot(entities);
@@ -101,9 +99,9 @@ async function main() {
       if (timeline) timeline.clearEvents();
       console.log(`Snapshot loaded: ${entities.length} entities`);
 
-      // On first snapshot, fly to the geographic center of the entities
-      if (!hasFlownToScenario && entities.length > 0) {
-        hasFlownToScenario = true;
+      // Fly to the geographic center of the entities on every snapshot
+      // (covers initial load, scenario switch, and restart)
+      if (entities.length > 0) {
         const positions = entities
           .map(e => e.position)
           .filter(p => p && isFinite(p.latitude) && isFinite(p.longitude));
