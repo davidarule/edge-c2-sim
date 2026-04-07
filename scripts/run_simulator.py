@@ -323,16 +323,34 @@ async def run(
         active_scenario = [scenario]
 
         async def _do_restart(scenario_path):
-            """Core restart logic — reload scenario_path and re-broadcast snapshot."""
+            """Core restart logic — reload scenario_path and re-broadcast snapshot.
+
+            AIS live feed entities (prefix AIS-) are preserved across restarts —
+            they are live data, not scenario data.
+            """
+            from simulator.ais.live_feed import AIS_ENTITY_PREFIX
+
             clock.pause()
             clock.reset()
+            # Preserve AIS entity trails; clear only scenario trails
+            ais_trails = {
+                eid: trail for eid, trail in ws_adapter._trail_history.items()
+                if eid.startswith(AIS_ENTITY_PREFIX)
+            }
             ws_adapter._trail_history.clear()
+            ws_adapter._trail_history.update(ais_trails)
             ws_adapter._event_history.clear()
             if scenario_path:
                 fresh = ScenarioLoader().load(scenario_path)
                 sim_context["scenario_state"] = fresh
+                # Clear scenario entities but preserve AIS live entities
                 with store._lock:
+                    ais_entities = {
+                        eid: e for eid, e in store._entities.items()
+                        if eid.startswith(AIS_ENTITY_PREFIX)
+                    }
                     store._entities.clear()
+                    store._entities.update(ais_entities)
                 for entity in fresh.entities.values():
                     store.add_entity(entity)
                 sim_context["event_engine"] = EventEngine(
@@ -453,6 +471,22 @@ async def run(
     for adapter in adapters:
         await adapter.connect()
 
+    # Start AIS live feed if API key is available
+    ais_feed = None
+    ais_key = os.environ.get("AISSTREAM_API_KEY", "")
+    if ais_key and "ws" in transport_names:
+        from simulator.ais.live_feed import AISLiveFeed
+        ais_feed = AISLiveFeed(
+            api_key=ais_key,
+            entity_store=store,
+            ws_adapter=ws_adapter,
+            max_entities=int(os.environ.get("AIS_MAX_ENTITIES", "300")),
+            update_interval_s=float(os.environ.get("AIS_UPDATE_INTERVAL", "30")),
+            stale_seconds=float(os.environ.get("AIS_STALE_SECONDS", "300")),
+        )
+        asyncio.create_task(ais_feed.run())
+        logger.info("AIS live feed started (AISStream.io)")
+
     # Start health server
     health = HealthServer(port=8766)
     health.scenario_name = scenario or "none"
@@ -489,6 +523,8 @@ async def run(
 
     # Cleanup
     print("\nShutting down...")
+    if ais_feed:
+        ais_feed.stop()
     clock.pause()
 
     # Summary
