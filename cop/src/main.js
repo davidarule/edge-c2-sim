@@ -92,12 +92,30 @@ async function main() {
 
   let settings;
 
+  let hasFlownToScenario = false;
+
   const ws = connectWebSocket(config.wsUrl, {
     onSnapshot: (entities) => {
       entityManager.loadSnapshot(entities);
       // Clear timeline on snapshot (reset/restart/reconnect) to prevent duplicates (BUG-005)
       if (timeline) timeline.clearEvents();
       console.log(`Snapshot loaded: ${entities.length} entities`);
+
+      // On first snapshot, fly to the geographic center of the entities
+      if (!hasFlownToScenario && entities.length > 0) {
+        hasFlownToScenario = true;
+        const positions = entities
+          .map(e => e.position)
+          .filter(p => p && isFinite(p.latitude) && isFinite(p.longitude));
+        if (positions.length > 0) {
+          const lat = positions.reduce((s, p) => s + p.latitude,  0) / positions.length;
+          const lon = positions.reduce((s, p) => s + p.longitude, 0) / positions.length;
+          viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 400000),
+            duration: 2.0,
+          });
+        }
+      }
     },
     onEntityUpdate: (entity) => entityManager.updateEntity(entity),
     onEntityRemove: (id) => entityManager.removeEntity(id),
