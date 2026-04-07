@@ -185,11 +185,24 @@ class WaypointMovement:
 
     # ── Arc precomputation ────────────────────────────────────────────────────
 
+    @staticmethod
+    def _seg_len_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Flat-earth segment length in metres (accurate enough for arc sizing)."""
+        dlat = (lat2 - lat1) * 111320.0
+        dlon = (lon2 - lon1) * 111320.0 * math.cos(math.radians((lat1 + lat2) / 2))
+        return math.sqrt(dlat * dlat + dlon * dlon)
+
     def _precompute_arcs(self) -> list[_TurnArc]:
-        """Build a _TurnArc for every meaningful course change."""
+        """Build a _TurnArc for every meaningful course change.
+
+        For all turn angles 1°–179° the tangent distance is clamped to 45% of
+        the shorter adjacent segment so the arc always fits within the available
+        path.  This means a near-180° reversal uses a smaller-than-natural
+        radius but still produces a visible curved loop in the trail.
+        """
         tp = self._turn_params
         wps = self._waypoints
-        R = tp.k_coef * tp.loa_m  # turning radius (m) — speed-independent
+        R_natural = tp.k_coef * tp.loa_m  # natural turning radius (m)
 
         arcs: list[_TurnArc] = []
 
@@ -202,45 +215,62 @@ class WaypointMovement:
             bearing_out = _initial_bearing(wp_curr.lat, wp_curr.lon, wp_next.lat, wp_next.lon)
             delta_deg   = _angle_diff(bearing_in, bearing_out)
 
-            # Skip trivial or near-180° turns (geometry degenerates)
-            if abs(delta_deg) < 1.0 or abs(delta_deg) > 150.0:
-                continue
+            if abs(delta_deg) < 1.0:
+                continue  # straight enough — no arc needed
 
             delta_rad = math.radians(delta_deg)
-            d_tan = R * math.tan(abs(delta_rad) / 2)  # tangent length (m)
+            half_abs  = abs(delta_rad) / 2
+            tan_half  = math.tan(half_abs)
+
+            if tan_half < 1e-9:
+                continue
+
+            # Natural tangent distance for this vessel class
+            d_tan_natural = R_natural * tan_half
+
+            # Clamp to 45% of the shorter adjacent segment so arc never overruns
+            dist_prev = self._seg_len_m(wp_prev.lat, wp_prev.lon, wp_curr.lat, wp_curr.lon)
+            dist_next = self._seg_len_m(wp_curr.lat, wp_curr.lon, wp_next.lat, wp_next.lon)
+            max_d_tan = min(dist_prev, dist_next) * 0.45
+
+            d_tan = min(d_tan_natural, max_d_tan)
+            if d_tan < 1.0:
+                continue
+
+            # Effective radius (may be smaller than R_natural for sharp reversals)
+            R_arc = d_tan / tan_half
 
             speed_kn = wp_curr.speed_knots if wp_curr.speed_knots > 0.1 else 1.0
             speed_ms = speed_kn * 0.51444
-            t_half_s = d_tan / speed_ms  # seconds from waypoint to arc start/end
+            t_half_s = d_tan / speed_ms
 
             t_start = wp_curr.time_offset - timedelta(seconds=t_half_s)
             t_end   = wp_curr.time_offset + timedelta(seconds=t_half_s)
 
-            # Clamp so arcs don't overlap adjacent waypoints
-            t_start = max(t_start, wp_prev.time_offset + timedelta(seconds=0.5))
-            t_end   = min(t_end,   wp_next.time_offset - timedelta(seconds=0.5))
+            # Safety clamp (shouldn't be needed after d_tan clamping, but be safe)
+            t_start = max(t_start, wp_prev.time_offset + timedelta(seconds=0.1))
+            t_end   = min(t_end,   wp_next.time_offset - timedelta(seconds=0.1))
 
             if t_end <= t_start:
                 continue
 
-            # ── Arc geometry (local East-North coords centred on wp_curr) ──
+            # ── Arc geometry in local East-North coords centred on wp_curr ──
             alpha_rad = math.radians(bearing_in)
             sin_a, cos_a = math.sin(alpha_rad), math.cos(alpha_rad)
 
-            # P1 = tangent point d_tan *before* waypoint on incoming bearing
+            # P1 = tangent point d_tan before waypoint on incoming bearing
             p1_e = -sin_a * d_tan
             p1_n = -cos_a * d_tan
 
-            # Centre is R perpendicular to incoming direction at P1
-            if delta_deg > 0:          # right turn → centre to the right
+            # Centre is R_arc perpendicular to incoming at P1
+            if delta_deg > 0:       # right turn → centre to the right
                 perp_e, perp_n = cos_a, -sin_a
-            else:                      # left turn  → centre to the left
+            else:                   # left turn  → centre to the left
                 perp_e, perp_n = -cos_a, sin_a
 
-            center_e = p1_e + R * perp_e
-            center_n = p1_n + R * perp_n
+            center_e = p1_e + R_arc * perp_e
+            center_n = p1_n + R_arc * perp_n
 
-            # Start angle: standard-math atan2 from centre to P1
             theta_start = math.atan2(p1_n - center_n, p1_e - center_e)
 
             arcs.append(_TurnArc(
@@ -249,7 +279,7 @@ class WaypointMovement:
                 t_end=t_end,
                 center_e=center_e,
                 center_n=center_n,
-                radius=R,
+                radius=R_arc,
                 theta_start=theta_start,
                 delta_rad=delta_rad,
                 speed_knots=speed_kn,
