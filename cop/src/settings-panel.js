@@ -5,6 +5,8 @@
  * Sections: Simulation, Display, Clustering, Overlays.
  */
 
+import * as Cesium from 'cesium';
+
 export function initSettingsPanel(viewer, entityManager, ws, config) {
   const cesiumContainer = document.getElementById('cesium-container');
 

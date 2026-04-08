@@ -11,6 +11,7 @@
  * 7. Start render loop
  */
 
+import * as Cesium from 'cesium';
 import './styles/main.css';
 import './styles/header.css';
 import './styles/sidebar.css';
@@ -97,15 +98,25 @@ async function main() {
   let settings;
 
   const ws = connectWebSocket(config.wsUrl, {
-    onSnapshot: (entities) => {
+    onSnapshot: (entities, data) => {
       entityManager.loadSnapshot(entities);
       // Clear timeline on snapshot (reset/restart/reconnect) to prevent duplicates (BUG-005)
       if (timeline) timeline.clearEvents();
       console.log(`Snapshot loaded: ${entities.length} entities`);
 
-      // Fly to the geographic center of the entities on every snapshot
-      // (covers initial load, scenario switch, and restart)
-      if (entities.length > 0) {
+      // Fly to scenario center if provided, otherwise average entity positions
+      if (data && data.center && data.center.lat && data.center.lon) {
+        // Zoom level → approximate altitude mapping
+        const zoomAltitudes = {
+          7: 800000, 8: 500000, 9: 300000, 10: 150000, 11: 100000,
+          12: 50000, 13: 25000, 14: 12000, 15: 5000
+        };
+        const alt = data.altitude || zoomAltitudes[data.zoom] || 150000;
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(data.center.lon, data.center.lat, alt),
+          duration: 2.0,
+        });
+      } else if (entities.length > 0) {
         const positions = entities
           .map(e => e.position)
           .filter(p => p && isFinite(p.latitude) && isFinite(p.longitude));

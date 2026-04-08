@@ -318,6 +318,27 @@ class ScenarioLoader:
             if movement:
                 movements[entity.entity_id] = movement
 
+        # Load included entity files (external YAML lists of scenario_entities)
+        scenario_dir = Path(scenario_path).parent
+        for include_path in scenario.get("include_entities", []):
+            inc_file = Path(include_path)
+            if not inc_file.is_absolute():
+                inc_file = scenario_dir / inc_file
+            if not inc_file.exists():
+                logger.warning(f"Include file not found: {inc_file}")
+                continue
+            with open(inc_file) as inc_f:
+                inc_entries = yaml.safe_load(inc_f)
+            if isinstance(inc_entries, list):
+                for entry in inc_entries:
+                    entity, movement = self._parse_scenario_entity(entry, start)
+                    entities[entity.entity_id] = entity
+                    if movement:
+                        movements[entity.entity_id] = movement
+                logger.info(
+                    f"Included {len(inc_entries)} entities from {inc_file.name}"
+                )
+
         # Parse background entities
         for bg_config in scenario.get("background_entities", []):
             bg_pairs = self._create_background_entities(bg_config, start)
@@ -372,6 +393,8 @@ class ScenarioLoader:
         for eid, entity in entities.items():
             domain = entity.domain.value
             if domain != "MARITIME":
+                continue
+            if entity.metadata.get("skip_terrain_check"):
                 continue
             movement = movements.get(eid)
             if isinstance(movement, PatrolMovement):

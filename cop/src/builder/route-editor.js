@@ -11,6 +11,7 @@
  * - Agency-colored route lines and waypoint markers
  */
 
+import * as Cesium from 'cesium';
 import { MODES } from './map-interaction.js';
 import { geodesicDistance, travelTime, formatDuration } from '../shared/map-utils.js';
 

@@ -119,6 +119,9 @@ class WebSocketAdapter(TransportAdapter):
         self._max_trail_points = 2000  # Max points per entity
         # Event history: list of event dicts
         self._event_history: list[dict] = []
+        # Scenario camera position (set by run_simulator)
+        self._scenario_center: tuple[float, float] | None = None
+        self._scenario_zoom: int | None = None
 
     @property
     def name(self) -> str:
@@ -228,10 +231,15 @@ class WebSocketAdapter(TransportAdapter):
         try:
             # Send snapshot of all current entities
             entities = self._entity_store.get_all_entities()
-            snapshot = json.dumps({
+            snap_msg = {
                 "type": "snapshot",
                 "entities": [e.to_dict() for e in entities],
-            })
+            }
+            if self._scenario_center:
+                snap_msg["center"] = {"lat": self._scenario_center[0], "lon": self._scenario_center[1]}
+            if self._scenario_zoom is not None:
+                snap_msg["zoom"] = self._scenario_zoom
+            snapshot = json.dumps(snap_msg)
             await websocket.send(snapshot)
 
             # Send trail history so new clients get full trails immediately
@@ -286,7 +294,12 @@ class WebSocketAdapter(TransportAdapter):
         elif msg_type == "snapshot":
             # Re-send full snapshot to requesting client - broadcast to all
             entities = self._entity_store.get_all_entities()
-            snapshot = json.dumps({"type": "snapshot", "entities": [e.to_dict() for e in entities]})
+            snap_msg = {"type": "snapshot", "entities": [e.to_dict() for e in entities]}
+            if self._scenario_center:
+                snap_msg["center"] = {"lat": self._scenario_center[0], "lon": self._scenario_center[1]}
+            if self._scenario_zoom is not None:
+                snap_msg["zoom"] = self._scenario_zoom
+            snapshot = json.dumps(snap_msg)
             await self._broadcast(snapshot)
             if self._route_data:
                 routes_msg = json.dumps({"type": "routes", "routes": self._route_data})

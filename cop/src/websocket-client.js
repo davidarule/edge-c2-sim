@@ -39,7 +39,7 @@ export function connectWebSocket(url, handlers) {
 
       switch (msg.type) {
         case 'snapshot':
-          if (handlers.onSnapshot) handlers.onSnapshot(msg.entities || []);
+          if (handlers.onSnapshot) handlers.onSnapshot(msg.entities || [], msg);
           break;
         case 'entity_update':
           if (handlers.onEntityUpdate) handlers.onEntityUpdate(msg.entity);

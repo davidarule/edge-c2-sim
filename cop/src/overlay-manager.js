@@ -4,6 +4,8 @@
  * No UI — the settings panel handles toggle checkboxes.
  */
 
+import * as Cesium from 'cesium';
+
 export function initOverlayManager(viewer, config) {
   const overlays = new Map();
 

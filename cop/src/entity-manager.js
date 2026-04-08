@@ -11,6 +11,7 @@
  * - Symbol caching for performance
  */
 
+import * as Cesium from 'cesium';
 import { renderSymbol, clearSymbolCache } from './symbol-renderer.js';
 
 const TRAIL_UPDATE_INTERVAL = 2; // Update trail every Nth position update

@@ -9,6 +9,7 @@
  * - Purely client-side, no WebSocket or simulator needed
  */
 
+import * as Cesium from 'cesium';
 import { geodesicDistance, geodesicInterpolate } from '../shared/map-utils.js';
 import { renderSymbol } from '../symbol-renderer.js';
 

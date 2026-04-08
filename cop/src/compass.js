@@ -3,6 +3,8 @@
  * Positioned bottom-right of cesium-container.
  */
 
+import * as Cesium from 'cesium';
+
 export function initCompass(viewer) {
   const container = document.getElementById('cesium-container');
 

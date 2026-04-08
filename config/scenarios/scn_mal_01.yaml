@@ -56,8 +56,8 @@ scenario:
   center: { lat: 4.80, lon: 100.00 }
   zoom: 9
 
-  # No background_entities — Malacca TSS geodata routes not yet created.
-  # Add when Claude Code creates geodata/routes/malacca_routes.geojson.
+  include_entities:
+  - ais_background_malacca.yaml
   background_entities: []
 
   # ================================================================

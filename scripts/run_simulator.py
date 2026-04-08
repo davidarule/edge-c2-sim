@@ -259,6 +259,9 @@ async def run(
             entity_store=store, clock=clock, port=port,
             scenario_duration_s=duration_s,
         )
+        if scenario_state:
+            ws_adapter._scenario_center = scenario_state.center
+            ws_adapter._scenario_zoom = scenario_state.zoom
         adapters.append(ws_adapter)
 
         # Extract planned routes for COP display
@@ -378,11 +381,18 @@ async def run(
                         except Exception:
                             pass
                 ws_adapter.set_route_data(route_data)
+                ws_adapter._scenario_center = fresh.center
+                ws_adapter._scenario_zoom = fresh.zoom
             entities = store.get_all_entities()
-            snapshot = json.dumps({
+            snap_msg = {
                 "type": "snapshot",
                 "entities": [e.to_dict() for e in entities],
-            })
+            }
+            if ws_adapter._scenario_center:
+                snap_msg["center"] = {"lat": ws_adapter._scenario_center[0], "lon": ws_adapter._scenario_center[1]}
+            if ws_adapter._scenario_zoom is not None:
+                snap_msg["zoom"] = ws_adapter._scenario_zoom
+            snapshot = json.dumps(snap_msg)
             await ws_adapter._broadcast(snapshot)
             if ws_adapter._route_data:
                 routes_msg = json.dumps({"type": "routes", "routes": ws_adapter._route_data})

@@ -62,6 +62,8 @@ scenario:
   center: { lat: 5.30, lon: 100.00 }
   zoom: 9
 
+  include_entities:
+  - ais_background_malacca.yaml
   background_entities: []
 
   # ================================================================

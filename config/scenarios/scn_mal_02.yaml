@@ -39,9 +39,11 @@ scenario:
     '
   duration_minutes: 75
   center:
-    lat: 3.3
-    lon: 100.77
-  zoom: 9
+    lat: 3.35
+    lon: 100.95
+  zoom: 11
+  include_entities:
+  - ais_background_malacca.yaml
   background_entities: []
   scenario_entities:
   - id: TANKER-001
@@ -253,36 +255,54 @@ scenario:
     callsign: KD Perak
     agency: MIL
     initial_position:
-      lat: 3.3
-      lon: 100.62
-    behavior: patrol
+      lat: 3.25
+      lon: 100.95
     waypoints:
-    - lat: 3.3
-      lon: 100.62
+    - lat: 3.25
+      lon: 100.95
       speed: 10
       time: 00:00
-    - lat: 3.31
-      lon: 100.605
+    - lat: 3.24
+      lon: 100.94
       speed: 10
       time: 00:08
-    - lat: 3.28
-      lon: 100.59
+    # 00:12 — Ordered to blocking position SW of tanker
+    - lat: 3.22
+      lon: 100.93
       speed: 22
       time: 00:14
-    - lat: 3.2
-      lon: 100.59
+    - lat: 3.16
+      lon: 100.92
       speed: 22
       time: 00:26
-    - lat: 3.1
-      lon: 100.6
+    - lat: 3.10
+      lon: 100.91
       speed: 22
-      time: 00:39
+      time: 00:36
+    - lat: 3.05
+      lon: 100.90
+      speed: 22
+      time: 00:46
+    # 00:55 — Reached blocking position 3.02°N 100.89°E
     - lat: 3.02
-      lon: 100.61
+      lon: 100.89
       speed: 5
-      time: 01:02
+      time: 00:55
     - lat: 3.02
-      lon: 100.61
+      lon: 100.89
+      speed: 5
+      time: 01:04
+    # 01:05 — Intercepting fleeing fast boats bearing 235°
+    - lat: 2.98
+      lon: 100.85
+      speed: 22
+      time: 01:08
+    - lat: 2.95
+      lon: 100.82
+      speed: 22
+      time: 01:12
+    - lat: 2.95
+      lon: 100.82
       speed: 5
       time: 01:15
     metadata:
@@ -299,6 +319,7 @@ scenario:
       lon: 101.549
     behavior: standby
     waypoints:
+    # Standby at RMAF Subang until scramble order
     - lat: 3.131
       lon: 101.549
       speed: 0
@@ -307,46 +328,68 @@ scenario:
       lon: 101.549
       speed: 0
       time: 00:08
-    - lat: 3.2
+    # 00:08 — Scramble. Transit to scene at 150kn
+    - lat: 3.20
       lon: 101.17
       speed: 150
       time: 00:11
-    - lat: 3.32
-      lon: 101.03999999999999
+    - lat: 3.35
+      lon: 101.04
       speed: 150
       time: 00:16
-    - lat: 3.53
-      lon: 100.89
-      speed: 120
+    # 00:22 — On scene. Covert observation orbit at 3nm standoff (NE of tanker)
+    - lat: 3.62
+      lon: 100.91
+      speed: 80
+      time: 00:22
+    # Standoff orbit — 3nm circle around tanker (3.565, 100.865)
+    - lat: 3.57
+      lon: 100.92
+      speed: 80
       time: 00:28
-    - lat: 3.58
-      lon: 100.85
+    - lat: 3.52
+      lon: 100.91
       speed: 80
       time: 00:34
-    - lat: 3.54
-      lon: 100.83
-      speed: 80
-      time: 00:40
-    - lat: 3.555
-      lon: 100.88
-      speed: 80
-      time: 00:48
-    - lat: 3.58
+    - lat: 3.52
       lon: 100.86
       speed: 80
-      time: 00:56
-    - lat: 3.51
-      lon: 100.78999999999999
+      time: 00:40
+    - lat: 3.57
+      lon: 100.82
+      speed: 80
+      time: 00:46
+    # 00:50 — Searchlight authorised. Close in over target
+    - lat: 3.59
+      lon: 100.87
+      speed: 60
+      time: 00:50
+    - lat: 3.57
+      lon: 100.86
+      speed: 40
+      time: 00:54
+    # 01:00 — Pirates fleeing SW. Pursue
+    - lat: 3.55
+      lon: 100.86
+      speed: 60
+      time: 01:00
+    - lat: 3.45
+      lon: 100.80
+      speed: 130
+      time: 01:05
+    - lat: 3.10
+      lon: 100.85
       speed: 130
       time: 01:09
-    - lat: 3.45
-      lon: 100.71
-      speed: 130
+    # 01:10 — Over KD Perak / fast boats. Overhead illumination
+    - lat: 2.97
+      lon: 100.83
+      speed: 80
+      time: 01:12
+    - lat: 2.97
+      lon: 100.83
+      speed: 40
       time: 01:15
-    - lat: 3.35
-      lon: 100.87
-      speed: 120
-      time: 01:21
     metadata:
       aircraft_type: Airbus H225M (EC725) Caracal
       home_base: RMAF Subang
@@ -367,22 +410,41 @@ scenario:
       lon: 100.8
     behavior: standby
     waypoints:
+    # Embarked on KM Perantau — same waypoints as MMEA-PV-001
     - lat: 3.35
       lon: 100.8
-      speed: 0
+      speed: 12
       time: 00:00
+    - lat: 3.355
+      lon: 100.785
+      speed: 12
+      time: 00:06
     - lat: 3.225
       lon: 100.695
       speed: 22
       time: 00:12
+    - lat: 3.32
+      lon: 100.74
+      speed: 22
+      time: 00:25
     - lat: 3.42
       lon: 100.785
       speed: 22
       time: 00:38
+    - lat: 3.51
+      lon: 100.83
+      speed: 22
+      time: 00:50
     - lat: 3.555
       lon: 100.86
-      speed: 22
+      speed: 10
+      time: 01:01
+    # 01:11 — KM Perantau alongside tanker. UTK deploys RHIB
+    - lat: 3.555
+      lon: 100.86
+      speed: 2
       time: 01:11
+    # 01:12 — RHIB alongside MT Labuan Palm, fast-rope boarding
     - lat: 3.563
       lon: 100.865
       speed: 4

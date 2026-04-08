@@ -10,6 +10,7 @@
  * - All entities with patrol_area shown (faded for non-editing)
  */
 
+import * as Cesium from 'cesium';
 import { MODES } from './map-interaction.js';
 
 // ── Constants ──

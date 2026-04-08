@@ -6,6 +6,8 @@
  * globe, and resume by pressing the demo mode button.
  */
 
+import * as Cesium from 'cesium';
+
 const CAMERA_PRESETS = {
   DETECTION:  { altitude: 150000, pitch: -45, duration: 2.0 },
   ALERT:      { altitude: 100000, pitch: -50, duration: 1.5 },

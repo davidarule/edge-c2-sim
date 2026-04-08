@@ -8,6 +8,7 @@
  * - Symbols rendered using DISA SVG compositor
  */
 
+import * as Cesium from 'cesium';
 import { renderSymbol } from '../symbol-renderer.js';
 import { MODES } from './map-interaction.js';
 

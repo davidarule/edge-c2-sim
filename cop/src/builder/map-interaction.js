@@ -5,6 +5,8 @@
  * Only one mode active at a time. SELECT is default.
  */
 
+import * as Cesium from 'cesium';
+
 // ── Mode constants ──
 
 export const MODES = {

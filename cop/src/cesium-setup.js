@@ -1,6 +1,7 @@
 /**
  * Initialize CesiumJS viewer with dark theme and ESSZONE camera.
  */
+import * as Cesium from 'cesium';
 
 export async function initCesium(containerId, config) {
   Cesium.Ion.defaultAccessToken = config.cesiumToken;
