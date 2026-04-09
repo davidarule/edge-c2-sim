@@ -30,7 +30,7 @@ import { initOverlayManager } from './overlay-manager.js';
 import { initSettingsPanel } from './settings-panel.js';
 import { initCompass } from './compass.js';
 import { initDemoMode } from './demo-mode.js';
-import { preloadSymbols, SYMBOL_ASPECT_RATIO } from './symbol-renderer.js';
+import { preloadSymbols } from './symbol-renderer.js';
 import { initBuilderMode, createBuilderContainers } from './builder/builder-mode.js';
 import { initOrbatPanel } from './orbat/orbat-panel.js';
 import { initAssetDetail } from './orbat/asset-detail.js';
@@ -719,7 +719,9 @@ async function main() {
           ${(entityData.entity_type || '').replace(/_/g, ' ')} | ${entityData.status || ''}<br>
           Speed: ${(entityData.speed_knots || 0).toFixed(1)} kts | HDG: ${Math.round(entityData.heading_deg || 0)}\u00b0
         `;
-        // Position tooltip fixed above the entity's screen position (not cursor)
+        // Position tooltip fixed above the entity's screen position (not cursor).
+        // worldToWindowCoordinates returns canvas-relative coords; tooltip is in
+        // viewport/body space, so add the canvas's bounding rect offset.
         const pos = entityData.position;
         const cartesian = pos
           ? Cesium.Cartesian3.fromDegrees(pos.longitude, pos.latitude, pos.altitude_m || 0)
@@ -728,27 +730,37 @@ async function main() {
           ? Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, cartesian)
           : null;
 
+        // Measure tooltip height while offscreen (offsetHeight=0 when display:none)
+        tooltip.style.left = '-9999px';
+        tooltip.style.top = '0';
+        tooltip.style.transform = 'none';
+        tooltip.classList.add('visible');
+
         if (sp) {
+          const canvasRect = viewer.canvas.getBoundingClientRect();
           const tooltipWidth = tooltip.offsetWidth || 200;
-          const tooltipHeight = tooltip.offsetHeight || 80;
+          const tooltipHeight = tooltip.offsetHeight || 60;
           const viewportWidth = window.innerWidth;
-          // sp.y is the icon centre; icon displayed height = iconSizePx * aspect ratio
-          const iconHalfH = (entityManager.getIconSizePx() * SYMBOL_ASPECT_RATIO) / 2;
-          const iconTopY = sp.y - iconHalfH;
 
-          let left = sp.x;
-          let top = iconTopY - tooltipHeight - 4;  // 4px gap above icon top edge
+          // Convert canvas-relative sp to viewport coords, then calc icon geometry
+          const vpX = sp.x + canvasRect.left;
+          const vpY = sp.y + canvasRect.top;
+          // DISA SVG frames have whitespace padding; 0.38 approximates the visible icon half-height
+          const iconHalfH = entityManager.getIconSizePx() * 0.30;
 
-          // Clamp to viewport edges
+          let left = vpX;
+          let top = vpY - iconHalfH - tooltipHeight - 4;  // 4px gap above icon top
+
+          // Clamp horizontally to viewport
           if (left - tooltipWidth / 2 < 0) left = tooltipWidth / 2;
           if (left + tooltipWidth / 2 > viewportWidth) left = viewportWidth - tooltipWidth / 2;
-          if (top < 0) top = sp.y + iconHalfH + 4;  // flip below if no room above
+          // Flip below icon if no room above
+          if (top < 0) top = vpY + iconHalfH + 4;
 
           tooltip.style.left = `${left}px`;
           tooltip.style.top = `${top}px`;
           tooltip.style.transform = 'translate(-50%, 0)';
         }
-        tooltip.classList.add('visible');
         return;
       }
     }

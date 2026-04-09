@@ -15,7 +15,7 @@
  */
 
 import * as Cesium from 'cesium';
-import { renderSymbol, clearSymbolCache, SYMBOL_ASPECT_RATIO } from './symbol-renderer.js';
+import { renderSymbol, clearSymbolCache } from './symbol-renderer.js';
 
 const TRAIL_UPDATE_INTERVAL = 2; // Update trail every Nth position update
 const SYMBOL_RENDER_SIZE = 256;  // Render SVGs at 256px — crisp up to 80px display at 2× DPR
@@ -63,8 +63,8 @@ export function initEntityManager(viewer, config) {
   // === HTML LABEL OVERLAY ===
   // Pool of divs positioned over the Cesium canvas each RAF frame.
   const LABEL_POOL_SIZE = 150;
-  const LABEL_MAX_ALT = 250000;    // no labels above 250km
-  const LABEL_AIS_MAX_ALT = 100000; // AIS labels only below 100km
+  const LABEL_MAX_ALT = 2000000;   // no labels above 2,000km
+  const LABEL_AIS_MAX_ALT = 500000; // AIS labels only below 500km
   const LABEL_FRAME_MS = 33;       // ~30fps
 
   const labelOverlay = document.createElement('div');
@@ -122,8 +122,8 @@ export function initEntityManager(viewer, config) {
       const off = declutterOffsets.get(id);
       const sx = sp.x + (off ? off.x : 0);
       // Place label 4px below the icon's bottom edge.
-      // Icon centre is at sp.y; displayed height = iconSizePx * SYMBOL_ASPECT_RATIO.
-      const iconHalfH = (globalIconSizePx * SYMBOL_ASPECT_RATIO) / 2;
+      // The visible symbol is approximately square, so use iconSizePx as both dimensions.
+      const iconHalfH = globalIconSizePx * 0.30;
       const sy = sp.y + (off ? off.y : 0) + iconHalfH + 4;
 
       // Frustum check — skip off-screen entities
