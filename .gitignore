@@ -32,6 +32,7 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.playwright-mcp/
 *.pem
 *.key
 credentials.json
