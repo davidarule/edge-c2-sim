@@ -2,13 +2,12 @@
 # Generated: 2026-04-08T18:43:12Z
 # Source: ais_capture.db
 # Bounding box: 1.0°N–7.0°N, 98.5°E–103.0°E
-# Entities: 300 (299 moving, 1 stationary)
+# Entities: 299 (298 moving, 1 stationary)
 #
 # Entity type breakdown:
 #   CIVILIAN_CARGO: 148
-#   CIVILIAN_TANKER: 69
+#   CIVILIAN_TANKER: 90
 #   CIVILIAN_BOAT: 50
-#   CIVILIAN_TANKER_VLCC: 21
 #   CIVILIAN_PASSENGER: 11
 #   CIVILIAN_FISHING: 1
 #
@@ -649,7 +648,7 @@
     year_built: '2013'
     destination_declared: MYTBR
 - id: AIS-422219000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT HALTI
   initial_position:
     lat: 2.18647
@@ -1803,7 +1802,7 @@
     year_built: '2012'
     destination_declared: PENANG.MALAYSIA
 - id: AIS-533189000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT TENAGA SATU
   initial_position:
     lat: 2.25478
@@ -1857,7 +1856,7 @@
     deadweight: 70948
     year_built: '1982'
 - id: AIS-538009409
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT YASA SOUTHERN CROSS
   initial_position:
     lat: 2.68955
@@ -2010,7 +2009,7 @@
     beam_m: 35.0
     destination_declared: MYPKG-N >MYPRA
 - id: AIS-613414209
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT TITAN
   initial_position:
     lat: 2.17276
@@ -2466,7 +2465,7 @@
     destination_lat: 5.4025
     destination_lon: 100.347
 - id: AIS-307078000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT URANUS
   initial_position:
     lat: 1.92313
@@ -2518,7 +2517,7 @@
     year_built: '2005'
     destination_declared: MUAR-MALAYSIA
 - id: AIS-351915000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT TEDORIGAWA
   initial_position:
     lat: 2.15764
@@ -2835,7 +2834,7 @@
     year_built: '2007'
     destination_declared: SUNGAI PAKNING-INDO
 - id: AIS-355015000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT PIS PIONEER
   initial_position:
     lat: 1.97847
@@ -3701,7 +3700,7 @@
     year_built: '2023'
     destination_declared: PENANG-BUTWORTH V.V
 - id: AIS-533868000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT SERI BALHAF
   initial_position:
     lat: 2.2188
@@ -3749,7 +3748,7 @@
     year_built: '2009'
     destination_declared: MY SGU
 - id: AIS-533894000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT SERI BALQIS
   initial_position:
     lat: 2.20836
@@ -3825,7 +3824,7 @@
     year_built: '2009'
     destination_declared: MELAKA
 - id: AIS-533920000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT PUTERI MUTIARA SATU
   initial_position:
     lat: 2.25013
@@ -3883,7 +3882,7 @@
     destination_lat: 2.24573
     destination_lon: 102.1279
 - id: AIS-538006822
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT HERCULES I
   initial_position:
     lat: 2.30164
@@ -3959,7 +3958,7 @@
     year_built: '2017'
     destination_declared: MYSLT
 - id: AIS-538008396
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT HONGKONG ENERGY
   initial_position:
     lat: 2.341
@@ -4250,7 +4249,7 @@
     time: 03:48
   - lat: 2.20826
     lon: 101.86006
-    speed: 102.3
+    speed: 15.8
     time: 04:19
   - lat: 2.15254
     lon: 101.93617
@@ -4329,7 +4328,7 @@
     year_built: '2023'
     destination_declared: MYPKG(NORTH PORT)
 - id: AIS-636014688
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT ATLANTAS
   initial_position:
     lat: 1.64687
@@ -4998,7 +4997,7 @@
     year_built: '2010'
     destination_declared: PWBGA
 - id: AIS-352785000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT FELI
   initial_position:
     lat: 2.29247
@@ -6688,7 +6687,7 @@
     destination_lat: 1.25937
     destination_lon: 103.7544
 - id: AIS-248993000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT MINERVA ALICE
   initial_position:
     lat: 3.16323
@@ -7257,7 +7256,7 @@
     destination_lat: 6.30631
     destination_lon: 99.82125
 - id: AIS-636023905
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT KARADENIZ LNGT POWERSHIP OCEAN
   initial_position:
     lat: 2.336
@@ -7364,7 +7363,7 @@
     year_built: '1996'
     destination_declared: YANGON
 - id: AIS-210060000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT ETYFA PROMETHEAS
   initial_position:
     lat: 2.32635
@@ -7411,7 +7410,7 @@
     year_built: '2002'
     destination_declared: TBC
 - id: AIS-215401000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT AFRA ROSSI
   initial_position:
     lat: 3.05543
@@ -8119,7 +8118,7 @@
     time: 04:35
   - lat: 2.05029
     lon: 102.55179
-    speed: 102.3
+    speed: 0.0
     time: 04:43
   - lat: 2.05031
     lon: 102.55186
@@ -8127,7 +8126,7 @@
     time: 05:35
   - lat: 2.05027
     lon: 102.55188
-    speed: 102.3
+    speed: 0.0
     time: 05:52
   metadata:
     skip_terrain_check: true
@@ -8402,7 +8401,7 @@
     destination_lat: 1.25937
     destination_lon: 103.7544
 - id: AIS-311001874
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT GAS POLARIS
   initial_position:
     lat: 2.34596
@@ -10395,7 +10394,7 @@
     year_built: '2008'
     destination_declared: SG UDANG
 - id: AIS-563574000
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT SHANDONG JUNIPER
   initial_position:
     lat: 2.31338
@@ -10611,7 +10610,7 @@
     year_built: '1976'
     destination_declared: PENANG MY
 - id: AIS-636015015
-  type: CIVILIAN_TANKER_VLCC
+  type: CIVILIAN_TANKER
   callsign: MT SMYRNI
   initial_position:
     lat: 1.9274
@@ -10786,47 +10785,6 @@
     length_m: 68.0
     beam_m: 12.0
     destination_declared: SAUDIOFFSHORE,KHAJI
-- id: AIS-None
-  type: CIVILIAN_CARGO
-  callsign: AIS-None
-  initial_position:
-    lat: 4.43655
-    lon: 100.56698
-  waypoints:
-  - lat: 4.43655
-    lon: 100.56698
-    speed: 7.8
-    time: 00:00
-  - lat: 1.45553
-    lon: 102.13849
-    speed: 0.0
-    time: 00:24
-  - lat: 5.0099
-    lon: 100.4305
-    speed: 0.0
-    time: 00:31
-  - lat: 3.28235
-    lon: 101.13657
-    speed: 2.5
-    time: 00:42
-  - lat: 5.12955
-    lon: 98.86195
-    speed: 17.7
-    time: 00:45
-  - lat: 1.6625
-    lon: 101.68684
-    speed: 0.0
-    time: 00:54
-  - lat: 3.04778
-    lon: 101.4436
-    speed: 7.4
-    time: 00:59
-  metadata:
-    skip_terrain_check: true
-    ais_active: true
-    mmsi: None
-    source: AIS_REAL
-    nav_status: Under Way Using Engine
 - id: AIS-200000079
   type: CIVILIAN_BOAT
   callsign: MV SRI PERKASA 90
