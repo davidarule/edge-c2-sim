@@ -50,8 +50,8 @@ scenario:
     national forces, cross-border handoff procedures, concurrent multi-incident
     management, joint boarding protocols, and AIS anomaly detection.
   duration_minutes: 65
-  center: { lat: 2.50, lon: 102.00 }
-  zoom: 8
+  center: { lat: 3.05, lon: 101.05 }
+  zoom: 10
 
   include_entities:
   - ais_background_malacca.yaml

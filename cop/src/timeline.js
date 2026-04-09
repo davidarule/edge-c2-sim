@@ -3,6 +3,8 @@
  * Resizable via drag handle, with expand/collapse toggle.
  */
 
+import * as Cesium from 'cesium';
+
 export function initTimeline(containerId, viewer, config, entityManager) {
   const container = document.getElementById(containerId);
   if (!container) return {};
