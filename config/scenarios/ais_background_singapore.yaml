@@ -557,8 +557,8 @@
   type: CIVILIAN_CARGO
   callsign: MV FS89
   initial_position:
-    lat: 1.46148
-    lon: 103.87455
+    lat: 1.4615
+    lon: 103.8645
   waypoints:
   - lat: 1.46148
     lon: 103.87455
@@ -733,8 +733,8 @@
   type: CIVILIAN_BOAT
   callsign: MV PIONEER 5002
   initial_position:
-    lat: 1.30518
-    lon: 103.66953
+    lat: 1.3052
+    lon: 103.6595
   waypoints:
   - lat: 1.30518
     lon: 103.66953
@@ -825,8 +825,8 @@
   type: CIVILIAN_BOAT
   callsign: MV JMS MENANG
   initial_position:
-    lat: 1.29999
-    lon: 103.75585
+    lat: 1.2929
+    lon: 103.7488
   waypoints:
   - lat: 1.29999
     lon: 103.75585
@@ -1644,8 +1644,8 @@
   type: CIVILIAN_CARGO
   callsign: MV MARIBO MAERSK
   initial_position:
-    lat: 1.35305
-    lon: 103.5481
+    lat: 1.3531
+    lon: 103.5581
   waypoints:
   - lat: 1.35305
     lon: 103.5481
@@ -2081,8 +2081,8 @@
   type: CIVILIAN_BOAT
   callsign: MV KAHALA
   initial_position:
-    lat: 1.26575
-    lon: 103.8115
+    lat: 1.2587
+    lon: 103.8044
   waypoints:
   - lat: 1.26575
     lon: 103.8115
@@ -5069,8 +5069,8 @@
   type: CIVILIAN_BOAT
   callsign: MV VICTON
   initial_position:
-    lat: 1.26569
-    lon: 103.81154
+    lat: 1.2586
+    lon: 103.8045
   waypoints:
   - lat: 1.26569
     lon: 103.81154
@@ -5202,8 +5202,8 @@
   type: CIVILIAN_BOAT
   callsign: MV ASIA
   initial_position:
-    lat: 1.26543
-    lon: 103.81183
+    lat: 1.2584
+    lon: 103.8048
   waypoints:
   - lat: 1.26543
     lon: 103.81183
@@ -6344,8 +6344,8 @@
   type: CIVILIAN_PASSENGER
   callsign: MV FOS SCORPIO
   initial_position:
-    lat: 1.30358
-    lon: 103.75451
+    lat: 1.2965
+    lon: 103.7474
   waypoints:
   - lat: 1.30358
     lon: 103.75451
@@ -9025,8 +9025,8 @@
   type: CIVILIAN_CARGO
   callsign: MV HR TURAG
   initial_position:
-    lat: 1.27208
-    lon: 103.78602
+    lat: 1.2792
+    lon: 103.7789
   waypoints:
   - lat: 1.27208
     lon: 103.78602
@@ -12037,8 +12037,8 @@
   type: CIVILIAN_BOAT
   callsign: MV AMARANTA II
   initial_position:
-    lat: 1.48447
-    lon: 103.83241
+    lat: 1.4745
+    lon: 103.8324
   waypoints:
   - lat: 1.48447
     lon: 103.83241
@@ -12168,8 +12168,8 @@
   type: CIVILIAN_BOAT
   callsign: MV TWO FLOWER
   initial_position:
-    lat: 1.29417
-    lon: 103.76158
+    lat: 1.2942
+    lon: 103.7516
   waypoints:
   - lat: 1.29417
     lon: 103.76158
@@ -12219,8 +12219,8 @@
   type: CIVILIAN_BOAT
   callsign: MV CHARLEY
   initial_position:
-    lat: 1.29503
-    lon: 103.7599
+    lat: 1.295
+    lon: 103.7499
   waypoints:
   - lat: 1.29503
     lon: 103.7599
@@ -12303,8 +12303,8 @@
   type: CIVILIAN_BOAT
   callsign: MV SSE VALENCIA
   initial_position:
-    lat: 1.30753
-    lon: 103.72739
+    lat: 1.3005
+    lon: 103.7203
   waypoints:
   - lat: 1.30753
     lon: 103.72739
@@ -12480,8 +12480,8 @@
   type: CIVILIAN_BOAT
   callsign: MV PAIZA ONE
   initial_position:
-    lat: 1.26584
-    lon: 103.81141
+    lat: 1.2588
+    lon: 103.8043
   waypoints:
   - lat: 1.26584
     lon: 103.81141
@@ -13895,8 +13895,8 @@
   type: CIVILIAN_BOAT
   callsign: MV GUNANUSA HAILONG 106
   initial_position:
-    lat: 1.3052
-    lon: 103.67087
+    lat: 1.2981
+    lon: 103.6638
   waypoints:
   - lat: 1.3052
     lon: 103.67087
@@ -14235,8 +14235,8 @@
   type: CIVILIAN_BOAT
   callsign: MV ASEAN PROTECTOR
   initial_position:
-    lat: 1.29963
-    lon: 103.75593
+    lat: 1.2926
+    lon: 103.7489
   waypoints:
   - lat: 1.29963
     lon: 103.75593
@@ -14291,8 +14291,8 @@
   type: CIVILIAN_BOAT
   callsign: MV LL DONNY
   initial_position:
-    lat: 1.30121
-    lon: 103.75603
+    lat: 1.2941
+    lon: 103.749
   waypoints:
   - lat: 1.30121
     lon: 103.75603
@@ -14601,8 +14601,8 @@
   type: CIVILIAN_CARGO
   callsign: MV ATAKA II
   initial_position:
-    lat: 1.30515
-    lon: 103.72549
+    lat: 1.2981
+    lon: 103.7184
   waypoints:
   - lat: 1.30515
     lon: 103.72549
@@ -14873,8 +14873,8 @@
   type: CIVILIAN_CARGO
   callsign: MV YOBYO NO. 205
   initial_position:
-    lat: 1.29847
-    lon: 103.75265
+    lat: 1.2985
+    lon: 103.7426
   waypoints:
   - lat: 1.29847
     lon: 103.75265
@@ -14975,8 +14975,8 @@
   type: CIVILIAN_BOAT
   callsign: MV YTC TUG 26
   initial_position:
-    lat: 1.47801
-    lon: 103.83303
+    lat: 1.4709
+    lon: 103.826
   waypoints:
   - lat: 1.47801
     lon: 103.83303
@@ -15310,8 +15310,8 @@
   type: CIVILIAN_BOAT
   callsign: MV LANPAN 21
   initial_position:
-    lat: 1.42587
-    lon: 103.95941
+    lat: 1.4259
+    lon: 103.9494
   waypoints:
   - lat: 1.42587
     lon: 103.95941
@@ -15474,8 +15474,8 @@
   type: CIVILIAN_BOAT
   callsign: MV ASB MUTIARA 8
   initial_position:
-    lat: 1.30272
-    lon: 103.75568
+    lat: 1.2956
+    lon: 103.7486
   waypoints:
   - lat: 1.30272
     lon: 103.75568
@@ -15554,8 +15554,8 @@
   type: CIVILIAN_BOAT
   callsign: MV LUNA
   initial_position:
-    lat: 1.26469
-    lon: 103.81292
+    lat: 1.2647
+    lon: 103.8029
   waypoints:
   - lat: 1.26469
     lon: 103.81292
@@ -15597,8 +15597,8 @@
   type: CIVILIAN_BOAT
   callsign: MV BRIDGEWATER 63
   initial_position:
-    lat: 1.29991
-    lon: 103.75696
+    lat: 1.2928
+    lon: 103.7499
   waypoints:
   - lat: 1.29991
     lon: 103.75696
@@ -15896,8 +15896,8 @@
   type: CIVILIAN_BOAT
   callsign: MV TNT LEISURE
   initial_position:
-    lat: 1.26547
-    lon: 103.81166
+    lat: 1.2584
+    lon: 103.8046
   waypoints:
   - lat: 1.26547
     lon: 103.81166
@@ -15947,8 +15947,8 @@
   type: CIVILIAN_BOAT
   callsign: MV BRIDGEWATER 132
   initial_position:
-    lat: 1.29998
-    lon: 103.75703
+    lat: 1.2929
+    lon: 103.75
   waypoints:
   - lat: 1.29998
     lon: 103.75703
@@ -15999,8 +15999,8 @@
   type: CIVILIAN_BOAT
   callsign: MV TIONG WOON OCEAN 18
   initial_position:
-    lat: 1.30283
-    lon: 103.75533
+    lat: 1.2958
+    lon: 103.7483
   waypoints:
   - lat: 1.30283
     lon: 103.75533
@@ -16491,8 +16491,8 @@
   type: CIVILIAN_BOAT
   callsign: MV KEYFIELD ITQAN
   initial_position:
-    lat: 1.30132
-    lon: 103.75493
+    lat: 1.2942
+    lon: 103.7479
   waypoints:
   - lat: 1.30132
     lon: 103.75493
@@ -16589,8 +16589,8 @@
   type: CIVILIAN_BOAT
   callsign: MV QL INFINITY
   initial_position:
-    lat: 1.478
-    lon: 103.81818
+    lat: 1.4709
+    lon: 103.8111
   waypoints:
   - lat: 1.478
     lon: 103.81818
@@ -16886,8 +16886,8 @@
   type: CIVILIAN_BOAT
   callsign: MV BINTANG TIMUR
   initial_position:
-    lat: 1.30305
-    lon: 103.75469
+    lat: 1.296
+    lon: 103.7476
   waypoints:
   - lat: 1.30305
     lon: 103.75469
@@ -16933,8 +16933,8 @@
   type: CIVILIAN_BOAT
   callsign: MV KIM HENG 3803
   initial_position:
-    lat: 1.29893
-    lon: 103.75749
+    lat: 1.2919
+    lon: 103.7504
   waypoints:
   - lat: 1.29893
     lon: 103.75749

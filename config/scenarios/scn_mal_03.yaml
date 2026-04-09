@@ -55,6 +55,10 @@ scenario:
 
   include_entities:
   - ais_background_malacca.yaml
+  - ais_background_south_malacca.yaml
+  - ais_background_sg_west.yaml
+  - ais_background_singapore.yaml
+  - ais_background_east_singapore.yaml
   background_entities: []
 
   # ================================================================
@@ -113,9 +117,10 @@ scenario:
         - { lat: 3.035, lon: 101.118, speed: 3,  time: "00:38" }
         # Joint boarding — accepts custody of Indonesian crew
         - { lat: 3.035, lon: 101.118, speed: 2,  time: "00:42" }
-        # Departs with fishing vessel in tow for Indonesian port
-        - { lat: 2.980, lon: 101.080, speed: 8,  time: "00:55" }
-        - { lat: 2.900, lon: 101.020, speed: 8,  time: "01:05" }
+        # Departs with fishing vessel in tow — slow speed for towing
+        - { lat: 3.035, lon: 101.118, speed: 0,  time: "00:55" }
+        - { lat: 2.980, lon: 101.080, speed: 6,  time: "01:00" }
+        - { lat: 2.900, lon: 101.020, speed: 6,  time: "01:05" }
       metadata:
         vessel_type: "Bakamla 110m Offshore Patrol Vessel"
         callsign_radio: "KN PULAU NIPAH"
@@ -174,9 +179,10 @@ scenario:
         - { lat: 3.038, lon: 101.120, speed: 0, time: "00:30" }
         # Detained — stationary during joint boarding
         - { lat: 3.038, lon: 101.120, speed: 0, time: "00:45" }
-        # Bakamla takes custody — departs toward Indonesia
-        - { lat: 2.980, lon: 101.082, speed: 5, time: "00:58" }
-        - { lat: 2.900, lon: 101.022, speed: 5, time: "01:05" }
+        # Under tow by Bakamla — same speed and waypoints as KN Pulau Nipah
+        - { lat: 3.035, lon: 101.118, speed: 0, time: "00:55" }
+        - { lat: 2.980, lon: 101.080, speed: 6, time: "01:00" }
+        - { lat: 2.900, lon: 101.020, speed: 6, time: "01:05" }
       metadata:
         ais_active: true
         mmsi: "510123456"
