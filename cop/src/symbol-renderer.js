@@ -10,6 +10,9 @@
  * fires on `window` so listeners can refresh affected entities.
  */
 
+/** Aspect ratio of all DISA JMSML symbols: height = width × SYMBOL_ASPECT_RATIO */
+export const SYMBOL_ASPECT_RATIO = 792 / 612;  // ≈ 1.294
+
 // Caches: raw SVG text keyed by path, rendered data-URLs keyed by SIDC+size
 const svgTextCache = new Map();
 const symbolCache  = new Map();

@@ -266,50 +266,51 @@ scenario:
       lon: 100.94
       speed: 10
       time: 00:08
-    # 00:12 — Ordered to blocking position SW of tanker
-    - lat: 3.22
-      lon: 100.93
-      speed: 22
-      time: 00:14
-    - lat: 3.16
-      lon: 100.92
-      speed: 22
-      time: 00:26
-    - lat: 3.10
+    # 00:12 — Ordered to blocking position SW of tanker on pirate escape vector
+    - lat: 3.26
       lon: 100.91
       speed: 22
+      time: 00:14
+    - lat: 3.30
+      lon: 100.84
+      speed: 22
+      time: 00:26
+    - lat: 3.34
+      lon: 100.77
+      speed: 22
       time: 00:36
-    - lat: 3.05
-      lon: 100.90
+    # 00:45 — Reached blocking position 3.35°N 100.75°E — on SW escape vector toward Riau Islands
+    - lat: 3.35
+      lon: 100.75
+      speed: 5
+      time: 00:45
+    - lat: 3.35
+      lon: 100.75
+      speed: 5
+      time: 01:00
+    # 01:00 — Pirates fleeing SW. They are heading directly toward KD Perak's position.
+    - lat: 3.38
+      lon: 100.72
       speed: 22
-      time: 00:46
-    # 00:55 — Reached blocking position 3.02°N 100.89°E
-    - lat: 3.02
-      lon: 100.89
-      speed: 5
-      time: 00:55
-    - lat: 3.02
-      lon: 100.89
-      speed: 5
       time: 01:04
-    # 01:05 — Intercepting fleeing fast boats bearing 235°
-    - lat: 2.98
-      lon: 100.85
-      speed: 22
+    # Intercept — fast boats slowing, KD Perak alongside
+    - lat: 3.42
+      lon: 100.70
+      speed: 10
       time: 01:08
-    - lat: 2.95
-      lon: 100.82
-      speed: 22
+    - lat: 3.42
+      lon: 100.70
+      speed: 5
       time: 01:12
-    - lat: 2.95
-      lon: 100.82
+    - lat: 3.42
+      lon: 100.70
       speed: 5
       time: 01:15
     metadata:
       vessel_type: Kedah-class Offshore Patrol Vessel
       hull_number: '173'
       callsign_radio: KD PERAK
-      notes: Blocking SW escape route toward Indonesian EEZ.
+      notes: Blocking SW escape route toward Indonesian EEZ. Intercept position 3.42°N 100.70°E.
   - id: RMAF-HELI-001
     type: RMAF_HELICOPTER
     callsign: TUDM Caracal 1
@@ -368,26 +369,26 @@ scenario:
       lon: 100.86
       speed: 40
       time: 00:54
-    # 01:00 — Pirates fleeing SW. Pursue
+    # 01:00 — Pirates fleeing SW. Pursue toward KD Perak intercept position
     - lat: 3.55
       lon: 100.86
       speed: 60
       time: 01:00
-    - lat: 3.45
+    - lat: 3.50
       lon: 100.80
       speed: 130
-      time: 01:05
-    - lat: 3.10
-      lon: 100.85
+      time: 01:04
+    - lat: 3.44
+      lon: 100.73
       speed: 130
-      time: 01:09
-    # 01:10 — Over KD Perak / fast boats. Overhead illumination
-    - lat: 2.97
-      lon: 100.83
+      time: 01:08
+    # 01:10 — Over KD Perak / fast boats at 3.42°N 100.70°E. Overhead illumination
+    - lat: 3.42
+      lon: 100.70
       speed: 80
-      time: 01:12
-    - lat: 2.97
-      lon: 100.83
+      time: 01:11
+    - lat: 3.42
+      lon: 100.70
       speed: 40
       time: 01:15
     metadata:
@@ -530,12 +531,12 @@ scenario:
     type: ORDER
     description: MMEA notifies RMN. KD Perak (173) ordered to establish blocking position
       to the SW — cut off pirate escape route toward Indonesian EEZ and Sumatran coast.
-      KD Perak ETA blocking position 50 minutes.
+      KD Perak ETA blocking position 33 minutes.
     target: RMN-OPV-001
     action: deploy
     destination:
-      lat: 3.02
-      lon: 100.89
+      lat: 3.35
+      lon: 100.75
   - time: 00:15
     type: ALERT
     description: 'SSAS secondary pulse received. Maritime Intelligence assessment:
@@ -610,11 +611,11 @@ scenario:
     - MIL
     - RMP
     severity: WARNING
-  - time: 00:55
+  - time: 00:47
     type: ALERT
     description: Pirates respond by firing flares — no weapons discharge at helicopter.
-      KD Perak has reached blocking position 3.02°N 100.89°E — all SW escape routes
-      covered. KM Perantau 16 minutes out. UTK Team Alpha preparing RHIB for insertion.
+      KD Perak has reached blocking position 3.35°N 100.75°E — directly on the SW escape
+      vector toward Riau Islands. KM Perantau 24 minutes out. UTK Team Alpha preparing RHIB for insertion.
       PDRM Crisis Negotiator attempting satellite phone contact with Master — no response
       yet.
     source: RMN-OPV-001
@@ -636,10 +637,10 @@ scenario:
     severity: CRITICAL
   - time: 01:05
     type: DETECTION
-    description: 'KD Perak: both fast boats sighted bearing 235°, speed 28 knots,
-      heading SW. KD Perak intercepting. RMAF Caracal 1 overhead — illuminating with
-      searchlight, loudhailer demands to stop. KD Perak closing at 22 knots. Riau
-      Islands 45nm SW — escape unlikely.'
+    description: 'KD Perak: both fast boats bearing 235° heading directly toward my position
+      at 28 knots. Holding blocking station 3.35°N 100.75°E. RMAF Caracal 1 overhead —
+      illuminating with searchlight, loudhailer demands to stop. Fast boats 5nm out and
+      closing. Riau Islands 40nm SW — escape route blocked.'
     source: RMN-OPV-001
     alert_agencies:
     - MMEA

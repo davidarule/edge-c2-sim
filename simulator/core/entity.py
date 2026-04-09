@@ -12,12 +12,14 @@ from typing import Any
 
 
 class Agency(Enum):
-    """Malaysian security agencies and civilian designation."""
+    """Malaysian security agencies, foreign partner agencies, and civilian designation."""
     RMP = "RMP"        # Royal Malaysia Police
     MMEA = "MMEA"      # Malaysian Maritime Enforcement Agency
     CI = "CI"          # Royal Malaysian Customs and Immigration
     RMAF = "RMAF"      # Royal Malaysian Air Force
     MIL = "MIL"        # Malaysian Armed Forces
+    IDN = "IDN"        # Indonesia (Bakamla / TNI-AL)
+    SGP = "SGP"        # Singapore (RSN / PCG)
     CIVILIAN = "CIVILIAN"
 
 

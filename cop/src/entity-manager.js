@@ -1,21 +1,24 @@
 /**
  * Entity lifecycle management for CesiumJS.
  *
- * Each simulation entity maps to a Cesium Billboard (symbol) + Label (callsign)
- * + Polyline (track trail). Uses JMSML DISA SVGs for MIL-STD-2525D symbols.
+ * Each simulation entity maps to a Cesium Billboard (symbol)
+ * + Polyline (track trail). Callsign labels are HTML overlay divs
+ * (pooled, RAF-updated at 30fps) for crisp rendering at any zoom level.
+ * Uses JMSML DISA SVGs for MIL-STD-2525D symbols.
  *
  * Features:
  * - Smooth position interpolation via SampledPositionProperty
  * - Trail polylines with fading alpha
  * - Pixel-distance declutter with ring offset (pixelOffset only, no extra entities)
+ * - Pooled HTML labels — no Cesium Label objects
  * - Symbol caching for performance
  */
 
 import * as Cesium from 'cesium';
-import { renderSymbol, clearSymbolCache } from './symbol-renderer.js';
+import { renderSymbol, clearSymbolCache, SYMBOL_ASPECT_RATIO } from './symbol-renderer.js';
 
 const TRAIL_UPDATE_INTERVAL = 2; // Update trail every Nth position update
-const SYMBOL_RENDER_SIZE = 128;  // Render SVGs at high res to avoid blur when scaled
+const SYMBOL_RENDER_SIZE = 256;  // Render SVGs at 256px — crisp up to 80px display at 2× DPR
 const TRAIL_WIDTH = 1.5;         // Trail polyline width in pixels
 const MAX_TRAIL_POINTS = 300;    // Max trail points per entity (ring buffer)
 const MIN_TRAIL_DISTANCE_DEG = 0.001; // ~111 meters — minimum distance between trail points
@@ -47,12 +50,94 @@ export function initEntityManager(viewer, config) {
   const filters = { agencies: new Set(), domains: new Set() };
 
   // Global display state (settable via settings panel)
-  let globalIconSizePx = 40;   // desired display size in pixels
+  let globalIconSizePx = 60;   // desired display size in pixels (matches settings-panel default)
   let globalIconScale = globalIconSizePx / SYMBOL_RENDER_SIZE;
   let globalLabelsVisible = true;
   let globalTrailsVisible = true;
   let globalTrailDurationH = DEFAULT_TRAIL_DURATION_H;
   let clusteringEnabled = false;
+
+  // Set of entity IDs currently absorbed into a Cesium cluster — labels suppressed
+  const cesiumClusteredIds = new Set();
+
+  // === HTML LABEL OVERLAY ===
+  // Pool of divs positioned over the Cesium canvas each RAF frame.
+  const LABEL_POOL_SIZE = 150;
+  const LABEL_MAX_ALT = 250000;    // no labels above 250km
+  const LABEL_AIS_MAX_ALT = 100000; // AIS labels only below 100km
+  const LABEL_FRAME_MS = 33;       // ~30fps
+
+  const labelOverlay = document.createElement('div');
+  labelOverlay.id = 'entity-labels-overlay';
+  labelOverlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5;';
+  viewer.container.appendChild(labelOverlay);
+
+  const labelPool = [];
+  for (let i = 0; i < LABEL_POOL_SIZE; i++) {
+    const div = document.createElement('div');
+    div.className = 'entity-label';
+    div.style.cssText = 'position:absolute;display:none;transform:translate(-50%,0);';
+    labelOverlay.appendChild(div);
+    labelPool.push(div);
+  }
+
+  let lastLabelFrameTs = 0;
+  function updateLabelOverlay(ts) {
+    requestAnimationFrame(updateLabelOverlay);
+    if (ts - lastLabelFrameTs < LABEL_FRAME_MS) return;
+    lastLabelFrameTs = ts;
+
+    // Hide all pool slots
+    for (const div of labelPool) div.style.display = 'none';
+
+    if (!globalLabelsVisible) return;
+
+    const altitude = viewer.camera.positionCartographic.height;
+    if (altitude > LABEL_MAX_ALT) return;
+
+    const scene = viewer.scene;
+    const cw = viewer.canvas.clientWidth;
+    const ch = viewer.canvas.clientHeight;
+    let poolIdx = 0;
+
+    entities.forEach((entry, id) => {
+      if (poolIdx >= LABEL_POOL_SIZE) return;
+      if (!entry.visible) return;
+      if (declutteredIds.has(id)) return;
+      if (cesiumClusteredIds.has(id)) return;
+
+      // AIS labels only when zoomed in enough
+      if (id.startsWith('AIS-') && altitude > LABEL_AIS_MAX_ALT) return;
+
+      const pos = entry.data.position;
+      if (!pos) return;
+
+      const cartesian = Cesium.Cartesian3.fromDegrees(
+        pos.longitude, pos.latitude, pos.altitude_m || 0
+      );
+      const sp = Cesium.SceneTransforms.worldToWindowCoordinates(scene, cartesian);
+      if (!sp) return;
+
+      // Apply declutter pixel offset if active
+      const off = declutterOffsets.get(id);
+      const sx = sp.x + (off ? off.x : 0);
+      // Place label 4px below the icon's bottom edge.
+      // Icon centre is at sp.y; displayed height = iconSizePx * SYMBOL_ASPECT_RATIO.
+      const iconHalfH = (globalIconSizePx * SYMBOL_ASPECT_RATIO) / 2;
+      const sy = sp.y + (off ? off.y : 0) + iconHalfH + 4;
+
+      // Frustum check — skip off-screen entities
+      if (sx < -60 || sx > cw + 60 || sy < -20 || sy > ch + 20) return;
+
+      const div = labelPool[poolIdx++];
+      const text = entry.data.callsign || id;
+      if (div.textContent !== text) div.textContent = text;
+      div.style.left = `${Math.round(sx)}px`;
+      div.style.top = `${Math.round(sy)}px`;
+      div.style.display = 'block';
+    });
+  }
+  requestAnimationFrame(updateLabelOverlay);
 
   // Per-entity SIDC overrides (entity_id -> sidc)
   const entitySidcOverrides = new Map();
@@ -148,19 +233,7 @@ export function initEntityManager(viewer, config) {
         pixelOffset: new Cesium.Cartesian2(0, 0),
         disableDepthTestDistance: Number.POSITIVE_INFINITY
       },
-      label: {
-        text: entityData.callsign || id,
-        font: '12px IBM Plex Mono',
-        fillColor: Cesium.Color.WHITE,
-        outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 2,
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-        show: globalLabelsVisible,
-        verticalOrigin: Cesium.VerticalOrigin.TOP,
-        pixelOffset: new Cesium.Cartesian2(0, 20),
-        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 200000),
-        disableDepthTestDistance: Number.POSITIVE_INFINITY
-      }
+      // No Cesium Label — callsign labels are HTML overlay divs (see updateLabelOverlay)
     });
 
     const ts = entityData.timestamp ? new Date(entityData.timestamp).getTime() : Date.now();
@@ -213,12 +286,24 @@ export function initEntityManager(viewer, config) {
       : viewer.clock.currentTime;
     entry.sampledPosition.addSample(time, Cesium.Cartesian3.fromDegrees(lon, lat, alt));
 
-    if (entityData.entity_type !== entry.data.entity_type ||
-        entityData.status !== entry.data.status) {
+    const typeChanged = entityData.entity_type !== entry.data.entity_type;
+    if (typeChanged || entityData.status !== entry.data.status) {
       entry.cesiumEntity.billboard.image = getSymbolImage(entityData);
     }
 
-    entry.cesiumEntity.label.text = entityData.callsign || id;
+    // AIS tracking state: grey out when transponder goes dark, restore on reclassification
+    const prevAisActive = entry.data.metadata?.ais_active !== false;
+    const currAisActive = entityData.metadata?.ais_active !== false;
+    if (typeChanged) {
+      // Entity reclassified — restore full-colour rendering regardless of ais_active
+      entry.cesiumEntity.billboard.color = Cesium.Color.WHITE;
+      entry.cesiumTrail.polyline.material =
+        Cesium.Color.fromCssColorString(getAgencyColor(entityData.agency)).withAlpha(0.9);
+    } else if (!currAisActive && prevAisActive) {
+      // AIS just went dark — grey out symbol and trail
+      entry.cesiumEntity.billboard.color = new Cesium.Color(0.53, 0.53, 0.53, 0.65);
+      entry.cesiumTrail.polyline.material = new Cesium.Color(0.53, 0.53, 0.53, 0.45);
+    }
 
     const count = (updateCounters.get(id) || 0) + 1;
     updateCounters.set(id, count);
@@ -291,7 +376,6 @@ export function initEntityManager(viewer, config) {
     const trailVisible = trailOverride !== undefined ? trailOverride : globalTrailsVisible;
 
     entry.cesiumEntity.show = !hidden;
-    entry.cesiumEntity.label.show = !hidden && globalLabelsVisible;
     entry.cesiumTrail.show = !hidden && trailVisible;
     entry.visible = !hidden;
   }
@@ -320,8 +404,6 @@ export function initEntityManager(viewer, config) {
       if (entry && entry.cesiumEntity.billboard) {
         entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
         entry.cesiumEntity.billboard.scale = globalIconScale;
-        entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
-        entry.cesiumEntity.label.show = globalLabelsVisible && entry.visible;
         entry.cesiumTrail.show = getTrailVisibleForEntity(id) && entry.visible;
       }
     });
@@ -334,8 +416,6 @@ export function initEntityManager(viewer, config) {
     if (entry && entry.cesiumEntity.billboard) {
       entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
       entry.cesiumEntity.billboard.scale = globalIconScale;
-      entry.cesiumEntity.label.pixelOffset = new Cesium.Cartesian2(0, 20);
-      entry.cesiumEntity.label.show = globalLabelsVisible && entry.visible;
       entry.cesiumTrail.show = getTrailVisibleForEntity(id) && entry.visible;
     }
     declutterOffsets.delete(id);
@@ -415,8 +495,7 @@ export function initEntityManager(viewer, config) {
         if (entry && entry.cesiumEntity.billboard) {
           entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(offsetX, offsetY);
           entry.cesiumEntity.billboard.scale = globalIconScale * scaleMultiplier;
-          // Hide labels and trails in declutter groups to reduce visual clutter
-          entry.cesiumEntity.label.show = false;
+          // Hide trails in declutter groups; HTML labels excluded via declutteredIds check
           entry.cesiumTrail.show = false;
           declutterOffsets.set(item.id, { x: offsetX, y: offsetY });
           declutteredIds.add(item.id);
@@ -551,6 +630,9 @@ export function initEntityManager(viewer, config) {
     getSidc(entity) {
       return getSidcForEntity(entity);
     },
+    getIconSizePx() {
+      return globalIconSizePx;
+    },
     setIconScale(sizePx) {
       globalIconSizePx = sizePx;
       globalIconScale = sizePx / SYMBOL_RENDER_SIZE;
@@ -562,11 +644,10 @@ export function initEntityManager(viewer, config) {
     },
     setLabelsVisible(visible) {
       globalLabelsVisible = visible;
-      entities.forEach((entry) => {
-        if (entry.cesiumEntity.label) {
-          entry.cesiumEntity.label.show = visible && entry.visible;
-        }
-      });
+      // HTML label overlay is driven by the RAF loop reading globalLabelsVisible
+      if (!visible) {
+        for (const div of labelPool) div.style.display = 'none';
+      }
     },
     setTrailsVisible(visible) {
       globalTrailsVisible = visible;
@@ -630,6 +711,13 @@ export function initEntityManager(viewer, config) {
     },
     setClusteringEnabled(enabled) {
       clusteringEnabled = enabled;
+      if (!enabled) cesiumClusteredIds.clear();
+    },
+    clearCesiumClustered() {
+      cesiumClusteredIds.clear();
+    },
+    addCesiumClustered(entityId) {
+      cesiumClusteredIds.add(entityId);
     },
     getDataSource() {
       return dataSource;

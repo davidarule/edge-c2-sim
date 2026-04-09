@@ -98,7 +98,7 @@ scenario:
     - id: "IDN-BAK-001"
       type: MMEA_PATROL
       callsign: "KN Pulau Nipah"
-      agency: MMEA
+      agency: IDN
       initial_position: { lat: 2.900, lon: 101.000 }
       behavior: "patrol"
       waypoints:
@@ -127,9 +127,9 @@ scenario:
     # Independence-class LMV, max 27kn. Patrolling Singapore Strait approach.
     # Handles Incident 2 independently, notifies MALSINDO partners.
     - id: "SGP-PCG-001"
-      type: MMEA_PATROL
+      type: MIL_NAVAL
       callsign: "RSS Sovereignty"
-      agency: MMEA
+      agency: SGP
       initial_position: { lat: 1.320, lon: 104.250 }
       behavior: "patrol"
       waypoints:
@@ -286,6 +286,15 @@ scenario:
       description: "Incident 2: RSS Sovereignty on scene at Horsburgh. Contact identified visually: small pleasure craft approximately 8m, fibreglass, no lights showing. Vessel appears disabled — engine failure. 3 persons aboard — waving for assistance. No threatening activity. VHF contact established — Malaysian-registered vessel, crew of 3, engine seized, adrift since 1830 local time."
       source: "SGP-PCG-001"
       position: { lat: 1.373, lon: 104.415 }
+      alert_agencies: [MMEA]
+      severity: "INFO"
+
+    - time: "00:46"
+      type: "RECLASSIFY"
+      description: "SUSPECT-002 reclassified: disabled pleasure craft confirmed — not a threat. Symbol updated on all COP terminals."
+      target: "SUSPECT-002"
+      action: "reclassify"
+      new_type: "CIVILIAN_BOAT"
       alert_agencies: [MMEA]
       severity: "INFO"
 

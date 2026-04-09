@@ -12,7 +12,7 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
 
   // State
   let panelOpen = false;
-  let iconScale = 40;           // px (maps to billboard scale = px/40)
+  let iconScale = 60;           // px (maps to billboard scale = px/SYMBOL_RENDER_SIZE)
   let labelsVisible = true;
   let trailsVisible = true;
   let clusteringEnabled = false;
@@ -52,7 +52,8 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
   function showPanel(open) {
     panelOpen = open;
     panel.style.display = open ? 'flex' : 'none';
-    toggleBtn.style.display = open ? 'none' : 'block';
+    // Floating toggle is hidden — settings opened via header button
+    toggleBtn.style.display = 'none';
   }
 
   // ── Panel content ──
@@ -70,33 +71,15 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
     </div>
     <div class="settings-body" style="overflow-y: auto; padding: 0; flex: 1;">
 
-      <!-- SIMULATION -->
-      <div class="settings-section">
-        <div class="settings-section-title">SIMULATION</div>
-        <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 4px;">
-          <select id="scenario-select" style="
-            background: #0D1117; color: #C9D1D9; border: 1px solid #30363D;
-            border-radius: 3px; padding: 4px 6px; font-size: 11px;
-            font-family: 'IBM Plex Mono', monospace; cursor: pointer; width: 100%;
-          ">
-            <option value="">Loading scenarios…</option>
-          </select>
-          <div style="display: flex; gap: 4px;">
-            <button id="btn-load-scenario" class="settings-btn" style="flex: 1;">Load</button>
-            <button id="btn-restart-sim" class="settings-btn" style="flex: 1;">Restart</button>
-          </div>
-        </div>
-      </div>
-
       <!-- DISPLAY -->
       <div class="settings-section">
         <div class="settings-section-title">DISPLAY</div>
         <div class="settings-row" style="flex-direction: column; align-items: stretch;">
           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
             <span>Icon Size</span>
-            <span id="icon-size-val" style="color: #8B949E; font-family: 'IBM Plex Mono', monospace;">40px</span>
+            <span id="icon-size-val" style="color: #8B949E; font-family: 'IBM Plex Mono', monospace;">60px</span>
           </div>
-          <input id="slider-icon-size" type="range" min="20" max="80" value="40" class="settings-slider">
+          <input id="slider-icon-size" type="range" min="20" max="80" value="60" class="settings-slider">
         </div>
         <div class="settings-row">
           <label class="settings-check-label">
@@ -205,50 +188,6 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
 
   panel.querySelector('#settings-close').addEventListener('click', () => showPanel(false));
 
-  // Scenario select — populate on panel open
-  const scenarioSelect = panel.querySelector('#scenario-select');
-  const btnLoad = panel.querySelector('#btn-load-scenario');
-
-  function populateScenarios() {
-    fetch('/api/scenarios')
-      .then(r => r.ok ? r.json() : Promise.reject(r.status))
-      .then(list => {
-        scenarioSelect.innerHTML = list.map(s =>
-          `<option value="${s.file}">${s.name}</option>`
-        ).join('');
-      })
-      .catch(() => {
-        scenarioSelect.innerHTML = '<option value="">Failed to load scenarios</option>';
-      });
-  }
-
-  btnLoad.addEventListener('click', () => {
-    const file = scenarioSelect.value;
-    if (!file) return;
-    btnLoad.textContent = 'Loading…';
-    btnLoad.disabled = true;
-    ws.loadScenario(file);
-    setTimeout(() => {
-      btnLoad.textContent = 'Load';
-      btnLoad.disabled = false;
-    }, 4000);
-  });
-
-  // Populate scenarios when panel first opens
-  const _origShowPanel = showPanel;
-  let _scenariosLoaded = false;
-  toggleBtn.addEventListener('click', () => {
-    if (!_scenariosLoaded) {
-      populateScenarios();
-      _scenariosLoaded = true;
-    }
-  }, true);  // capture phase, runs before showPanel
-
-  // Restart
-  panel.querySelector('#btn-restart-sim').addEventListener('click', () => {
-    ws.restart();
-  });
-
   // Icon size slider
   const sliderIconSize = panel.querySelector('#slider-icon-size');
   const iconSizeVal = panel.querySelector('#icon-size-val');
@@ -256,6 +195,7 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
     iconScale = parseInt(sliderIconSize.value, 10);
     iconSizeVal.textContent = `${iconScale}px`;
     entityManager.setIconScale(iconScale);
+    if (clusteringEnabled) applyClustering(true);
   });
 
   // Show Labels
@@ -302,7 +242,7 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
     const cluster = ds.clustering;
     cluster.enabled = enabled;
     if (enabled) {
-      cluster.pixelRange = 50;
+      cluster.pixelRange = Math.round(iconScale * 0.6);
       cluster.minimumClusterSize = 2;
       cluster.clusterBillboards = true;
       cluster.clusterLabels = true;
@@ -312,15 +252,16 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
       // Also hide individual labels for clustered entities so they don't
       // show through the cluster icon.
       if (!cluster._settingsPanelListenerAdded) {
-        // Before each cluster pass, restore trails for all entities.
+        // Before each cluster pass, restore trails and clear HTML label suppression.
         // The clusterEvent fires per-cluster, so we reset once at the start.
         cluster.clusterEvent.addEventListener((clusteredEntities, clusterObj) => {
-          // On first cluster of a recalculation pass, restore all trails
+          // On first cluster of a recalculation pass, restore all trails and HTML labels
           if (!cluster._passRestored) {
             const allEntities = entityManager.getDataSource().entities.values;
             for (const e of allEntities) {
               if (e.id && e.id.startsWith('trail-')) e.show = true;
             }
+            entityManager.clearCesiumClustered();
             cluster._passRestored = true;
             // Reset flag after microtask (all clusters in this pass fire synchronously)
             Promise.resolve().then(() => { cluster._passRestored = false; });
@@ -336,8 +277,11 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
           const ds = entityManager.getDataSource();
           for (const ce of clusteredEntities) {
             if (ce.label) ce.label.show = false;
-            // Trail entities use id "trail-{entityId}" matching "entity-{entityId}"
+            // Suppress HTML label div via entity-manager
             if (ce.id && ce.id.startsWith('entity-')) {
+              const entityId = ce.id.replace('entity-', '');
+              entityManager.addCesiumClustered(entityId);
+              // Hide trail
               const trailId = ce.id.replace('entity-', 'trail-');
               const trailEntity = ds.entities.getById(trailId);
               if (trailEntity) trailEntity.show = false;
@@ -346,6 +290,8 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
         });
         cluster._settingsPanelListenerAdded = true;
       }
+    } else {
+      entityManager.clearCesiumClustered();
     }
   }
 
@@ -457,6 +403,6 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
       renderPlannedTracks();
     },
     wireOverlays,
-    showPanel
+    showPanel,
   };
 }

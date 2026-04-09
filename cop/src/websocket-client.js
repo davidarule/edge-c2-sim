@@ -10,6 +10,8 @@ import ReconnectingWebSocket from 'reconnecting-websocket';
 export function connectWebSocket(url, handlers) {
   console.log(`Connecting to WebSocket: ${url}`);
 
+  let _scenariosCallback = null;
+
   const ws = new ReconnectingWebSocket(url, [], {
     maxRetries: 50,
     reconnectionDelayGrowFactor: 1.3,
@@ -64,6 +66,12 @@ export function connectWebSocket(url, handlers) {
         case 'routes':
           if (handlers.onRoutes) handlers.onRoutes(msg.routes);
           break;
+        case 'scenarios_list':
+          if (_scenariosCallback) {
+            _scenariosCallback(msg.scenarios || []);
+            _scenariosCallback = null;
+          }
+          break;
         default:
           console.debug('Unknown message type:', msg.type);
       }
@@ -88,7 +96,11 @@ export function connectWebSocket(url, handlers) {
     })),
     loadScenario: (file) => ws.send(JSON.stringify({
       cmd: 'load_scenario', scenario: file
-    }))
+    })),
+    listScenarios: (callback) => {
+      _scenariosCallback = callback;
+      ws.send(JSON.stringify({ cmd: 'list_scenarios' }));
+    }
   };
 }
 

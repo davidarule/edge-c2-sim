@@ -34,6 +34,8 @@ export function initConfig() {
       CI:       '#2E7D32',
       RMAF:     '#5C6BC0',
       MIL:      '#4E342E',
+      IDN:      '#CC2200',   // Indonesia — Bakamla / TNI-AL (deep red)
+      SGP:      '#00AACC',   // Singapore — RSN / PCG (teal-blue)
       CIVILIAN: '#78909C',
       UNKNOWN:  '#78909C'
     },
@@ -44,6 +46,8 @@ export function initConfig() {
       CI:       'Customs & Immigration',
       RMAF:     'Air Force',
       MIL:      'Military',
+      IDN:      'Indonesia (Bakamla)',
+      SGP:      'Singapore (RSN/PCG)',
       CIVILIAN: 'Civilian'
     },
 

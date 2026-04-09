@@ -72,7 +72,7 @@ scenario:
     # Position confirmed open water — central Malacca Strait TSS,
     # NW-bound lane. ~100nm NW of Singapore Strait.
     - id: "SUSPECT-001"
-      type: SUSPECT_VESSEL
+      type: CIVILIAN_CARGO
       callsign: "MV Hai Long 7"
       initial_position: { lat: 4.900, lon: 100.100 }
       waypoints:
@@ -251,6 +251,9 @@ scenario:
     - time: "00:12"
       type: "ALERT"
       description: "MMEA MSC Lumut raises AIS Anomaly Alert. Radar contact tracking on bearing 315°, estimated speed now 13-14 knots — INCREASING. Deliberate AIS suppression with speed increase is consistent with vessel attempting to evade identification. Cross-referencing with Lloyd's intelligence database."
+      target: "SUSPECT-001"
+      action: "reclassify"
+      new_type: "SUSPECT_VESSEL"
       alert_agencies: [MMEA, MIL]
       severity: "WARNING"
 

@@ -30,7 +30,7 @@ import { initOverlayManager } from './overlay-manager.js';
 import { initSettingsPanel } from './settings-panel.js';
 import { initCompass } from './compass.js';
 import { initDemoMode } from './demo-mode.js';
-import { preloadSymbols } from './symbol-renderer.js';
+import { preloadSymbols, SYMBOL_ASPECT_RATIO } from './symbol-renderer.js';
 import { initBuilderMode, createBuilderContainers } from './builder/builder-mode.js';
 import { initOrbatPanel } from './orbat/orbat-panel.js';
 import { initAssetDetail } from './orbat/asset-detail.js';
@@ -93,9 +93,14 @@ async function main() {
   }
 
   // Connect WebSocket (controls and timeline need ws reference)
-  let controls, timeline;
+  let controls, timeline, headerControls;
 
   let settings;
+
+  // Track last scenario file so we only fly camera on scenario change, not every snapshot
+  let _lastScenarioFile = null;
+
+  const zoomToAlt = { 7: 600000, 8: 300000, 9: 150000, 10: 75000, 11: 40000, 12: 20000, 13: 10000 };
 
   const ws = connectWebSocket(config.wsUrl, {
     onSnapshot: (entities, data) => {
@@ -104,29 +109,25 @@ async function main() {
       if (timeline) timeline.clearEvents();
       console.log(`Snapshot loaded: ${entities.length} entities`);
 
-      // Fly to scenario center if provided, otherwise average entity positions
-      if (data && data.center && data.center.lat && data.center.lon) {
-        // Zoom level → approximate altitude mapping
-        const zoomAltitudes = {
-          7: 800000, 8: 500000, 9: 300000, 10: 150000, 11: 100000,
-          12: 50000, 13: 25000, 14: 12000, 15: 5000
-        };
-        const alt = data.altitude || zoomAltitudes[data.zoom] || 150000;
-        viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(data.center.lon, data.center.lat, alt),
-          duration: 2.0,
-        });
-      } else if (entities.length > 0) {
-        const positions = entities
-          .map(e => e.position)
-          .filter(p => p && isFinite(p.latitude) && isFinite(p.longitude));
-        if (positions.length > 0) {
-          const lat = positions.reduce((s, p) => s + p.latitude,  0) / positions.length;
-          const lon = positions.reduce((s, p) => s + p.longitude, 0) / positions.length;
-          viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 400000),
-            duration: 2.0,
-          });
+      const scenarioChanged = data && data.scenario_file && data.scenario_file !== _lastScenarioFile;
+      if (data && data.scenario_file) _lastScenarioFile = data.scenario_file;
+
+      if (data && data.scenario_file && headerControls) {
+        headerControls.setCurrentScenario(data.scenario_file);
+      }
+      if (data && data.scenario_meta && headerControls) {
+        headerControls.setScenarioMeta(data.scenario_meta);
+      }
+      if (headerControls) headerControls.setEntities(entities);
+
+      // Fly to scenario center only when the scenario changes (load/switch/restart)
+      // Defer 300ms so entity loading (~500 Cesium entities) doesn't disrupt the animation
+      if (scenarioChanged) {
+        const meta = data.scenario_meta;
+        if (meta && meta.center) {
+          const alt = zoomToAlt[meta.zoom] || 120000;
+          const dest = Cesium.Cartesian3.fromDegrees(meta.center.lon, meta.center.lat, alt);
+          setTimeout(() => viewer.camera.flyTo({ destination: dest, duration: 1.5 }), 300);
         }
       }
     },
@@ -142,7 +143,7 @@ async function main() {
     },
     onClock: (clockState) => {
       if (controls) controls.updateClock(clockState);
-      updateHeaderClock(clockState);
+      if (headerControls) headerControls.updateClock(clockState);
       syncCesiumClock(viewer, clockState);
     },
     onRoutes: (routes) => {
@@ -152,6 +153,7 @@ async function main() {
 
   detail.setWs(ws);
   controls = initPlaybackControls('controls', ws, config);
+  headerControls = initHeaderControls(ws, config);
   timeline = initTimeline('timeline', viewer, config, entityManager);
 
   // Compass widget
@@ -163,6 +165,9 @@ async function main() {
   // Settings panel (unified gear menu)
   settings = initSettingsPanel(viewer, entityManager, ws, config);
   settings.wireOverlays(overlays);
+  // Wire header settings button to open the panel
+  const headerSettingsBtn = document.getElementById('header-btn-settings');
+  if (headerSettingsBtn) headerSettingsBtn.addEventListener('click', () => settings.showPanel(true));
 
   // ── Builder Mode ──
 
@@ -714,27 +719,35 @@ async function main() {
           ${(entityData.entity_type || '').replace(/_/g, ' ')} | ${entityData.status || ''}<br>
           Speed: ${(entityData.speed_knots || 0).toFixed(1)} kts | HDG: ${Math.round(entityData.heading_deg || 0)}\u00b0
         `;
-        // Position tooltip above-right, with viewport edge detection
-        const tooltipWidth = tooltip.offsetWidth || 200;
-        const tooltipHeight = tooltip.offsetHeight || 80;
-        const viewportWidth = window.innerWidth;
+        // Position tooltip fixed above the entity's screen position (not cursor)
+        const pos = entityData.position;
+        const cartesian = pos
+          ? Cesium.Cartesian3.fromDegrees(pos.longitude, pos.latitude, pos.altitude_m || 0)
+          : null;
+        const sp = cartesian
+          ? Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, cartesian)
+          : null;
 
-        // Default: above-right of cursor
-        let left = movement.endPosition.x + 25;
-        let top = movement.endPosition.y - tooltipHeight - 20;
+        if (sp) {
+          const tooltipWidth = tooltip.offsetWidth || 200;
+          const tooltipHeight = tooltip.offsetHeight || 80;
+          const viewportWidth = window.innerWidth;
+          // sp.y is the icon centre; icon displayed height = iconSizePx * aspect ratio
+          const iconHalfH = (entityManager.getIconSizePx() * SYMBOL_ASPECT_RATIO) / 2;
+          const iconTopY = sp.y - iconHalfH;
 
-        // If tooltip would go off the right edge, flip to left side
-        if (left + tooltipWidth > viewportWidth) {
-          left = movement.endPosition.x - tooltipWidth - 25;
+          let left = sp.x;
+          let top = iconTopY - tooltipHeight - 4;  // 4px gap above icon top edge
+
+          // Clamp to viewport edges
+          if (left - tooltipWidth / 2 < 0) left = tooltipWidth / 2;
+          if (left + tooltipWidth / 2 > viewportWidth) left = viewportWidth - tooltipWidth / 2;
+          if (top < 0) top = sp.y + iconHalfH + 4;  // flip below if no room above
+
+          tooltip.style.left = `${left}px`;
+          tooltip.style.top = `${top}px`;
+          tooltip.style.transform = 'translate(-50%, 0)';
         }
-
-        // If tooltip would go above the viewport, put it below the cursor
-        if (top < 0) {
-          top = movement.endPosition.y + 30;
-        }
-
-        tooltip.style.left = `${left}px`;
-        tooltip.style.top = `${top}px`;
         tooltip.classList.add('visible');
         return;
       }
@@ -742,10 +755,9 @@ async function main() {
     tooltip.classList.remove('visible');
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-  // Demo mode button in header
-  document.getElementById('btn-demo-mode').addEventListener('click', () => {
-    demoMode.toggle();
-  });
+  // Demo mode button in header (currently hidden — keep wiring for when re-enabled)
+  const demoBtnEl = document.getElementById('btn-demo-mode');
+  if (demoBtnEl) demoBtnEl.addEventListener('click', () => { demoMode.toggle(); });
 
   // Camera altitude display
   initAltitudeDisplay(viewer);
@@ -759,26 +771,292 @@ function buildHeader(config) {
     <div class="header-left">
       <span class="header-logo">EDGE C2</span>
       <div class="header-divider"></div>
-      <span class="header-scenario" id="header-scenario">COMMON OPERATING PICTURE</span>
+      <span id="header-scenario-name" class="header-scenario">\u2014</span>
+      <button class="header-icon-btn header-info-btn" id="btn-scenario-info" title="Scenario Info"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
     </div>
     <div class="header-center">
       <span id="connection-status" class="connection-disconnected">\u25cb DISCONNECTED</span>
+      <button class="ctrl-btn danger" id="header-btn-reset">\u23ee RESET</button>
+      <button class="ctrl-btn" id="header-btn-play-pause">&#9654; PLAY</button>
+      <div class="header-speed-group" id="header-speed-group"></div>
     </div>
     <div class="header-right">
-      <button class="demo-mode-btn" id="btn-demo-mode">DEMO MODE</button>
       <div class="header-clock-group">
         <div class="header-clock" id="header-sim-time">--:--:--</div>
         <div class="header-clock-label">SIM TIME</div>
       </div>
+      <button class="header-icon-btn" id="header-btn-settings" title="Settings">\u2699</button>
+      <!-- <button class="demo-mode-btn" id="btn-demo-mode">DEMO MODE</button> -->
+      <select id="header-scenario-select" class="header-select">
+        <option value="">Loading\u2026</option>
+      </select>
     </div>
   `;
 }
 
-function updateHeaderClock(clockState) {
-  const el = document.getElementById('header-sim-time');
-  if (el && clockState.sim_time) {
-    el.textContent = new Date(clockState.sim_time).toISOString().substring(11, 19);
+function initHeaderControls(ws, config) {
+  const scenarioSelect = document.getElementById('header-scenario-select');
+  const scenarioName = document.getElementById('header-scenario-name');
+  const infoBtn = document.getElementById('btn-scenario-info');
+  const resetBtn = document.getElementById('header-btn-reset');
+  const playPauseBtn = document.getElementById('header-btn-play-pause');
+  const speedGroup = document.getElementById('header-speed-group');
+
+  let running = false;
+  let currentSpeed = config.defaultSpeed;
+  let _scenarioMeta = null;
+  let _entities = [];
+  let _currentScenarioFile = null;
+
+  // Populate scenario dropdown
+  ws.listScenarios((list) => {
+    if (!list || list.length === 0) {
+      scenarioSelect.innerHTML = '<option value="">\u2014 No scenarios \u2014</option>';
+      return;
+    }
+    scenarioSelect.innerHTML = list.map(s =>
+      `<option value="${s.file}">${s.name}</option>`
+    ).join('');
+    if (_currentScenarioFile) {
+      scenarioSelect.value = _currentScenarioFile;
+      // Update name label from option text if scenario_meta hasn't arrived yet
+      if (!_scenarioMeta) {
+        const opt = scenarioSelect.querySelector(`option[value="${_currentScenarioFile.replace(/"/g, '\\"')}"]`);
+        if (opt) scenarioName.textContent = opt.textContent;
+      }
+    }
+  });
+
+  // Load scenario on select change
+  scenarioSelect.addEventListener('change', () => {
+    const file = scenarioSelect.value;
+    if (!file) return;
+    _currentScenarioFile = file;
+    _scenarioMeta = null;
+    // Show name immediately from option text; will be overwritten by snapshot meta
+    const opt = scenarioSelect.options[scenarioSelect.selectedIndex];
+    if (opt) scenarioName.textContent = opt.textContent;
+    ws.loadScenario(file);
+  });
+
+  // Info button
+  infoBtn.addEventListener('click', () => {
+    showScenarioInfoModal(_scenarioMeta, _entities, _currentScenarioFile);
+  });
+
+  // Reset
+  resetBtn.addEventListener('click', () => {
+    if (confirm('Reset scenario to beginning?')) ws.reset();
+  });
+
+  // Play/Pause
+  playPauseBtn.addEventListener('click', () => {
+    if (running) ws.pause();
+    else ws.resume();
+  });
+
+  // Speed buttons
+  config.speeds.forEach(speed => {
+    const btn = document.createElement('button');
+    btn.className = 'header-speed-btn' + (speed === currentSpeed ? ' active' : '');
+    btn.textContent = `${speed}x`;
+    btn.dataset.speed = speed;
+    btn.addEventListener('click', () => {
+      currentSpeed = speed;
+      ws.setSpeed(speed);
+      speedGroup.querySelectorAll('.header-speed-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    speedGroup.appendChild(btn);
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    switch (e.key) {
+      case ' ': e.preventDefault(); playPauseBtn.click(); break;
+      case '1': ws.setSpeed(1); break;
+      case '2': ws.setSpeed(2); break;
+      case '3': ws.setSpeed(5); break;
+      case '4': ws.setSpeed(10); break;
+      case '5': ws.setSpeed(60); break;
+      case 'f': case 'F':
+        if (!e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          if (document.fullscreenElement) document.exitFullscreen();
+          else document.documentElement.requestFullscreen();
+        }
+        break;
+    }
+  });
+
+  function updateClock(clockState) {
+    if (clockState.sim_time) {
+      const el = document.getElementById('header-sim-time');
+      if (el) el.textContent = new Date(clockState.sim_time).toISOString().substring(11, 19);
+    }
+    if (clockState.running !== undefined) {
+      running = clockState.running;
+      playPauseBtn.innerHTML = running ? '&#9208; PAUSE' : '&#9654; PLAY';
+      playPauseBtn.classList.toggle('active', running);
+    }
+    if (clockState.speed !== undefined) {
+      currentSpeed = clockState.speed;
+      speedGroup.querySelectorAll('.header-speed-btn').forEach(b => {
+        b.classList.toggle('active', parseFloat(b.dataset.speed) === currentSpeed);
+      });
+    }
   }
+
+  function setCurrentScenario(file) {
+    _currentScenarioFile = file || null;
+    if (!scenarioSelect || !file) return;
+    scenarioSelect.value = file;
+    // Fallback: show name from option text until scenario_meta arrives
+    if (!_scenarioMeta) {
+      const opt = scenarioSelect.querySelector(`option[value="${file.replace(/"/g, '\\"')}"]`);
+      if (opt) scenarioName.textContent = opt.textContent;
+    }
+  }
+
+  function setScenarioMeta(meta) {
+    _scenarioMeta = meta || null;
+    if (meta && meta.name) scenarioName.textContent = meta.name;
+  }
+
+  function setEntities(entities) {
+    _entities = entities || [];
+  }
+
+  return { updateClock, setCurrentScenario, setScenarioMeta, setEntities };
+}
+
+function showScenarioInfoModal(meta, entities, scenarioFile) {
+  const existing = document.getElementById('scenario-info-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'scenario-info-overlay';
+  overlay.className = 'scenario-info-overlay';
+
+  // Build scenario ID from filename: "config/scenarios/scn_mal_01.yaml" → "SCN-MAL-01"
+  const scenarioId = scenarioFile
+    ? scenarioFile.replace('config/scenarios/', '').replace('.yaml', '')
+        .toUpperCase().replace(/_/g, '-')
+    : null;
+
+  // Title: use meta.name directly (backend already formats it as "SCN-MAL-01: Full Name")
+  const modalTitle = meta && meta.name
+    ? meta.name
+    : (scenarioId || 'Scenario Info');
+
+  // Duration
+  const durationText = meta && meta.duration_min != null
+    ? `${meta.duration_min} minutes`
+    : '<span class="info-loading">Loading\u2026</span>';
+
+  // Description
+  const descText = meta && meta.description
+    ? meta.description
+    : '<span class="info-loading">Loading\u2026</span>';
+
+  // ── Separate scenario vs background entities ──
+  const allEntities = entities || [];
+  const bgEntities = allEntities.filter(e =>
+    e.entity_id?.startsWith('AIS-') ||
+    e.metadata?.background === true ||
+    e.metadata?.source === 'AIS_REAL'
+  );
+  const scenarioEntities = allEntities.filter(e =>
+    !e.entity_id?.startsWith('AIS-') &&
+    !e.metadata?.background &&
+    e.metadata?.source !== 'AIS_REAL'
+  );
+
+  // ── Order of Battle table ──
+  let forcesHtml;
+  if (scenarioEntities.length > 0) {
+    const rows = scenarioEntities.map((e, i) =>
+      `<tr class="${i % 2 === 1 ? 'info-row-alt' : ''}">
+        <td class="info-td-id">${e.entity_id || '\u2014'}</td>
+        <td>${e.callsign || '\u2014'}</td>
+        <td>${e.entity_type || '\u2014'}</td>
+        <td>${e.agency || '\u2014'}</td>
+      </tr>`
+    ).join('');
+    forcesHtml = `<div class="info-table-scroll">
+      <table class="info-forces-table">
+        <thead><tr><th>ID</th><th>Callsign</th><th>Type</th><th>Agency</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  } else {
+    forcesHtml = '<p class="info-empty">No scenario entities loaded yet.</p>';
+  }
+
+  // ── Background traffic summary ──
+  let bgHtml = '';
+  if (bgEntities.length > 0) {
+    const bgGroups = {};
+    bgEntities.forEach(e => {
+      const t = (e.entity_type || '').toUpperCase();
+      let cat;
+      if (t.includes('CARGO')) cat = 'Cargo';
+      else if (t.includes('TANKER') || t.includes('VLCC')) cat = 'Tanker';
+      else if (t.includes('PASSENGER') || t.includes('FERRY')) cat = 'Passenger';
+      else if (t.includes('FISHING')) cat = 'Fishing';
+      else if (t.includes('TUG') || t.includes('SUPPLY') || t.includes('OFFSHORE')) cat = 'Service';
+      else cat = 'Other';
+      bgGroups[cat] = (bgGroups[cat] || 0) + 1;
+    });
+    const bgSummary = Object.entries(bgGroups)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, n]) => `<span class="bg-tag">${n} ${cat}</span>`)
+      .join('');
+    bgHtml = `
+      <div class="info-field">
+        <span class="info-label">BACKGROUND TRAFFIC</span>
+        <p class="info-description">
+          This scenario includes <strong>${bgEntities.length}</strong> civilian AIS vessels providing
+          realistic maritime traffic in the operational area. These are real vessel tracks captured from AIS data.
+        </p>
+        <div class="bg-tags">${bgSummary}</div>
+      </div>`;
+  }
+
+  overlay.innerHTML = `
+    <div class="scenario-info-modal">
+      <div class="info-modal-header">
+        <span class="info-modal-title">${modalTitle}</span>
+        <button class="info-modal-close" id="info-modal-close">&times;</button>
+      </div>
+      <div class="info-modal-body">
+        <div class="info-meta-row">
+          <div class="info-meta-item">
+            <span class="info-label">DURATION</span>
+            <span class="info-value">${durationText}</span>
+          </div>
+          <div class="info-meta-item">
+            <span class="info-label">ENTITIES</span>
+            <span class="info-value">${scenarioEntities.length} scenario + ${bgEntities.length} background</span>
+          </div>
+        </div>
+        <div class="info-field">
+          <span class="info-label">DESCRIPTION</span>
+          <p class="info-description">${descText}</p>
+        </div>
+        <div class="info-field">
+          <span class="info-label">ORDER OF BATTLE</span>
+          ${forcesHtml}
+        </div>
+        ${bgHtml}
+      </div>
+    </div>
+  `;
+
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#info-modal-close').addEventListener('click', () => overlay.remove());
+  document.body.appendChild(overlay);
 }
 
 function syncCesiumClock(viewer, clockState) {

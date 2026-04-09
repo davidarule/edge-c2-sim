@@ -122,6 +122,8 @@ class WebSocketAdapter(TransportAdapter):
         # Scenario camera position (set by run_simulator)
         self._scenario_center: tuple[float, float] | None = None
         self._scenario_zoom: int | None = None
+        self._scenario_file: str | None = None
+        self._scenario_meta: dict | None = None
 
     @property
     def name(self) -> str:
@@ -146,6 +148,7 @@ class WebSocketAdapter(TransportAdapter):
             self._handle_client,
             self._host,
             self._port,
+            max_size=10 * 1024 * 1024,  # 10MB — large AIS snapshots can exceed 1MB default
         )
         self._clock_task = asyncio.create_task(self._broadcast_clock())
         logger.info(f"WebSocket server started on ws://{self._host}:{self._port}")
@@ -164,7 +167,14 @@ class WebSocketAdapter(TransportAdapter):
         logger.info("WebSocket server stopped")
 
     async def push_entity_update(self, entity: Entity) -> None:
-        """Broadcast entity update to all connected clients."""
+        """Broadcast entity update to all connected clients.
+
+        Skips broadcast if the entity is no longer in the store — prevents stale
+        entity_updates (in-flight from the sim loop) from re-adding entities after
+        a scenario switch has cleared the store and broadcast a fresh snapshot.
+        """
+        if not self._entity_store.get_entity(entity.entity_id):
+            return
         msg = json.dumps({"type": "entity_update", "entity": entity.to_dict()})
         await self._broadcast(msg)
 
@@ -239,6 +249,10 @@ class WebSocketAdapter(TransportAdapter):
                 snap_msg["center"] = {"lat": self._scenario_center[0], "lon": self._scenario_center[1]}
             if self._scenario_zoom is not None:
                 snap_msg["zoom"] = self._scenario_zoom
+            if self._scenario_file is not None:
+                snap_msg["scenario_file"] = self._scenario_file
+            if self._scenario_meta is not None:
+                snap_msg["scenario_meta"] = self._scenario_meta
             snapshot = json.dumps(snap_msg)
             await websocket.send(snapshot)
 
@@ -299,6 +313,10 @@ class WebSocketAdapter(TransportAdapter):
                 snap_msg["center"] = {"lat": self._scenario_center[0], "lon": self._scenario_center[1]}
             if self._scenario_zoom is not None:
                 snap_msg["zoom"] = self._scenario_zoom
+            if self._scenario_file is not None:
+                snap_msg["scenario_file"] = self._scenario_file
+            if self._scenario_meta is not None:
+                snap_msg["scenario_meta"] = self._scenario_meta
             snapshot = json.dumps(snap_msg)
             await self._broadcast(snapshot)
             if self._route_data:
@@ -318,7 +336,7 @@ class WebSocketAdapter(TransportAdapter):
         if not self._clients:
             return
         disconnected = set()
-        for client in self._clients:
+        for client in list(self._clients):
             try:
                 await client.send(message)
             except websockets.ConnectionClosed:

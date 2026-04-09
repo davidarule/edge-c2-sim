@@ -12,6 +12,7 @@ import logging
 import os
 import signal
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import click
 import yaml
@@ -262,6 +263,14 @@ async def run(
         if scenario_state:
             ws_adapter._scenario_center = scenario_state.center
             ws_adapter._scenario_zoom = scenario_state.zoom
+            ws_adapter._scenario_file = scenario if scenario else None
+            ws_adapter._scenario_meta = {
+                "name": scenario_state.name,
+                "description": scenario_state.description,
+                "duration_min": int(scenario_state.duration.total_seconds() / 60),
+                "center": {"lat": scenario_state.center[0], "lon": scenario_state.center[1]},
+                "zoom": scenario_state.zoom,
+            }
         adapters.append(ws_adapter)
 
         # Extract planned routes for COP display
@@ -355,7 +364,7 @@ async def run(
                     store._entities.clear()
                     store._entities.update(ais_entities)
                 for entity in fresh.entities.values():
-                    store.add_entity(entity)
+                    store.upsert_entity(entity)
                 sim_context["event_engine"] = EventEngine(
                     events=fresh.events,
                     entity_store=store,
@@ -383,6 +392,14 @@ async def run(
                 ws_adapter.set_route_data(route_data)
                 ws_adapter._scenario_center = fresh.center
                 ws_adapter._scenario_zoom = fresh.zoom
+                ws_adapter._scenario_file = scenario_path if scenario_path else None
+                ws_adapter._scenario_meta = {
+                    "name": fresh.name,
+                    "description": fresh.description,
+                    "duration_min": int(fresh.duration.total_seconds() / 60),
+                    "center": {"lat": fresh.center[0], "lon": fresh.center[1]},
+                    "zoom": fresh.zoom,
+                }
             entities = store.get_all_entities()
             snap_msg = {
                 "type": "snapshot",
@@ -392,12 +409,15 @@ async def run(
                 snap_msg["center"] = {"lat": ws_adapter._scenario_center[0], "lon": ws_adapter._scenario_center[1]}
             if ws_adapter._scenario_zoom is not None:
                 snap_msg["zoom"] = ws_adapter._scenario_zoom
+            if ws_adapter._scenario_file is not None:
+                snap_msg["scenario_file"] = ws_adapter._scenario_file
+            if ws_adapter._scenario_meta is not None:
+                snap_msg["scenario_meta"] = ws_adapter._scenario_meta
             snapshot = json.dumps(snap_msg)
             await ws_adapter._broadcast(snapshot)
             if ws_adapter._route_data:
                 routes_msg = json.dumps({"type": "routes", "routes": ws_adapter._route_data})
                 await ws_adapter._broadcast(routes_msg)
-            clock.start()
 
         async def handle_restart(msg):
             logger.info("Restart requested by client")
@@ -468,10 +488,31 @@ async def run(
                 f"ETA {travel_s:.0f}s at {cruise_speed:.0f} kts)"
             )
 
+        async def handle_list_scenarios(msg):
+            """Scan config/scenarios/ and return available scenario files."""
+            scenarios_dir = Path("config/scenarios")
+            result = []
+            for yaml_file in sorted(scenarios_dir.glob("*.yaml")):
+                try:
+                    with open(yaml_file) as f:
+                        raw = yaml.safe_load(f)
+                    # Skip include files (they are entity lists, not scenarios)
+                    if not isinstance(raw, dict) or "scenario" not in raw:
+                        continue
+                    name = raw["scenario"].get("name", yaml_file.stem)
+                    result.append({"file": f"config/scenarios/{yaml_file.name}", "name": name})
+                except Exception as e:
+                    logger.warning(f"list_scenarios: failed to read {yaml_file}: {e}")
+            await ws_adapter._broadcast(json.dumps({
+                "type": "scenarios_list", "scenarios": result,
+            }))
+            logger.info(f"list_scenarios: returned {len(result)} scenarios")
+
         ws_adapter.set_command_handler("return_to_start", handle_return_to_start)
         ws_adapter.set_command_handler("restart", handle_restart)
         ws_adapter.set_command_handler("reset", handle_restart)
         ws_adapter.set_command_handler("load_scenario", handle_load_scenario)
+        ws_adapter.set_command_handler("list_scenarios", handle_list_scenarios)
         print(f"WebSocket server on ws://0.0.0.0:{port}")
 
     if "console" in transport_names:

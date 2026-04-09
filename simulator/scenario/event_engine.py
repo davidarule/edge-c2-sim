@@ -65,6 +65,14 @@ class EventEngine:
         if reclassify:
             self._apply_reclassify(reclassify)
 
+        # Handle AIS_LOSS — mark entity transponder as dark
+        if event.event_type == "AIS_LOSS" and event.target:
+            entity = self._entity_store.get_entity(event.target)
+            if entity:
+                entity.metadata["ais_active"] = False
+                self._entity_store.upsert_entity(entity)
+                logger.info(f"AIS_LOSS: {event.target} marked dark (ais_active=False)")
+
         if not event.action:
             return
 
@@ -212,6 +220,14 @@ class EventEngine:
                 self._movements[target_id] = new_movement
                 entity.speed_knots = max_speed
             entity.status = EntityStatus.INTERCEPTING
+
+        elif action == "reclassify":
+            new_type = event.metadata.get("new_type")
+            if new_type:
+                self._apply_reclassify({"targets": [target_id], "new_type": new_type})
+            else:
+                logger.warning(f"Reclassify action for {target_id} missing 'new_type'")
+            return  # _apply_reclassify handles the entity store upsert
 
         else:
             logger.debug(f"Unhandled action '{action}' for {target_id}")
