@@ -94,8 +94,13 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
     },
     "MIL_SUBMARINE": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
-        "speed_range": (0, 20), "sidc": "SFUP------",
+        "speed_range": (0, 20), "sidc": "SUUP------",  # Unknown until identified
         "turn": (60.0, 3.0, 2.0),    # ~60m submarine
+    },
+    "MIL_SUBMARINE_FRIENDLY": {
+        "domain": Domain.MARITIME, "agency": Agency.MIL,
+        "speed_range": (0, 20), "sidc": "SFUP------",  # Friendly — after identification
+        "turn": (60.0, 3.0, 2.0),
     },
     "RMAF_TRANSPORT": {
         "domain": Domain.AIR, "agency": Agency.RMAF,

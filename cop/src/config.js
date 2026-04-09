@@ -84,7 +84,8 @@ export function initConfig() {
       'MIL_NAVAL':            '10033000001205020000',  // Patrol Ship (OPV, Kedah-class)
       'MIL_NAVAL_FRIGATE':    '10033000001202040000',  // Frigate (Lekiu/Kasturi-class)
       'MIL_NAVAL_FIC':        '10033000001205010000',  // Patrol Craft (fast intercept)
-      'MIL_SUBMARINE':        '10033500000000000000',  // Sea Subsurface, Friend (Symbol Set 35)
+      'MIL_SUBMARINE':          '10003500000000000000',  // Sea Subsurface, Unknown (Symbol Set 35)
+      'MIL_SUBMARINE_FRIENDLY': '10033500000000000000',  // Sea Subsurface, Friend (after identification)
       'SUSPECT_VESSEL':       '10053000001400000000',  // Suspect, Non-Military
       'SUSPECT_FAST_BOAT':    '10053000001400000000',  // Suspect, Non-Military (fast boat)
       'HOSTILE_VESSEL':       '10063000001400000000',  // Hostile, Non-Military
@@ -102,7 +103,7 @@ export function initConfig() {
       'RMAF_FIGHTER':         '10030100001101020000',  // Fixed Wing, Fighter/Bomber
       'RMAF_HELICOPTER':      '10030100001102000000',  // Rotary Wing
       'RMAF_TRANSPORT':       '10030100001101310000',  // Fixed Wing, Transport
-      'RMAF_MPA':             '10030100001101040000',  // Fixed Wing, Patrol
+      'RMAF_MPA':             '10030100001107000000',  // Fixed Wing, Patrol (01110700)
       'RMP_HELICOPTER':       '10030100001102000000',  // Rotary Wing
       'CIVILIAN_COMMERCIAL':  '10040100001200000000',  // Neutral, Civilian generic
       'CIVILIAN_LIGHT':       '10040100001201000000',  // Neutral, Civilian, Fixed Wing

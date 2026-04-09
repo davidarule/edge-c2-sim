@@ -181,7 +181,7 @@ scenario:
     # ── KD KEDAH (171) — NORTHERN SURFACE BARRIER ───────────────
     # NGPV establishing northern barrier — prevent contact transiting
     # into Andaman Sea unidentified. ORDER T+08. In position T+34. ✓
-    - id: "RMN-OPV-001"
+    - id: "RMN-NGPV-001"
       type: MIL_NAVAL
       callsign: "KD Kedah"
       agency: MIL
@@ -274,14 +274,14 @@ scenario:
     - time: "00:05"
       type: "ORDER"
       description: "RMN Western Fleet Command: UNKNOWN SUBMARINE CONTACT — ASW response activated. KD Lekiu (30) diverted at best speed to datum. RMAF scramble order for TUDM Peregrine 3 (second B200T MPA) from RMAF Subang — additional sonobuoys required. KD Kedah ordered to establish northern barrier — prevent contact transiting Andaman Sea unidentified. MMOC checking transit notification database."
-      targets: ["RMN-FF-001", "RMN-OPV-001", "RMN-MPA-002"]
+      targets: ["RMN-FF-001", "RMN-NGPV-001", "RMN-MPA-002"]
       action: "deploy"
       severity: "CRITICAL"
 
     - time: "00:08"
       type: "ORDER"
       description: "KD Kedah ordered north to barrier position — cut off Andaman Sea exit route. Peregrine 2 deploying passive sonobuoy pattern — LOFAR analysis commencing. Three sonobuoys in water. Contact track consistent: SE heading, diesel-electric propulsion signature. MMOC confirms: NO submarine transit notification received in 72-hour window. Contact is undeclared."
-      target: "RMN-OPV-001"
+      target: "RMN-NGPV-001"
       action: "deploy"
       severity: "CRITICAL"
 
@@ -334,6 +334,15 @@ scenario:
       position: { lat: 5.125, lon: 100.018 }
       alert_agencies: [RMAF, MIL]
       severity: "WARNING"
+
+    - time: "00:48"
+      type: "RECLASSIFY"
+      description: "CONTACT-001 reclassified: KRI Nagapasa (403), TNI-AL Indonesia. Friendly submarine — transit notification administrative error confirmed. Symbol updated on all COP terminals."
+      target: "CONTACT-001"
+      action: "reclassify"
+      new_type: "MIL_SUBMARINE_FRIENDLY"
+      alert_agencies: [MIL]
+      severity: "INFO"
 
     - time: "00:48"
       type: "ALERT"
