@@ -1,12 +1,18 @@
 /**
  * Initialize CesiumJS viewer with dark theme and ESSZONE camera.
+ * Supports offline mode (air-gapped) using bundled NaturalEarthII imagery.
  */
 import * as Cesium from 'cesium';
 
 export async function initCesium(containerId, config) {
-  Cesium.Ion.defaultAccessToken = config.cesiumToken;
+  const offlineMode = !config.cesiumToken || config.cesiumToken === '' ||
+                      import.meta.env.VITE_OFFLINE_MODE === 'true';
 
-  const viewer = new Cesium.Viewer(containerId, {
+  if (!offlineMode) {
+    Cesium.Ion.defaultAccessToken = config.cesiumToken;
+  }
+
+  const viewerOptions = {
     animation: false,
     timeline: false,
     baseLayerPicker: false,
@@ -19,7 +25,23 @@ export async function initCesium(containerId, config) {
     selectionIndicator: false,
     skyBox: false,
     skyAtmosphere: false
-  });
+  };
+
+  if (offlineMode) {
+    viewerOptions.baseLayer = Cesium.ImageryLayer.fromProviderAsync(
+      Cesium.TileMapServiceImageryProvider.fromUrl(
+        Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
+      )
+    );
+    viewerOptions.terrain = undefined;
+    console.log('[CesiumSetup] Offline mode — using bundled NaturalEarthII imagery');
+  }
+
+  const viewer = new Cesium.Viewer(containerId, viewerOptions);
+
+  if (offlineMode) {
+    viewer.scene.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+  }
 
   // Dark globe background
   viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#0a0e17');
@@ -37,7 +59,6 @@ export async function initCesium(containerId, config) {
   // Recover from Cesium render errors instead of stopping permanently
   viewer.scene.renderError.addEventListener((scene, error) => {
     console.warn('Cesium render error (recovering):', error);
-    // Re-enable rendering — Cesium stops the loop on unhandled renderError
     viewer.useDefaultRenderLoop = true;
   });
 

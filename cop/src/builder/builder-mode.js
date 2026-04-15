@@ -38,6 +38,8 @@ export function initBuilderMode(opts) {
 
   const toggleContainer = document.createElement('div');
   toggleContainer.className = 'mode-toggle';
+  // Hidden for delivery — Scenario Builder not yet ready. Keep code wired.
+  toggleContainer.style.display = 'none';
   toggleContainer.innerHTML = `
     <button class="mode-btn active" data-mode="PLAY">PLAY</button>
     <button class="mode-btn" data-mode="BUILD">BUILD</button>
