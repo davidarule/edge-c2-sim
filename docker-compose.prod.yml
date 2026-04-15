@@ -51,7 +51,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - SCENARIO=${SCENARIO:-config/scenarios/demo_combined.yaml}
+      - SCENARIO=${SCENARIO:-config/scenarios/scn_mal_01.yaml}
       - SIM_SPEED=${SIM_SPEED:-1}
       - JWT_SECRET=${JWT_SECRET}
       - WS_AUTH=${WS_AUTH:-true}
@@ -72,7 +72,7 @@ services:
       - "127.0.0.1:8766:8766"
     command: >
       python -m scripts.run_simulator
-        --scenario ${SCENARIO:-config/scenarios/demo_combined.yaml}
+        --scenario ${SCENARIO:-config/scenarios/scn_mal_01.yaml}
         --speed ${SIM_SPEED:-1}
         --transport ws,console
     healthcheck:

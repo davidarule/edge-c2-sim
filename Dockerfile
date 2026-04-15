@@ -16,4 +16,4 @@ RUN pip install --no-cache-dir .
 COPY config/ config/
 COPY geodata/ geodata/
 
-CMD ["edge-c2-sim", "--scenario", "config/scenarios/demo_combined.yaml", "--speed", "1", "--transport", "ws,console"]
+CMD ["edge-c2-sim", "--scenario", "config/scenarios/scn_mal_01.yaml", "--speed", "1", "--transport", "ws,console"]
