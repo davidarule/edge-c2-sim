@@ -124,6 +124,7 @@ class WebSocketAdapter(TransportAdapter):
         self._scenario_zoom: int | None = None
         self._scenario_file: str | None = None
         self._scenario_meta: dict | None = None
+        self._sidc_overrides: dict[str, str] = {}
 
     @property
     def name(self) -> str:
@@ -253,6 +254,8 @@ class WebSocketAdapter(TransportAdapter):
                 snap_msg["scenario_file"] = self._scenario_file
             if self._scenario_meta is not None:
                 snap_msg["scenario_meta"] = self._scenario_meta
+            if self._sidc_overrides:
+                snap_msg["sidc_overrides"] = self._sidc_overrides
             snapshot = json.dumps(snap_msg)
             await websocket.send(snapshot)
 

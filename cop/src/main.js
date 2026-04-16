@@ -120,6 +120,13 @@ async function main() {
       }
       if (headerControls) headerControls.setEntities(entities);
 
+      // Apply server-authoritative SIDC overrides (replaces stale localStorage)
+      if (data && data.sidc_overrides) {
+        Object.assign(config.sidcMap, data.sidc_overrides);
+        localStorage.setItem('sidc_overrides', JSON.stringify(data.sidc_overrides));
+        console.log(`Applied ${Object.keys(data.sidc_overrides).length} SIDC overrides from server`);
+      }
+
       // Fly to scenario center only when the scenario changes (load/switch/restart)
       // Defer 300ms so entity loading (~500 Cesium entities) doesn't disrupt the animation
       if (scenarioChanged) {

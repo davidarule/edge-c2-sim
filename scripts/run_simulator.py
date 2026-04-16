@@ -298,6 +298,16 @@ async def run(
                         pass
             ws_adapter.set_route_data(route_data)
 
+        # Load SIDC overrides from persistent file and attach to ws_adapter
+        overrides_path = "config/sidc_overrides.json"
+        if os.path.exists(overrides_path):
+            try:
+                with open(overrides_path) as f:
+                    ws_adapter._sidc_overrides = json.load(f)
+                logger.info(f"Loaded {len(ws_adapter._sidc_overrides)} SIDC overrides from {overrides_path}")
+            except (json.JSONDecodeError, OSError) as e:
+                logger.warning(f"Failed to load SIDC overrides: {e}")
+
         # SIDC update handler: updates entity store + saves to config/sidc_overrides.json
         async def handle_sidc_update(msg):
             entity_type = msg.get("entity_type")
@@ -323,6 +333,7 @@ async def run(
                 except (json.JSONDecodeError, OSError):
                     pass
             overrides[entity_type] = new_sidc
+            ws_adapter._sidc_overrides = overrides
             try:
                 with open(overrides_path, "w") as f:
                     json.dump(overrides, f, indent=2)
@@ -420,6 +431,8 @@ async def run(
                 snap_msg["scenario_file"] = ws_adapter._scenario_file
             if ws_adapter._scenario_meta is not None:
                 snap_msg["scenario_meta"] = ws_adapter._scenario_meta
+            if ws_adapter._sidc_overrides:
+                snap_msg["sidc_overrides"] = ws_adapter._sidc_overrides
             snapshot = json.dumps(snap_msg)
             await ws_adapter._broadcast(snapshot)
             # Push an immediate clock message so the COP doesn't wait up to 1s
