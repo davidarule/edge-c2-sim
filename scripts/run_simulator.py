@@ -348,16 +348,15 @@ async def run(
             clock.pause()
             clock.reset()
 
+            # Always stop AIS feed on restart/switch — may restart below
+            if ais_feed:
+                ais_feed.stop()
+                ais_feed = None
+                logger.info("AIS replay feed stopped")
+
             if switch:
-                # Scenario switch — clear everything including AIS replay entities
                 ws_adapter._trail_history.clear()
-                # Stop AIS replay feed — new scenario has its own background traffic
-                if ais_feed:
-                    ais_feed.stop()
-                    ais_feed = None
-                    logger.info("AIS replay feed stopped (scenario switch)")
             else:
-                # Same-scenario restart — preserve AIS replay entities
                 ais_trails = {
                     eid: trail for eid, trail in ws_adapter._trail_history.items()
                     if eid.startswith(AIS_ENTITY_PREFIX)
@@ -369,19 +368,8 @@ async def run(
             if scenario_path:
                 fresh = ScenarioLoader().load(scenario_path)
                 sim_context["scenario_state"] = fresh
-                if switch:
-                    # Full clear — no AIS preservation
-                    with store._lock:
-                        store._entities.clear()
-                else:
-                    # Restart — preserve AIS live entities
-                    with store._lock:
-                        ais_entities = {
-                            eid: e for eid, e in store._entities.items()
-                            if eid.startswith(AIS_ENTITY_PREFIX)
-                        }
-                        store._entities.clear()
-                        store._entities.update(ais_entities)
+                with store._lock:
+                    store._entities.clear()
                 for entity in fresh.entities.values():
                     store.upsert_entity(entity)
                 sim_context["event_engine"] = EventEngine(
@@ -447,6 +435,14 @@ async def run(
             if ws_adapter._route_data:
                 routes_msg = json.dumps({"type": "routes", "routes": ws_adapter._route_data})
                 await ws_adapter._broadcast(routes_msg)
+
+            # Restart AIS feed only if new scenario has no background includes
+            if scenario_path:
+                fresh_state = sim_context.get("scenario_state")
+                if fresh_state and not fresh_state.has_background_includes:
+                    _start_ais_feed()
+                elif fresh_state and fresh_state.has_background_includes:
+                    logger.info("Scenario has background includes — AIS feed not restarted")
 
         async def handle_restart(msg):
             logger.info("Restart requested by client")
@@ -560,55 +556,71 @@ async def run(
         await adapter.connect()
 
     # Start AIS feed: live (AISStream.io) or replay (captured CSV)
+    # Only when the scenario doesn't already provide background entities
+    # via include_entities / background_entities YAML config.
     ais_feed = None
-    if "ws" in transport_names:
-        ais_max = int(os.environ.get("AIS_MAX_ENTITIES", "300"))
-        ais_interval = float(os.environ.get("AIS_UPDATE_INTERVAL", "30"))
-        ais_stale = float(os.environ.get("AIS_STALE_SECONDS", "300"))
-        ais_key = os.environ.get("AISSTREAM_API_KEY", "")
-        ais_replay_dir = os.environ.get("AIS_REPLAY_DIR", "scripts/ais_data")
+    ais_config = {
+        "max": int(os.environ.get("AIS_MAX_ENTITIES", "300")),
+        "interval": float(os.environ.get("AIS_UPDATE_INTERVAL", "30")),
+        "stale": float(os.environ.get("AIS_STALE_SECONDS", "300")),
+        "key": os.environ.get("AISSTREAM_API_KEY", ""),
+        "replay_dir": os.environ.get("AIS_REPLAY_DIR", "scripts/ais_data"),
+        "replay_speed": float(os.environ.get("AIS_REPLAY_SPEED", "1")),
+    }
 
-        # Prefer replay CSV if available; fall back to live API
+    def _start_ais_feed():
+        """Start AIS replay/live feed. Returns the feed instance or None."""
+        nonlocal ais_feed
+        if "ws" not in transport_names:
+            return None
         replay_pos = None
-        if os.path.isdir(ais_replay_dir):
-            # Find latest positions CSV in the replay dir
+        if os.path.isdir(ais_config["replay_dir"]):
             csvs = sorted(
-                [f for f in os.listdir(ais_replay_dir) if f.startswith("positions_") and f.endswith(".csv")],
+                [f for f in os.listdir(ais_config["replay_dir"])
+                 if f.startswith("positions_") and f.endswith(".csv")],
                 reverse=True,
             )
             if csvs:
-                replay_pos = os.path.join(ais_replay_dir, csvs[0])
+                replay_pos = os.path.join(ais_config["replay_dir"], csvs[0])
                 replay_static = os.path.join(
-                    ais_replay_dir, csvs[0].replace("positions_", "statics_")
+                    ais_config["replay_dir"], csvs[0].replace("positions_", "statics_")
                 )
 
         if replay_pos and os.path.exists(replay_pos):
             from simulator.ais.replay_feed import AISReplayFeed
-            ais_replay_speed = float(os.environ.get("AIS_REPLAY_SPEED", "1"))
             ais_feed = AISReplayFeed(
                 positions_csv=replay_pos,
                 statics_csv=replay_static,
                 entity_store=store,
                 ws_adapter=ws_adapter,
-                max_entities=ais_max,
-                update_interval_s=ais_interval,
-                stale_seconds=ais_stale,
-                speed=ais_replay_speed,
+                max_entities=ais_config["max"],
+                update_interval_s=ais_config["interval"],
+                stale_seconds=ais_config["stale"],
+                speed=ais_config["replay_speed"],
             )
             asyncio.create_task(ais_feed.run())
-            logger.info(f"AIS replay feed started: {replay_pos} ({ais_replay_speed}x)")
-        elif ais_key:
+            logger.info(f"AIS replay feed started: {replay_pos} ({ais_config['replay_speed']}x)")
+            return ais_feed
+        elif ais_config["key"]:
             from simulator.ais.live_feed import AISLiveFeed
             ais_feed = AISLiveFeed(
-                api_key=ais_key,
+                api_key=ais_config["key"],
                 entity_store=store,
                 ws_adapter=ws_adapter,
-                max_entities=ais_max,
-                update_interval_s=ais_interval,
-                stale_seconds=ais_stale,
+                max_entities=ais_config["max"],
+                update_interval_s=ais_config["interval"],
+                stale_seconds=ais_config["stale"],
             )
             asyncio.create_task(ais_feed.run())
             logger.info("AIS live feed started (AISStream.io)")
+            return ais_feed
+        return None
+
+    has_bg = scenario_state.has_background_includes if scenario_state else False
+    if not has_bg:
+        _start_ais_feed()
+    else:
+        logger.info("Scenario has background includes — skipping AIS replay feed")
 
     # Start health server
     health = HealthServer(port=8766)

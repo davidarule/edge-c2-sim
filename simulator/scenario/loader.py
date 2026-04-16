@@ -255,6 +255,7 @@ class ScenarioState:
     movements: dict[str, Any]  # entity_id -> movement strategy
     events: list[ScenarioEvent]
     start_time: datetime
+    has_background_includes: bool = False
 
 
 class ScenarioLoader:
@@ -363,6 +364,8 @@ class ScenarioLoader:
             f"{len(events)} events over {duration_min} minutes"
         )
 
+        has_bg = bool(scenario.get("include_entities")) or bool(scenario.get("background_entities"))
+
         return ScenarioState(
             name=name,
             description=description,
@@ -373,6 +376,7 @@ class ScenarioLoader:
             movements=movements,
             events=events,
             start_time=start,
+            has_background_includes=has_bg,
         )
 
     def _validate_terrain(
