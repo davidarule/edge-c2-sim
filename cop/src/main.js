@@ -865,7 +865,14 @@ function initHeaderControls(ws, config) {
 
   // Reset
   resetBtn.addEventListener('click', () => {
-    if (confirm('Reset scenario to beginning?')) ws.reset();
+    if (!confirm('Reset scenario to beginning?')) return;
+    // Reuse the load_scenario path which handles reset cleanly
+    // (reloads entities, resets clock, clears events, flies camera)
+    if (_currentScenarioFile) {
+      ws.loadScenario(_currentScenarioFile);
+    } else {
+      ws.reset();
+    }
   });
 
   // Play/Pause
