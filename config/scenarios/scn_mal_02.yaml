@@ -407,40 +407,13 @@ scenario:
     callsign: UTK Team Alpha
     agency: RMP
     initial_position:
-      lat: 3.35
-      lon: 100.8
-    behavior: standby
-    waypoints:
-    # Embarked on KM Perantau — same waypoints as MMEA-PV-001
-    - lat: 3.35
-      lon: 100.8
-      speed: 12
-      time: 00:00
-    - lat: 3.355
-      lon: 100.785
-      speed: 12
-      time: 00:06
-    - lat: 3.225
-      lon: 100.695
-      speed: 22
-      time: 00:12
-    - lat: 3.32
-      lon: 100.74
-      speed: 22
-      time: 00:25
-    - lat: 3.42
-      lon: 100.785
-      speed: 22
-      time: 00:38
-    - lat: 3.51
-      lon: 100.83
-      speed: 22
-      time: 00:50
-    - lat: 3.555
+      lat: 3.555
       lon: 100.86
-      speed: 10
-      time: 01:01
-    # 01:11 — KM Perantau alongside tanker. UTK deploys RHIB
+    # UTK Team Alpha is embarked on KM Perantau until 01:11 RHIB deployment.
+    # Only spawned as a separate entity at the moment of RHIB launch,
+    # so it doesn't visually drift from the patrol vessel during transit.
+    waypoints:
+    # 01:11 — RHIB launched from KM Perantau alongside tanker
     - lat: 3.555
       lon: 100.86
       speed: 2
@@ -467,7 +440,8 @@ scenario:
       - flash_bang
       - breaching_kit
       unit_name: UTK Team Alpha — RMP Counter-Terrorism
-      notes: Tactical boarding team. Fast-rope insertion if required.
+      notes: Boarding team embarked on KM Perantau. Deploys via RHIB at
+        01:11 for fast-rope boarding of MT Labuan Palm.
   events:
   - time: 00:00
     type: DETECTION

@@ -28,8 +28,8 @@ API_BASE = "https://api.datalastic.com/api/v0"
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ais_data", "ais_capture.db")
 
 # SE Asia bounding box
-LAT_MIN, LAT_MAX = -11.0, 8.0
-LON_MIN, LON_MAX = 93.0, 142.0
+LAT_MIN, LAT_MAX = -1.0, 12.0
+LON_MIN, LON_MAX = 100.0, 127.0
 
 # Rate limiting: 600 req/min → 10 req/s, target 8.5 for safety margin
 MIN_REQUEST_INTERVAL = 1.0 / 8.5  # ~0.118s

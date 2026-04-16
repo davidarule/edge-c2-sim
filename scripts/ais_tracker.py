@@ -155,6 +155,7 @@ def run_tracker(args):
     conn = sqlite3.connect(args.db_path)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA busy_timeout = 30000")
 
     client = DatalasticClient(api_key)
     all_mmsis = get_all_mmsis(conn)

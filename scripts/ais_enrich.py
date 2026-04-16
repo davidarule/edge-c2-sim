@@ -194,6 +194,7 @@ def run_enrich(args):
     conn = sqlite3.connect(args.db_path)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA busy_timeout = 30000")
 
     init_details_table(conn)
 
