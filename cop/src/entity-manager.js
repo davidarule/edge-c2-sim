@@ -243,6 +243,8 @@ export function initEntityManager(viewer, config) {
       id: `trail-${id}`,
       polyline: {
         positions: new Cesium.CallbackProperty(() => {
+          const entry = entities.get(id);
+          if (!entry || !entry.visible) return [];
           const points = trailPositions.get(id) || [];
           const valid = points.filter(p =>
             p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon)

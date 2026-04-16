@@ -86,17 +86,15 @@ export function initEntityPanel(containerId, entityManager, viewer) {
 
     document.getElementById('btn-follow').addEventListener('click', () => {
       const cesiumEntity = entityManager.getCesiumEntity(entity.entity_id);
-      if (cesiumEntity) {
-        // Use viewer.trackedEntity as source of truth to avoid state desync
-        if (viewer.trackedEntity) {
-          viewer.trackedEntity = undefined;
-          following = false;
-        } else {
-          viewer.trackedEntity = cesiumEntity;
-          following = true;
-        }
-        document.getElementById('btn-follow').classList.toggle('active', following);
+      if (!cesiumEntity) return;
+      if (following) {
+        viewer.trackedEntity = undefined;
+        following = false;
+      } else {
+        viewer.trackedEntity = cesiumEntity;
+        following = true;
       }
+      document.getElementById('btn-follow').classList.toggle('active', following);
     });
 
     document.getElementById('btn-trail').addEventListener('click', () => {

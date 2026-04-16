@@ -30,6 +30,7 @@ from simulator.movement.terrain import validate_position, find_nearest_valid_poi
 from simulator.scenario.event_engine import EventEngine
 from simulator.scenario.loader import ENTITY_TYPES, ScenarioLoader, ScenarioState
 from simulator.transport.console_adapter import ConsoleAdapter
+from simulator.transport.http_forward_adapter import HttpForwardAdapter
 from simulator.transport.websocket_adapter import WebSocketAdapter
 from scripts.health_server import HealthServer
 
@@ -334,35 +335,53 @@ async def run(
         # Mutable container so handle_load_scenario can swap the active path
         active_scenario = [scenario]
 
-        async def _do_restart(scenario_path):
+        async def _do_restart(scenario_path, *, switch=False):
             """Core restart logic — reload scenario_path and re-broadcast snapshot.
 
-            AIS live feed entities (prefix AIS-) are preserved across restarts —
-            they are live data, not scenario data.
+            On restart (same scenario): AIS replay entities are preserved.
+            On switch (different scenario): ALL entities cleared, AIS replay
+            feed stopped (background traffic comes from include_entities).
             """
+            nonlocal ais_feed
             from simulator.ais.live_feed import AIS_ENTITY_PREFIX
 
             clock.pause()
             clock.reset()
-            # Preserve AIS entity trails; clear only scenario trails
-            ais_trails = {
-                eid: trail for eid, trail in ws_adapter._trail_history.items()
-                if eid.startswith(AIS_ENTITY_PREFIX)
-            }
-            ws_adapter._trail_history.clear()
-            ws_adapter._trail_history.update(ais_trails)
+
+            if switch:
+                # Scenario switch — clear everything including AIS replay entities
+                ws_adapter._trail_history.clear()
+                # Stop AIS replay feed — new scenario has its own background traffic
+                if ais_feed:
+                    ais_feed.stop()
+                    ais_feed = None
+                    logger.info("AIS replay feed stopped (scenario switch)")
+            else:
+                # Same-scenario restart — preserve AIS replay entities
+                ais_trails = {
+                    eid: trail for eid, trail in ws_adapter._trail_history.items()
+                    if eid.startswith(AIS_ENTITY_PREFIX)
+                }
+                ws_adapter._trail_history.clear()
+                ws_adapter._trail_history.update(ais_trails)
+
             ws_adapter._event_history.clear()
             if scenario_path:
                 fresh = ScenarioLoader().load(scenario_path)
                 sim_context["scenario_state"] = fresh
-                # Clear scenario entities but preserve AIS live entities
-                with store._lock:
-                    ais_entities = {
-                        eid: e for eid, e in store._entities.items()
-                        if eid.startswith(AIS_ENTITY_PREFIX)
-                    }
-                    store._entities.clear()
-                    store._entities.update(ais_entities)
+                if switch:
+                    # Full clear — no AIS preservation
+                    with store._lock:
+                        store._entities.clear()
+                else:
+                    # Restart — preserve AIS live entities
+                    with store._lock:
+                        ais_entities = {
+                            eid: e for eid, e in store._entities.items()
+                            if eid.startswith(AIS_ENTITY_PREFIX)
+                        }
+                        store._entities.clear()
+                        store._entities.update(ais_entities)
                 for entity in fresh.entities.values():
                     store.upsert_entity(entity)
                 sim_context["event_engine"] = EventEngine(
@@ -415,6 +434,16 @@ async def run(
                 snap_msg["scenario_meta"] = ws_adapter._scenario_meta
             snapshot = json.dumps(snap_msg)
             await ws_adapter._broadcast(snapshot)
+            # Push an immediate clock message so the COP doesn't wait up to 1s
+            # for the next periodic broadcast before its sim-time display updates.
+            clock_msg = json.dumps({
+                "type": "clock",
+                "sim_time": clock.get_sim_time().isoformat(),
+                "speed": clock.speed,
+                "running": clock.is_running,
+                "scenario_progress": 0.0,
+            })
+            await ws_adapter._broadcast(clock_msg)
             if ws_adapter._route_data:
                 routes_msg = json.dumps({"type": "routes", "routes": ws_adapter._route_data})
                 await ws_adapter._broadcast(routes_msg)
@@ -431,14 +460,15 @@ async def run(
             if not (new_path.startswith("config/scenarios/") and new_path.endswith(".yaml")):
                 logger.warning(f"load_scenario: rejected invalid path: {new_path!r}")
                 return
-            logger.info(f"Loading new scenario: {new_path}")
+            is_switch = new_path != active_scenario[0]
+            logger.info(f"Loading scenario: {new_path} ({'switch' if is_switch else 'reload'})")
             active_scenario[0] = new_path
             try:
-                await _do_restart(new_path)
+                await _do_restart(new_path, switch=is_switch)
             except Exception as e:
                 logger.error(f"load_scenario failed: {e}")
                 return
-            logger.info(f"Scenario switched to: {new_path}")
+            logger.info(f"Scenario {'switched to' if is_switch else 'reloaded'}: {new_path}")
 
         async def handle_return_to_start(msg):
             """Send an entity back to its initial position."""
@@ -517,6 +547,13 @@ async def run(
 
     if "console" in transport_names:
         print("Console output enabled")
+
+    # HTTP forwarding — enabled via FORWARD_URL env var or --forward-url CLI
+    forward_url = os.environ.get("FORWARD_URL", "")
+    if forward_url:
+        fwd = HttpForwardAdapter(target_url=forward_url)
+        adapters.append(fwd)
+        print(f"HTTP forwarding -> {forward_url}")
 
     # Connect adapters
     for adapter in adapters:

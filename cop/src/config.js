@@ -84,10 +84,10 @@ export function initConfig() {
       'MIL_NAVAL':            '10033000001205020000',  // Patrol Ship (OPV, Kedah-class)
       'MIL_NAVAL_FRIGATE':    '10033000001202040000',  // Frigate (Lekiu/Kasturi-class)
       'MIL_NAVAL_FIC':        '10033000001205010000',  // Patrol Craft (fast intercept)
-      'MIL_SUBMARINE':          '10003500000000000000',  // Sea Subsurface, Unknown (Symbol Set 35)
+      'MIL_SUBMARINE':          '10013500000000000000',  // Sea Subsurface, Unknown (Symbol Set 35)
       'MIL_SUBMARINE_FRIENDLY': '10033500000000000000',  // Sea Subsurface, Friend (after identification)
       'SUSPECT_VESSEL':       '10053000001400000000',  // Suspect, Non-Military
-      'SUSPECT_FAST_BOAT':    '10053000001400000000',  // Suspect, Non-Military (fast boat)
+      'SUSPECT_FAST_BOAT':    '10013000001400000000',  // Unknown, Non-Military (fast boat)
       'HOSTILE_VESSEL':       '10063000001400000000',  // Hostile, Non-Military
       'CIVILIAN_CARGO':       '10043000001401010000',  // Neutral, Merchant, Cargo
       'CIVILIAN_FISHING':     '10043000001402000000',  // Neutral, Fishing
