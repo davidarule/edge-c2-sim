@@ -131,10 +131,11 @@ export function initAgencyFilter(containerId, entityManager, config) {
     lastEntityListHash = hash;
 
     entityListEl.innerHTML = '';
-    // Sort: scenario entities first, then background; within each group by agency then callsign
+    // Sort: scenario entities first (non-AIS IDs), then background (AIS-* IDs);
+    // within each group by agency then callsign
     const sorted = [...allEntities].sort((a, b) => {
-      const aBg = a.metadata?.background ? 1 : 0;
-      const bBg = b.metadata?.background ? 1 : 0;
+      const aBg = (a.entity_id || '').startsWith('AIS-') ? 1 : 0;
+      const bBg = (b.entity_id || '').startsWith('AIS-') ? 1 : 0;
       if (aBg !== bBg) return aBg - bBg;
       const agencyDiff = (a.agency || '').localeCompare(b.agency || '');
       if (agencyDiff !== 0) return agencyDiff;

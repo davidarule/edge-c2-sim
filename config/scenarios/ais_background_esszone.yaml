@@ -1,0 +1,3401 @@
+# Edge C2 Simulator — AIS Background Traffic (Datalastic)
+# Generated: 2026-04-09T23:08:08Z
+# Source: ais_capture.db
+# Bounding box: 3.0°N–8.0°N, 115.0°E–120.0°E
+# Entities: 73 (73 moving, 0 stationary)
+#
+# Entity type breakdown:
+#   CIVILIAN_CARGO: 32
+#   CIVILIAN_BOAT: 29
+#   CIVILIAN_PASSENGER: 4
+#   CIVILIAN_TANKER_VLCC: 3
+#   CIVILIAN_TANKER: 3
+#   CIVILIAN_FISHING: 2
+#
+# Usage — include in scenario file under scenario_entities:
+#   scenario_entities:
+#     - !include ais_background.yaml
+#   OR copy the list directly into scenario_entities.
+#
+# All entities have skip_terrain_check: false and source: AIS_REAL
+
+- id: AIS-352898761
+  type: CIVILIAN_CARGO
+  callsign: MV IONIAN CHALLENGER
+  initial_position:
+    lat: 3.24577
+    lon: 117.72208
+  waypoints:
+  - lat: 3.24577
+    lon: 117.72208
+    speed: 0.0
+    time: 00:00
+  - lat: 3.24618
+    lon: 117.72187
+    speed: 0.2
+    time: 02:42
+  - lat: 3.24574
+    lon: 117.72209
+    speed: 0.1
+    time: 02:48
+  - lat: 3.24602
+    lon: 117.72202
+    speed: 0.1
+    time: 02:57
+  - lat: 3.24644
+    lon: 117.7218
+    speed: 0.1
+    time: 03:46
+  - lat: 3.24704
+    lon: 117.72131
+    speed: 0.0
+    time: 04:27
+  - lat: 3.24698
+    lon: 117.72118
+    speed: 0.1
+    time: 05:05
+  - lat: 3.24721
+    lon: 117.72051
+    speed: 0.2
+    time: 05:39
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '352898761'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: IONIAN CHALLENGER
+    call_sign: 3E2046
+    flag: PAN
+    vessel_type: Bulk Carrier
+    length_m: 229.0
+    beam_m: 32.3
+    draught_m: 12.2
+    gross_tonnage: 43012
+    deadweight: 82245
+    year_built: '2010'
+    destination_declared: TARAKAN,INDONESIA
+- id: AIS-525300201
+  type: CIVILIAN_BOAT
+  callsign: MV PRIMA 11
+  initial_position:
+    lat: 3.2542
+    lon: 117.71781
+  waypoints:
+  - lat: 3.2542
+    lon: 117.71781
+    speed: 0.1
+    time: 00:00
+  - lat: 3.25495
+    lon: 117.71769
+    speed: 0.0
+    time: 02:42
+  - lat: 3.25504
+    lon: 117.71759
+    speed: 0.2
+    time: 03:45
+  - lat: 3.25513
+    lon: 117.71752
+    speed: 0.0
+    time: 04:06
+  - lat: 3.25526
+    lon: 117.71733
+    speed: 0.2
+    time: 04:27
+  - lat: 3.25387
+    lon: 117.71628
+    speed: 0.3
+    time: 04:41
+  - lat: 3.25396
+    lon: 117.71673
+    speed: 0.6
+    time: 04:51
+  - lat: 3.25355
+    lon: 117.71565
+    speed: 1.5
+    time: 05:06
+  - lat: 3.25483
+    lon: 117.7111
+    speed: 3.8
+    time: 05:16
+  - lat: 3.25285
+    lon: 117.70345
+    speed: 2.9
+    time: 05:26
+  - lat: 3.2508
+    lon: 117.69971
+    speed: 2.6
+    time: 05:32
+  - lat: 3.24615
+    lon: 117.69372
+    speed: 2.7
+    time: 05:42
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525300201'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: PRIMA 11
+    call_sign: Y3B4520
+    flag: IDN
+    vessel_type: Tug
+- id: AIS-525300220
+  type: CIVILIAN_BOAT
+  callsign: MV PRIMA 158
+  initial_position:
+    lat: 3.24468
+    lon: 117.72116
+  waypoints:
+  - lat: 3.24468
+    lon: 117.72116
+    speed: 0.0
+    time: 00:00
+  - lat: 3.24453
+    lon: 117.72228
+    speed: 2.8
+    time: 02:44
+  - lat: 3.24672
+    lon: 117.7269
+    speed: 1.8
+    time: 02:59
+  - lat: 3.24546
+    lon: 117.72177
+    speed: 0.0
+    time: 03:47
+  - lat: 3.24594
+    lon: 117.7217
+    speed: 0.0
+    time: 04:08
+  - lat: 3.24593
+    lon: 117.72169
+    speed: 0.0
+    time: 04:11
+  - lat: 3.24611
+    lon: 117.72163
+    speed: 0.2
+    time: 04:29
+  - lat: 3.24623
+    lon: 117.72154
+    speed: 0.3
+    time: 04:44
+  - lat: 3.24628
+    lon: 117.72152
+    speed: 0.1
+    time: 04:56
+  - lat: 3.24626
+    lon: 117.72152
+    speed: 0.2
+    time: 05:05
+  - lat: 3.24592
+    lon: 117.72157
+    speed: 0.1
+    time: 05:17
+  - lat: 3.24605
+    lon: 117.72147
+    speed: 0.2
+    time: 05:32
+  - lat: 3.24645
+    lon: 117.72106
+    speed: 0.2
+    time: 05:41
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525300220'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: PRIMA 158
+    call_sign: YDB4698
+    flag: IDN
+    vessel_type: Tug
+    length_m: 27.0
+    beam_m: 8.0
+- id: AIS-525300290
+  type: CIVILIAN_BOAT
+  callsign: MV PRIMA 179
+  initial_position:
+    lat: 3.24804
+    lon: 117.7257
+  waypoints:
+  - lat: 3.24804
+    lon: 117.7257
+    speed: 2.6
+    time: 00:00
+  - lat: 3.25653
+    lon: 117.73312
+    speed: 0.1
+    time: 02:41
+  - lat: 3.25663
+    lon: 117.73308
+    speed: 0.2
+    time: 03:44
+  - lat: 3.25681
+    lon: 117.73303
+    speed: 0.1
+    time: 04:11
+  - lat: 3.25695
+    lon: 117.73294
+    speed: 0.0
+    time: 04:41
+  - lat: 3.25702
+    lon: 117.73287
+    speed: 0.2
+    time: 05:14
+  - lat: 3.25706
+    lon: 117.73282
+    speed: 0.0
+    time: 05:23
+  - lat: 3.25718
+    lon: 117.73262
+    speed: 0.0
+    time: 05:41
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525300290'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: PRIMA 179
+    call_sign: YDB4722
+    flag: IDN
+    vessel_type: Tug
+    length_m: 27.0
+    beam_m: 8.0
+- id: AIS-525301892
+  type: CIVILIAN_BOAT
+  callsign: MV PRIMA 238
+  initial_position:
+    lat: 3.24595
+    lon: 117.72045
+  waypoints:
+  - lat: 3.24595
+    lon: 117.72045
+    speed: 0.0
+    time: 00:00
+  - lat: 3.24605
+    lon: 117.72062
+    speed: 0.3
+    time: 02:42
+  - lat: 3.24644
+    lon: 117.72061
+    speed: 0.1
+    time: 03:44
+  - lat: 3.24839
+    lon: 117.72099
+    speed: 4.5
+    time: 04:16
+  - lat: 3.25817
+    lon: 117.72317
+    speed: 0.2
+    time: 04:27
+  - lat: 3.25249
+    lon: 117.72284
+    speed: 1.6
+    time: 04:43
+  - lat: 3.24926
+    lon: 117.72073
+    speed: 1.3
+    time: 04:54
+  - lat: 3.24693
+    lon: 117.72035
+    speed: 0.2
+    time: 05:04
+  - lat: 3.2462
+    lon: 117.71938
+    speed: 0.4
+    time: 05:40
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525301892'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: PRIMA 238
+    call_sign: YDC3413
+    flag: IDN
+    vessel_type: Tug
+    length_m: 25.0
+    beam_m: 8.0
+    gross_tonnage: 207
+    deadweight: 180
+    year_built: '2021'
+- id: AIS-525301893
+  type: CIVILIAN_BOAT
+  callsign: MV MARITIM PRIMA 3
+  initial_position:
+    lat: 3.24568
+    lon: 117.72071
+  waypoints:
+  - lat: 3.24568
+    lon: 117.72071
+    speed: 0.0
+    time: 00:00
+  - lat: 3.24587
+    lon: 117.72092
+    speed: 0.3
+    time: 02:41
+  - lat: 3.24616
+    lon: 117.72084
+    speed: 0.2
+    time: 03:44
+  - lat: 3.24659
+    lon: 117.72051
+    speed: 0.3
+    time: 04:16
+  - lat: 3.24632
+    lon: 117.72027
+    speed: 0.0
+    time: 04:54
+  - lat: 3.24604
+    lon: 117.72029
+    speed: 0.1
+    time: 05:25
+  - lat: 3.24634
+    lon: 117.7198
+    speed: 0.3
+    time: 05:41
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525301893'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MARITIM PRIMA 3
+    call_sign: YDQN2
+    flag: IDN
+    vessel_type: Other
+    length_m: 68.0
+    beam_m: 24.0
+- id: AIS-525400139
+  type: CIVILIAN_BOAT
+  callsign: MV PRIMA 123
+  initial_position:
+    lat: 3.24599
+    lon: 117.72071
+  waypoints:
+  - lat: 3.24599
+    lon: 117.72071
+    speed: 0.1
+    time: 00:00
+  - lat: 3.24629
+    lon: 117.72099
+    speed: 0.1
+    time: 02:42
+  - lat: 3.24605
+    lon: 117.72119
+    speed: 0.1
+    time: 02:48
+  - lat: 3.2465
+    lon: 117.72096
+    speed: 0.0
+    time: 03:44
+  - lat: 3.24683
+    lon: 117.72061
+    speed: 0.1
+    time: 03:57
+  - lat: 3.24682
+    lon: 117.72061
+    speed: 0.1
+    time: 04:06
+  - lat: 3.24687
+    lon: 117.72062
+    speed: 0.2
+    time: 04:15
+  - lat: 3.24559
+    lon: 117.71901
+    speed: 2.3
+    time: 04:28
+  - lat: 3.2428
+    lon: 117.71089
+    speed: 1.9
+    time: 04:43
+  - lat: 3.23923
+    lon: 117.69169
+    speed: 2.3
+    time: 05:15
+  - lat: 3.23103
+    lon: 117.67064
+    speed: 4.0
+    time: 05:42
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525400139'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: PRIMA 123
+    call_sign: YDB4614
+    flag: IDN
+    vessel_type: Tug
+- id: AIS-525401539
+  type: CIVILIAN_BOAT
+  callsign: MV PRIMA 221
+  initial_position:
+    lat: 3.24486
+    lon: 117.72155
+  waypoints:
+  - lat: 3.24486
+    lon: 117.72155
+    speed: 0.1
+    time: 00:00
+  - lat: 3.24514
+    lon: 117.72157
+    speed: 0.3
+    time: 02:41
+  - lat: 3.24484
+    lon: 117.72155
+    speed: 0.8
+    time: 02:46
+  - lat: 3.24616
+    lon: 117.71571
+    speed: 3.8
+    time: 02:57
+  - lat: 3.26063
+    lon: 117.70716
+    speed: 0.0
+    time: 03:44
+  - lat: 3.26063
+    lon: 117.70713
+    speed: 0.0
+    time: 03:55
+  - lat: 3.26064
+    lon: 117.70713
+    speed: 0.0
+    time: 04:06
+  - lat: 3.26066
+    lon: 117.70709
+    speed: 0.1
+    time: 04:16
+  - lat: 3.26075
+    lon: 117.70695
+    speed: 0.1
+    time: 04:28
+  - lat: 3.26078
+    lon: 117.70663
+    speed: 0.1
+    time: 04:43
+  - lat: 3.26061
+    lon: 117.70635
+    speed: 0.1
+    time: 04:54
+  - lat: 3.26079
+    lon: 117.70643
+    speed: 0.1
+    time: 05:04
+  - lat: 3.26055
+    lon: 117.70661
+    speed: 1.6
+    time: 05:15
+  - lat: 3.2574
+    lon: 117.70256
+    speed: 3.3
+    time: 05:25
+  - lat: 3.248
+    lon: 117.68943
+    speed: 3.2
+    time: 05:41
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525401539'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: PRIMA 221
+    call_sign: YDC3460
+    flag: IDN
+    vessel_type: Tug
+    length_m: 26.0
+    beam_m: 8.0
+    gross_tonnage: 207
+    deadweight: 180
+    year_built: '2022'
+    destination_declared: TARAKAN
+- id: AIS-525501056
+  type: CIVILIAN_BOAT
+  callsign: MV TB PRIMA SURYA 01
+  initial_position:
+    lat: 3.23352
+    lon: 117.85587
+  waypoints:
+  - lat: 3.23352
+    lon: 117.85587
+    speed: 1.5
+    time: 00:00
+  - lat: 3.23537
+    lon: 117.78335
+    speed: 2.2
+    time: 02:42
+  - lat: 3.23576
+    lon: 117.7428
+    speed: 2.4
+    time: 03:44
+  - lat: 3.23454
+    lon: 117.71805
+    speed: 2.9
+    time: 04:17
+  - lat: 3.23415
+    lon: 117.6998
+    speed: 0.3
+    time: 04:43
+  - lat: 3.23445
+    lon: 117.69653
+    speed: 1.3
+    time: 04:54
+  - lat: 3.23329
+    lon: 117.6907
+    speed: 2.5
+    time: 05:05
+  - lat: 3.23002
+    lon: 117.66302
+    speed: 3.4
+    time: 05:40
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525501056'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: TB PRIMA SURYA 01
+    call_sign: YDC6232
+    flag: IDN
+    vessel_type: Tug
+    length_m: 27.0
+    beam_m: 8.0
+- id: AIS-525801447
+  type: CIVILIAN_CARGO
+  callsign: MV FC MARITIM PRIMA 5
+  initial_position:
+    lat: 3.24521
+    lon: 117.72131
+  waypoints:
+  - lat: 3.24521
+    lon: 117.72131
+    speed: 0.1
+    time: 00:00
+  - lat: 3.24535
+    lon: 117.72129
+    speed: 0.2
+    time: 02:42
+  - lat: 3.24516
+    lon: 117.72134
+    speed: 0.0
+    time: 02:48
+  - lat: 3.24553
+    lon: 117.72147
+    speed: 0.0
+    time: 02:58
+  - lat: 3.24585
+    lon: 117.7214
+    speed: 0.0
+    time: 03:45
+  - lat: 3.24629
+    lon: 117.72119
+    speed: 0.0
+    time: 03:56
+  - lat: 3.24633
+    lon: 117.72115
+    speed: 0.0
+    time: 04:29
+  - lat: 3.24626
+    lon: 117.72109
+    speed: 0.1
+    time: 05:05
+  - lat: 3.24652
+    lon: 117.72044
+    speed: 0.2
+    time: 05:41
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525801447'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: FC MARITIM PRIMA 5
+    call_sign: SSD
+    flag: IDN
+    vessel_type: Unspecified
+    length_m: 68.0
+    beam_m: 24.0
+- id: AIS-574128000
+  type: CIVILIAN_CARGO
+  callsign: MV ORIENTAL GLORY
+  initial_position:
+    lat: 3.24895
+    lon: 117.73744
+  waypoints:
+  - lat: 3.24895
+    lon: 117.73744
+    speed: 0.0
+    time: 00:00
+  - lat: 3.24972
+    lon: 117.73733
+    speed: 0.0
+    time: 02:42
+  - lat: 3.25002
+    lon: 117.73719
+    speed: 0.0
+    time: 03:45
+  - lat: 3.25029
+    lon: 117.73696
+    speed: 0.0
+    time: 04:18
+  - lat: 3.25055
+    lon: 117.73643
+    speed: 0.0
+    time: 04:54
+  - lat: 3.25071
+    lon: 117.73598
+    speed: 0.1
+    time: 05:03
+  - lat: 3.25096
+    lon: 117.73513
+    speed: 0.2
+    time: 05:15
+  - lat: 3.25093
+    lon: 117.73465
+    speed: 0.0
+    time: 05:24
+  - lat: 3.25068
+    lon: 117.73422
+    speed: 0.0
+    time: 05:42
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '574128000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: ORIENTAL GLORY
+    call_sign: XVHB
+    flag: VNM
+    vessel_type: Bulk Carrier
+    length_m: 224.0
+    beam_m: 32.2
+    gross_tonnage: 36074
+    deadweight: 68591
+    year_built: '1995'
+    destination_declared: TARAKAN
+- id: AIS-563076400
+  type: CIVILIAN_CARGO
+  callsign: MV NORD TITAN
+  initial_position:
+    lat: 4.70325
+    lon: 119.63699
+  waypoints:
+  - lat: 4.70325
+    lon: 119.63699
+    speed: 11.1
+    time: 00:00
+  - lat: 4.08542
+    lon: 119.62624
+    speed: 12.1
+    time: 03:11
+  - lat: 3.79529
+    lon: 119.58649
+    speed: 13.1
+    time: 04:27
+  - lat: 3.68054
+    lon: 119.57058
+    speed: 14.0
+    time: 04:58
+  - lat: 3.54955
+    lon: 119.55382
+    speed: 13.6
+    time: 05:32
+  - lat: 3.42317
+    lon: 119.53938
+    speed: 13.1
+    time: 06:06
+  - lat: 3.40249
+    lon: 119.53692
+    speed: 13.3
+    time: 06:14
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '563076400'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: NORD TITAN
+    call_sign: 9V6239
+    flag: SGP
+    vessel_type: Bulk Carrier
+    length_m: 225.0
+    beam_m: 32.2
+    draught_m: 8.5
+    gross_tonnage: 40937
+    deadweight: 77095
+    year_built: '2014'
+    destination_declared: NORTH PULAT LUAT IND
+- id: AIS-259147000
+  type: CIVILIAN_TANKER_VLCC
+  callsign: MT SANTANDER KNUTSEN
+  initial_position:
+    lat: 4.47863
+    lon: 119.62736
+  waypoints:
+  - lat: 4.47863
+    lon: 119.62736
+    speed: 10.8
+    time: 00:00
+  - lat: 3.90731
+    lon: 119.62566
+    speed: 12.1
+    time: 03:11
+  - lat: 3.67508
+    lon: 119.61455
+    speed: 12.5
+    time: 04:10
+  - lat: 3.53267
+    lon: 119.60999
+    speed: 12.7
+    time: 04:50
+  - lat: 3.39987
+    lon: 119.60691
+    speed: 12.7
+    time: 05:28
+  - lat: 3.27286
+    lon: 119.59955
+    speed: 12.2
+    time: 06:04
+  - lat: 3.25426
+    lon: 119.59866
+    speed: 11.8
+    time: 06:12
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '259147000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: SANTANDER KNUTSEN
+    call_sign: LAQZ8
+    flag: NOR
+    vessel_type: LNG Tanker
+    length_m: 297.0
+    beam_m: 46.4
+    gross_tonnage: 112000
+    deadweight: 83742
+    year_built: '2022'
+    destination_declared: AUBWB
+- id: AIS-525005104
+  type: CIVILIAN_BOAT
+  callsign: MV TB.BIAK 17
+  initial_position:
+    lat: 3.4158
+    lon: 118.00983
+  waypoints:
+  - lat: 3.4158
+    lon: 118.00983
+    speed: 3.2
+    time: 00:00
+  - lat: 3.30588
+    lon: 118.04555
+    speed: 3.0
+    time: 01:57
+  - lat: 3.24766
+    lon: 118.06437
+    speed: 4.2
+    time: 02:57
+  - lat: 3.2067
+    lon: 118.07755
+    speed: 4.1
+    time: 03:34
+  - lat: 3.17194
+    lon: 118.0888
+    speed: 4.1
+    time: 04:07
+  - lat: 3.13341
+    lon: 118.10124
+    speed: 3.9
+    time: 04:43
+  - lat: 3.08415
+    lon: 118.11753
+    speed: 3.9
+    time: 05:30
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525005104'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: TB.BIAK 17
+    call_sign: YDB6131
+    flag: IDN
+    vessel_type: Tug
+- id: AIS-566675000
+  type: CIVILIAN_CARGO
+  callsign: MV BARANEE NAREE
+  initial_position:
+    lat: 3.44604
+    lon: 119.3405
+  waypoints:
+  - lat: 3.44604
+    lon: 119.3405
+    speed: 11.0
+    time: 00:00
+  - lat: 3.61075
+    lon: 119.39872
+    speed: 10.5
+    time: 00:57
+  - lat: 3.73609
+    lon: 119.44497
+    speed: 10.8
+    time: 01:43
+  - lat: 3.83781
+    lon: 119.47885
+    speed: 11.2
+    time: 02:17
+  - lat: 3.87794
+    lon: 119.49446
+    speed: 11.5
+    time: 02:31
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '566675000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: BARANEE NAREE
+    call_sign: S6EP8
+    flag: SGP
+    vessel_type: Bulk Carrier
+    length_m: 190.0
+    beam_m: 32.3
+    draught_m: 7.5
+    gross_tonnage: 33032
+    deadweight: 56441
+    year_built: '2012'
+    destination_declared: MAP TA PHUT
+    destination_lat: 12.653
+    destination_lon: 101.147
+- id: AIS-205383000
+  type: CIVILIAN_CARGO
+  callsign: MV MINERAL CALVUS
+  initial_position:
+    lat: 4.52357
+    lon: 119.61263
+  waypoints:
+  - lat: 4.52357
+    lon: 119.61263
+    speed: 11.6
+    time: 00:00
+  - lat: 4.00819
+    lon: 119.60522
+    speed: 12.6
+    time: 02:27
+  - lat: 3.86059
+    lon: 119.61564
+    speed: 13.5
+    time: 03:04
+  - lat: 3.59175
+    lon: 119.62183
+    speed: 14.0
+    time: 04:11
+  - lat: 3.36876
+    lon: 119.62424
+    speed: 14.1
+    time: 05:09
+  - lat: 3.17548
+    lon: 119.61895
+    speed: 12.8
+    time: 06:04
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '205383000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MINERAL CALVUS
+    call_sign: ONON
+    flag: BEL
+    vessel_type: Bulk Carrier
+    length_m: 291.9
+    beam_m: 45.0
+    draught_m: 18.3
+    gross_tonnage: 93908
+    deadweight: 180521
+    year_built: '2018'
+    destination_declared: MUARA BERAU ANCH
+    destination_lat: -0.26813
+    destination_lon: 117.6208
+- id: AIS-372206000
+  type: CIVILIAN_BOAT
+  callsign: MV BROMPTON GALAXY
+  initial_position:
+    lat: 5.0201
+    lon: 115.08
+  waypoints:
+  - lat: 5.03014
+    lon: 115.08002
+    speed: 0.0
+    time: 00:00
+  - lat: 5.03681
+    lon: 115.09456
+    speed: 7.9
+    time: 01:05
+  - lat: 5.05803
+    lon: 115.10596
+    speed: 9.9
+    time: 01:13
+  - lat: 5.07364
+    lon: 115.09515
+    speed: 8.9
+    time: 01:24
+  - lat: 5.09061
+    lon: 115.07208
+    speed: 15.8
+    time: 01:35
+  - lat: 5.10786
+    lon: 115.04276
+    speed: 7.7
+    time: 01:45
+  - lat: 5.11473
+    lon: 115.01842
+    speed: 8.6
+    time: 01:56
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '372206000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: BROMPTON GALAXY
+    call_sign: 3EHR
+    flag: PAN
+    vessel_type: Crew Boat
+    length_m: 57.0
+    beam_m: 11.0
+    gross_tonnage: 719
+    deadweight: 433
+    year_built: '2006'
+    destination_declared: MUARA
+- id: AIS-371378000
+  type: CIVILIAN_CARGO
+  callsign: MV YAMATO
+  initial_position:
+    lat: 6.04739
+    lon: 116.09602
+  waypoints:
+  - lat: 6.04739
+    lon: 116.09602
+    speed: 0.0
+    time: 00:00
+  - lat: 6.04738
+    lon: 116.09609
+    speed: 0.0
+    time: 02:23
+  - lat: 6.04735
+    lon: 116.09605
+    speed: 0.0
+    time: 03:04
+  - lat: 6.04719
+    lon: 116.09608
+    speed: 0.0
+    time: 04:08
+  - lat: 6.04718
+    lon: 116.09604
+    speed: 0.0
+    time: 04:40
+  - lat: 6.04667
+    lon: 116.095
+    speed: 0.0
+    time: 05:18
+  - lat: 6.04667
+    lon: 116.095
+    speed: 0.0
+    time: 05:22
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '371378000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: YAMATO
+    call_sign: 3FHX
+    flag: PAN
+    vessel_type: Heavy Load Carrier
+    length_m: 162.0
+    beam_m: 38.0
+    draught_m: 5.4
+    gross_tonnage: 14538
+    deadweight: 19812
+    year_built: '2010'
+    destination_declared: KOTA KINABALU
+    destination_lat: 6.04194
+    destination_lon: 116.1014
+- id: AIS-374874000
+  type: CIVILIAN_CARGO
+  callsign: MV OMARI
+  initial_position:
+    lat: 6.08617
+    lon: 116.12682
+  waypoints:
+  - lat: 6.08617
+    lon: 116.12682
+    speed: 0.0
+    time: 00:00
+  - lat: 6.08618
+    lon: 116.1268
+    speed: 0.0
+    time: 02:27
+  - lat: 6.08618
+    lon: 116.12685
+    speed: 0.0
+    time: 02:52
+  - lat: 6.0862
+    lon: 116.12682
+    speed: 0.0
+    time: 03:58
+  - lat: 6.08618
+    lon: 116.12682
+    speed: 0.0
+    time: 04:37
+  - lat: 6.08618
+    lon: 116.12677
+    speed: 0.0
+    time: 05:28
+  - lat: 6.0862
+    lon: 116.12679
+    speed: 0.0
+    time: 05:45
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '374874000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: OMARI
+    call_sign: 3EYK8
+    flag: PAN
+    vessel_type: Bulk Carrier
+    length_m: 170.0
+    beam_m: 27.0
+    draught_m: 9.5
+    gross_tonnage: 17433
+    deadweight: 28460
+    year_built: '2001'
+    destination_declared: KOTA KINABALU
+- id: AIS-219031348
+  type: CIVILIAN_BOAT
+  callsign: MV CLEO
+  initial_position:
+    lat: 6.00958
+    lon: 116.01061
+  waypoints:
+  - lat: 6.00958
+    lon: 116.01061
+    speed: 0.0
+    time: 00:00
+  - lat: 6.00947
+    lon: 116.01056
+    speed: 0.0
+    time: 02:28
+  - lat: 6.00948
+    lon: 116.01059
+    speed: 0.0
+    time: 03:03
+  - lat: 6.00943
+    lon: 116.01059
+    speed: 0.1
+    time: 04:01
+  - lat: 6.00947
+    lon: 116.01054
+    speed: 0.2
+    time: 04:37
+  - lat: 6.00945
+    lon: 116.01052
+    speed: 0.2
+    time: 04:57
+  - lat: 6.00948
+    lon: 116.01054
+    speed: 0.0
+    time: 05:39
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '219031348'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: CLEO
+    call_sign: XPI2636
+    flag: DNK
+    vessel_type: Pleasure Craft
+    length_m: 14.0
+    beam_m: 8.0
+- id: AIS-232016910
+  type: CIVILIAN_CARGO
+  callsign: MV BERGE MAWSON
+  initial_position:
+    lat: 4.00667
+    lon: 119.64491
+  waypoints:
+  - lat: 4.00667
+    lon: 119.64491
+    speed: 11.8
+    time: 00:00
+  - lat: 4.67232
+    lon: 119.64749
+    speed: 12.0
+    time: 03:08
+  - lat: 4.91435
+    lon: 119.64665
+    speed: 11.6
+    time: 04:10
+  - lat: 5.07498
+    lon: 119.64784
+    speed: 11.3
+    time: 05:03
+  - lat: 5.19886
+    lon: 119.66349
+    speed: 11.1
+    time: 05:41
+  - lat: 5.21412
+    lon: 119.66621
+    speed: 11.3
+    time: 05:48
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '232016910'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: BERGE MAWSON
+    call_sign: MDNH4
+    flag: GBR
+    vessel_type: Bulk Carrier
+    length_m: 292.0
+    beam_m: 45.0
+    draught_m: 18.5
+    gross_tonnage: 92732
+    deadweight: 181160
+    year_built: '2015'
+    destination_declared: CN DJK
+- id: AIS-316032307
+  type: CIVILIAN_BOAT
+  callsign: MV CAKE
+  initial_position:
+    lat: 5.71993
+    lon: 115.64758
+  waypoints:
+  - lat: 5.71993
+    lon: 115.64758
+    speed: 0.0
+    time: 00:00
+  - lat: 5.71934
+    lon: 115.64756
+    speed: 0.0
+    time: 02:45
+  - lat: 5.71931
+    lon: 115.64763
+    speed: 0.1
+    time: 04:35
+  - lat: 5.71936
+    lon: 115.64769
+    speed: 0.0
+    time: 05:07
+  - lat: 5.71934
+    lon: 115.64761
+    speed: 0.3
+    time: 05:57
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '316032307'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: CAKE
+    call_sign: CFBH
+    flag: CA
+    vessel_type: Pleasure Craft
+    length_m: 25.0
+    beam_m: 11.0
+- id: AIS-352002650
+  type: CIVILIAN_CARGO
+  callsign: MV MERATUS MEDAN 5
+  initial_position:
+    lat: 6.09611
+    lon: 116.08118
+  waypoints:
+  - lat: 6.09611
+    lon: 116.08118
+    speed: 0.0
+    time: 00:00
+  - lat: 6.09604
+    lon: 116.08116
+    speed: 0.0
+    time: 02:19
+  - lat: 6.09589
+    lon: 116.08092
+    speed: 0.0
+    time: 02:52
+  - lat: 6.09584
+    lon: 116.08096
+    speed: 0.0
+    time: 03:38
+  - lat: 6.09587
+    lon: 116.08105
+    speed: 0.0
+    time: 04:13
+  - lat: 6.09596
+    lon: 116.08118
+    speed: 0.0
+    time: 04:58
+  - lat: 6.09588
+    lon: 116.08107
+    speed: 0.0
+    time: 05:28
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '352002650'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MERATUS MEDAN 5
+    call_sign: 3E4973
+    flag: PAN
+    vessel_type: Container Ship
+    length_m: 183.2
+    beam_m: 27.6
+    draught_m: 8.0
+    gross_tonnage: 16705
+    deadweight: 24327
+    year_built: '1999'
+    destination_declared: MYKINABALU
+- id: AIS-352411000
+  type: CIVILIAN_CARGO
+  callsign: MV BERGE DOI INTHANON
+  initial_position:
+    lat: 4.23088
+    lon: 119.62302
+  waypoints:
+  - lat: 4.23088
+    lon: 119.62302
+    speed: 12.6
+    time: 00:00
+  - lat: 3.52205
+    lon: 119.62032
+    speed: 13.2
+    time: 03:00
+  - lat: 3.27211
+    lon: 119.62304
+    speed: 13.1
+    time: 04:07
+  - lat: 3.13663
+    lon: 119.62234
+    speed: 12.5
+    time: 04:48
+  - lat: 3.0026
+    lon: 119.61858
+    speed: 13.0
+    time: 05:25
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '352411000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: BERGE DOI INTHANON
+    call_sign: HOYL
+    flag: PAN
+    vessel_type: Bulk Carrier
+    length_m: 200.0
+    beam_m: 32.0
+    gross_tonnage: 36177
+    deadweight: 63685
+    year_built: '2021'
+    destination_declared: AUALH
+- id: AIS-357387000
+  type: CIVILIAN_CARGO
+  callsign: MV JADE STAR
+  initial_position:
+    lat: 6.04344
+    lon: 116.07976
+  waypoints:
+  - lat: 6.04344
+    lon: 116.07976
+    speed: 0.0
+    time: 00:00
+  - lat: 6.04312
+    lon: 116.07933
+    speed: 0.0
+    time: 02:17
+  - lat: 6.04296
+    lon: 116.07909
+    speed: 0.0
+    time: 04:03
+  - lat: 6.043
+    lon: 116.0787
+    speed: 0.0
+    time: 04:50
+  - lat: 6.043
+    lon: 116.07859
+    speed: 0.0
+    time: 05:28
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '357387000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: JADE STAR
+    call_sign: 3FIH6
+    flag: PAN
+    vessel_type: General Cargo
+    length_m: 110.8
+    beam_m: 18.2
+    draught_m: 4.9
+    gross_tonnage: 5688
+    deadweight: 7851
+    year_built: '2009'
+    destination_declared: KOTA KINABALU
+- id: AIS-357979000
+  type: CIVILIAN_CARGO
+  callsign: MV UNI PERFECT
+  initial_position:
+    lat: 6.02757
+    lon: 116.06387
+  waypoints:
+  - lat: 6.02757
+    lon: 116.06387
+    speed: 0.1
+    time: 00:00
+  - lat: 6.02757
+    lon: 116.06438
+    speed: 0.0
+    time: 02:35
+  - lat: 6.02747
+    lon: 116.06424
+    speed: 0.0
+    time: 04:05
+  - lat: 6.04897
+    lon: 116.07788
+    speed: 4.8
+    time: 04:42
+  - lat: 6.05932
+    lon: 116.09288
+    speed: 4.0
+    time: 05:05
+  - lat: 6.07132
+    lon: 116.11699
+    speed: 0.3
+    time: 05:39
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '357979000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: UNI PERFECT
+    call_sign: 3FZE9
+    flag: PAN
+    vessel_type: Container Ship
+    length_m: 181.8
+    beam_m: 28.0
+    draught_m: 8.4
+    gross_tonnage: 17887
+    deadweight: 19309
+    year_built: '2000'
+    destination_declared: HKHKG=>MYBKI
+- id: AIS-413394710
+  type: CIVILIAN_BOAT
+  callsign: MV TONG RUI
+  initial_position:
+    lat: 6.13915
+    lon: 116.06042
+  waypoints:
+  - lat: 6.13915
+    lon: 116.06042
+    speed: 0.0
+    time: 00:00
+  - lat: 6.13898
+    lon: 116.0606
+    speed: 0.0
+    time: 02:29
+  - lat: 6.13897
+    lon: 116.06056
+    speed: 0.0
+    time: 03:04
+  - lat: 6.13888
+    lon: 116.0606
+    speed: 0.1
+    time: 03:56
+  - lat: 6.13863
+    lon: 116.06068
+    speed: 0.0
+    time: 04:28
+  - lat: 6.13869
+    lon: 116.06067
+    speed: 0.1
+    time: 05:04
+  - lat: 6.13868
+    lon: 116.06071
+    speed: 0.0
+    time: 05:19
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '413394710'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: TONG RUI
+    call_sign: BPCP2
+    flag: CHN
+    vessel_type: Trailing Suction Hopper Dredger
+    length_m: 126.5
+    beam_m: 25.0
+    gross_tonnage: 9873
+    deadweight: 7716
+    year_built: '2018'
+    destination_declared: MY KIK
+- id: AIS-503515500
+  type: CIVILIAN_BOAT
+  callsign: MV MANDELLA II
+  initial_position:
+    lat: 5.96687
+    lon: 116.05636
+  waypoints:
+  - lat: 5.96687
+    lon: 116.05636
+    speed: 0.0
+    time: 00:00
+  - lat: 5.96688
+    lon: 116.05636
+    speed: 0.0
+    time: 02:25
+  - lat: 5.96687
+    lon: 116.05636
+    speed: 0.0
+    time: 03:09
+  - lat: 5.96687
+    lon: 116.05636
+    speed: 0.0
+    time: 04:08
+  - lat: 5.96687
+    lon: 116.05636
+    speed: 0.0
+    time: 05:01
+  - lat: 5.96686
+    lon: 116.05636
+    speed: 0.0
+    time: 05:17
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '503515500'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MANDELLA II
+    call_sign: '858354'
+    flag: AUS
+    vessel_type: Pleasure Craft
+    length_m: 19.0
+    beam_m: 6.0
+- id: AIS-525025085
+  type: CIVILIAN_CARGO
+  callsign: MV MERATUS KUPANG
+  initial_position:
+    lat: 3.00906
+    lon: 118.017
+  waypoints:
+  - lat: 3.00906
+    lon: 118.017
+    speed: 10.8
+    time: 00:00
+  - lat: 3.08887
+    lon: 117.97438
+    speed: 10.6
+    time: 00:30
+  - lat: 3.16047
+    lon: 117.9348
+    speed: 11.2
+    time: 00:57
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '525025085'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MERATUS KUPANG
+    call_sign: POYB
+    flag: IDN
+    vessel_type: Container Ship
+    length_m: 128.0
+    beam_m: 23.0
+    draught_m: 6.4
+    gross_tonnage: 8170
+    deadweight: 10478
+    year_built: '1997'
+    destination_declared: TARAKAN
+    destination_lat: 3.28269
+    destination_lon: 117.5948
+- id: AIS-533124511
+  type: CIVILIAN_PASSENGER
+  callsign: MV TRINIDAD JN5652 2 P
+  initial_position:
+    lat: 5.96692
+    lon: 116.05733
+  waypoints:
+  - lat: 5.96692
+    lon: 116.05733
+    speed: 0.0
+    time: 00:00
+  - lat: 5.96694
+    lon: 116.05736
+    speed: 0.0
+    time: 02:20
+  - lat: 5.96695
+    lon: 116.05735
+    speed: 0.0
+    time: 03:27
+  - lat: 5.96693
+    lon: 116.05736
+    speed: 0.0
+    time: 04:05
+  - lat: 5.96692
+    lon: 116.05736
+    speed: 0.0
+    time: 04:54
+  - lat: 5.96694
+    lon: 116.05739
+    speed: 0.0
+    time: 05:48
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533124511'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: TRINIDAD JN5652 2 P
+    call_sign: JN5652
+    flag: MYS
+    vessel_type: Passenger
+    length_m: 7.0
+    beam_m: 2.0
+- id: AIS-533130433
+  type: CIVILIAN_BOAT
+  callsign: MV NAUTICA TG.PUTERI XXIX
+  initial_position:
+    lat: 6.01253
+    lon: 116.08739
+  waypoints:
+  - lat: 6.01253
+    lon: 116.08739
+    speed: 0.0
+    time: 00:00
+  - lat: 6.01243
+    lon: 116.08737
+    speed: 0.1
+    time: 02:21
+  - lat: 6.0124
+    lon: 116.0873
+    speed: 0.0
+    time: 02:52
+  - lat: 6.01232
+    lon: 116.0874
+    speed: 0.1
+    time: 04:00
+  - lat: 6.0122
+    lon: 116.08721
+    speed: 0.1
+    time: 04:37
+  - lat: 6.01203
+    lon: 116.0873
+    speed: 0.1
+    time: 04:59
+  - lat: 6.04575
+    lon: 116.0622
+    speed: 5.9
+    time: 05:34
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533130433'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: NAUTICA TG.PUTERI XXIX
+    call_sign: 9MVP9
+    flag: MYS
+    vessel_type: Tug
+    length_m: 32.0
+    beam_m: 11.3
+    draught_m: 4.5
+    gross_tonnage: 472
+    deadweight: 272
+    year_built: '2016'
+    destination_declared: PFLNG DUA
+- id: AIS-533130498
+  type: CIVILIAN_BOAT
+  callsign: MV NAUTICA TG.PUTERI XXVII
+  initial_position:
+    lat: 6.01304
+    lon: 116.08965
+  waypoints:
+  - lat: 6.01304
+    lon: 116.08965
+    speed: 0.0
+    time: 00:00
+  - lat: 6.01278
+    lon: 116.08969
+    speed: 0.0
+    time: 02:36
+  - lat: 6.01276
+    lon: 116.08961
+    speed: 0.0
+    time: 04:11
+  - lat: 6.01269
+    lon: 116.08952
+    speed: 0.2
+    time: 04:27
+  - lat: 6.01428
+    lon: 116.08816
+    speed: 2.5
+    time: 05:05
+  - lat: 6.04653
+    lon: 116.05058
+    speed: 6.3
+    time: 05:40
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533130498'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: NAUTICA TG.PUTERI XXVII
+    call_sign: 9MVP7
+    flag: MYS
+    vessel_type: Tug
+    length_m: 32.0
+    beam_m: 11.3
+    draught_m: 4.1
+    gross_tonnage: 466
+    deadweight: 276
+    year_built: '2016'
+    destination_declared: KK ANCHORAGE
+- id: AIS-533130562
+  type: CIVILIAN_BOAT
+  callsign: MV SJQ A
+  initial_position:
+    lat: 6.63647
+    lon: 116.14976
+  waypoints:
+  - lat: 6.63647
+    lon: 116.14976
+    speed: 0.0
+    time: 00:00
+  - lat: 6.63648
+    lon: 116.1497
+    speed: 0.0
+    time: 02:21
+  - lat: 6.63648
+    lon: 116.1497
+    speed: 0.0
+    time: 02:56
+  - lat: 6.63647
+    lon: 116.1497
+    speed: 0.0
+    time: 04:06
+  - lat: 6.63648
+    lon: 116.14972
+    speed: 0.0
+    time: 05:08
+  - lat: 6.63649
+    lon: 116.14972
+    speed: 0.0
+    time: 05:35
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533130562'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: SJQ A
+    call_sign: PLATSJ
+    flag: MYS
+    vessel_type: Other
+- id: AIS-533130895
+  type: CIVILIAN_BOAT
+  callsign: MV MEGA BAKTI
+  initial_position:
+    lat: 6.025
+    lon: 116.08667
+  waypoints:
+  - lat: 6.025
+    lon: 116.08667
+    speed: 0.0
+    time: 00:00
+  - lat: 6.02559
+    lon: 116.0873
+    speed: 0.2
+    time: 02:48
+  - lat: 6.02548
+    lon: 116.08696
+    speed: 0.3
+    time: 03:22
+  - lat: 6.0255
+    lon: 116.08721
+    speed: 0.0
+    time: 04:27
+  - lat: 6.02541
+    lon: 116.087
+    speed: 0.1
+    time: 04:49
+  - lat: 6.02543
+    lon: 116.08712
+    speed: 0.0
+    time: 05:40
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533130895'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MEGA BAKTI
+    call_sign: 9MPU8
+    flag: MYS
+    vessel_type: Diving Support Vessel
+    length_m: 79.7
+    beam_m: 17.0
+    draught_m: 5.3
+    gross_tonnage: 3450
+    deadweight: 1961
+    year_built: '2012'
+    destination_declared: KOTA KINABALU
+    destination_lat: 6.04194
+    destination_lon: 116.1014
+- id: AIS-533132188
+  type: CIVILIAN_TANKER
+  callsign: MT NAUTICA PONTIAN 2
+  initial_position:
+    lat: 6.02333
+    lon: 116.07835
+  waypoints:
+  - lat: 6.02333
+    lon: 116.07835
+    speed: 0.0
+    time: 00:00
+  - lat: 6.02317
+    lon: 116.07827
+    speed: 0.1
+    time: 02:26
+  - lat: 6.02318
+    lon: 116.07827
+    speed: 0.0
+    time: 03:16
+  - lat: 6.02316
+    lon: 116.07822
+    speed: 0.0
+    time: 04:08
+  - lat: 6.02313
+    lon: 116.078
+    speed: 0.0
+    time: 04:46
+  - lat: 6.02315
+    lon: 116.07777
+    speed: 0.1
+    time: 05:16
+  - lat: 6.0232
+    lon: 116.07767
+    speed: 0.1
+    time: 05:43
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533132188'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: NAUTICA PONTIAN 2
+    call_sign: 9M2512
+    flag: MYS
+    vessel_type: Oil Products Tanker
+    length_m: 119.9
+    beam_m: 19.0
+    gross_tonnage: 7147
+    deadweight: 9494
+    year_built: '2021'
+    destination_declared: SEPANGAR BAY
+- id: AIS-533133067
+  type: CIVILIAN_CARGO
+  callsign: MTT BINTANGOR
+  initial_position:
+    lat: 6.03657
+    lon: 116.07568
+  waypoints:
+  - lat: 6.03657
+    lon: 116.07568
+    speed: 0.1
+    time: 00:00
+  - lat: 6.03638
+    lon: 116.07547
+    speed: 0.1
+    time: 02:21
+  - lat: 6.03635
+    lon: 116.07539
+    speed: 0.1
+    time: 02:46
+  - lat: 6.03632
+    lon: 116.07526
+    speed: 0.0
+    time: 03:52
+  - lat: 6.03622
+    lon: 116.07524
+    speed: 0.0
+    time: 04:19
+  - lat: 6.03613
+    lon: 116.07504
+    speed: 0.1
+    time: 04:56
+  - lat: 6.03613
+    lon: 116.0748
+    speed: 0.0
+    time: 05:25
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533133067'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MTT BINTANGOR
+    call_sign: 9M3462
+    flag: MYS
+    vessel_type: Container Ship
+    length_m: 171.9
+    beam_m: 28.0
+    year_built: '2024'
+    destination_declared: KOTA KINABALU
+    destination_lat: 6.04194
+    destination_lon: 116.1014
+- id: AIS-533139922
+  type: CIVILIAN_PASSENGER
+  callsign: MV SERENITY
+  initial_position:
+    lat: 5.95644
+    lon: 116.04433
+  waypoints:
+  - lat: 5.95644
+    lon: 116.04433
+    speed: 0.0
+    time: 00:00
+  - lat: 5.95641
+    lon: 116.0443
+    speed: 0.0
+    time: 02:38
+  - lat: 5.95644
+    lon: 116.04436
+    speed: 0.0
+    time: 02:57
+  - lat: 5.95641
+    lon: 116.04433
+    speed: 0.0
+    time: 04:09
+  - lat: 5.95641
+    lon: 116.04436
+    speed: 0.0
+    time: 05:06
+  - lat: 5.95642
+    lon: 116.04435
+    speed: 0.0
+    time: 05:35
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533139922'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: SERENITY
+    call_sign: JN8395
+    flag: MYS
+    vessel_type: Passenger
+- id: AIS-533150089
+  type: CIVILIAN_BOAT
+  callsign: MV YTC TUG 37
+  initial_position:
+    lat: 5.83906
+    lon: 116.02565
+  waypoints:
+  - lat: 5.83906
+    lon: 116.02565
+    speed: 0.0
+    time: 00:00
+  - lat: 5.83891
+    lon: 116.02556
+    speed: 0.0
+    time: 02:29
+  - lat: 5.83897
+    lon: 116.02559
+    speed: 0.0
+    time: 03:00
+  - lat: 5.83887
+    lon: 116.02554
+    speed: 0.0
+    time: 04:00
+  - lat: 5.83892
+    lon: 116.02556
+    speed: 0.1
+    time: 04:28
+  - lat: 5.8389
+    lon: 116.02554
+    speed: 0.0
+    time: 05:05
+  - lat: 5.83892
+    lon: 116.02551
+    speed: 0.0
+    time: 05:23
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533150089'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: YTC TUG 37
+    call_sign: 9M2051
+    flag: MYS
+    vessel_type: Tug
+    length_m: 27.0
+    beam_m: 10.0
+- id: AIS-533160227
+  type: CIVILIAN_PASSENGER
+  callsign: MV NORTH BORNEO CRUISES
+  initial_position:
+    lat: 5.96674
+    lon: 116.05568
+  waypoints:
+  - lat: 5.96674
+    lon: 116.05568
+    speed: 0.0
+    time: 00:00
+  - lat: 5.96673
+    lon: 116.05566
+    speed: 0.0
+    time: 02:25
+  - lat: 5.96673
+    lon: 116.05566
+    speed: 0.0
+    time: 03:03
+  - lat: 5.96673
+    lon: 116.05566
+    speed: 0.0
+    time: 03:50
+  - lat: 5.96673
+    lon: 116.05566
+    speed: 0.0
+    time: 04:27
+  - lat: 5.96674
+    lon: 116.05566
+    speed: 0.0
+    time: 05:32
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533160227'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: NORTH BORNEO CRUISES
+    call_sign: 9WPD4
+    flag: MYS
+    vessel_type: Passenger
+    length_m: 28.0
+    beam_m: 10.0
+- id: AIS-533167000
+  type: CIVILIAN_BOAT
+  callsign: MV BUNGA MAS LIMA
+  initial_position:
+    lat: 6.08571
+    lon: 116.1142
+  waypoints:
+  - lat: 6.08571
+    lon: 116.1142
+    speed: 0.0
+    time: 00:00
+  - lat: 6.08571
+    lon: 116.11423
+    speed: 0.0
+    time: 02:37
+  - lat: 6.08571
+    lon: 116.11421
+    speed: 0.0
+    time: 03:06
+  - lat: 6.08572
+    lon: 116.11419
+    speed: 0.0
+    time: 04:06
+  - lat: 6.08571
+    lon: 116.11421
+    speed: 0.0
+    time: 04:38
+  - lat: 6.0857
+    lon: 116.11419
+    speed: 0.0
+    time: 05:29
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533167000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: BUNGA MAS LIMA
+    call_sign: 9MOC
+    flag: MYS
+    vessel_type: Naval Auxiliary Vessel
+    length_m: 132.8
+    beam_m: 22.7
+    draught_m: 7.5
+    gross_tonnage: 9404
+    deadweight: 8991
+    year_built: '1997'
+    destination_declared: MALAYSIA
+- id: AIS-533170341
+  type: CIVILIAN_BOAT
+  callsign: MV BIWIN 11
+  initial_position:
+    lat: 6.07444
+    lon: 116.12619
+  waypoints:
+  - lat: 6.07444
+    lon: 116.12619
+    speed: 0.0
+    time: 00:00
+  - lat: 6.07447
+    lon: 116.12623
+    speed: 0.0
+    time: 02:20
+  - lat: 6.07448
+    lon: 116.1262
+    speed: 0.0
+    time: 02:45
+  - lat: 6.07448
+    lon: 116.12616
+    speed: 0.0
+    time: 03:54
+  - lat: 6.07446
+    lon: 116.12619
+    speed: 0.0
+    time: 04:57
+  - lat: 6.07446
+    lon: 116.1262
+    speed: 0.0
+    time: 05:25
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533170341'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: BIWIN 11
+    call_sign: 9WRV6
+    flag: MYS
+    vessel_type: Tug
+    length_m: 26.0
+    beam_m: 7.0
+- id: AIS-533170392
+  type: CIVILIAN_PASSENGER
+  callsign: MV GALAXY
+  initial_position:
+    lat: 5.2986
+    lon: 115.37878
+  waypoints:
+  - lat: 5.2986
+    lon: 115.37878
+    speed: 1.0
+    time: 00:00
+  - lat: 5.29817
+    lon: 115.37924
+    speed: 0.1
+    time: 03:16
+  - lat: 5.29785
+    lon: 115.37912
+    speed: 0.1
+    time: 03:50
+  - lat: 5.29782
+    lon: 115.3791
+    speed: 0.0
+    time: 04:50
+  - lat: 5.30202
+    lon: 115.37491
+    speed: 1.5
+    time: 05:22
+  - lat: 5.30233
+    lon: 115.37461
+    speed: 1.0
+    time: 05:47
+  - lat: 5.31678
+    lon: 115.30711
+    speed: 5.6
+    time: 06:26
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533170392'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: GALAXY
+    call_sign: 9WS07
+    flag: MYS
+    vessel_type: Passenger
+    length_m: 68.0
+    beam_m: 16.0
+- id: AIS-533170554
+  type: CIVILIAN_CARGO
+  callsign: MV HARBOUR STAR
+  initial_position:
+    lat: 6.037
+    lon: 116.09051
+  waypoints:
+  - lat: 6.037
+    lon: 116.09051
+    speed: 0.1
+    time: 00:00
+  - lat: 6.03683
+    lon: 116.09033
+    speed: 0.1
+    time: 02:32
+  - lat: 6.03683
+    lon: 116.09033
+    speed: 0.0
+    time: 02:55
+  - lat: 6.03667
+    lon: 116.09
+    speed: 0.1
+    time: 03:59
+  - lat: 6.03617
+    lon: 116.09
+    speed: 0.0
+    time: 04:37
+  - lat: 6.03617
+    lon: 116.09
+    speed: 0.0
+    time: 05:01
+  - lat: 6.03617
+    lon: 116.09
+    speed: 0.0
+    time: 05:04
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533170554'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: HARBOUR STAR
+    call_sign: 9WT08
+    flag: MYS
+    vessel_type: Container Ship
+    length_m: 133.4
+    beam_m: 18.7
+    draught_m: 7.6
+    gross_tonnage: 6277
+    deadweight: 7922
+    year_built: '2002'
+    destination_declared: KOTA KINABALU
+    destination_lat: 6.04194
+    destination_lon: 116.1014
+- id: AIS-533170727
+  type: CIVILIAN_BOAT
+  callsign: MV TARGET 37
+  initial_position:
+    lat: 6.09697
+    lon: 116.11678
+  waypoints:
+  - lat: 6.09697
+    lon: 116.11678
+    speed: 0.0
+    time: 00:00
+  - lat: 6.09697
+    lon: 116.11683
+    speed: 0.0
+    time: 02:28
+  - lat: 6.09699
+    lon: 116.11678
+    speed: 0.0
+    time: 03:59
+  - lat: 6.09703
+    lon: 116.11678
+    speed: 0.1
+    time: 04:32
+  - lat: 6.095
+    lon: 116.11667
+    speed: 1.3
+    time: 04:54
+  - lat: 6.09161
+    lon: 116.1181
+    speed: 2.7
+    time: 05:30
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533170727'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: TARGET 37
+    call_sign: 9WKD3
+    flag: MYS
+    vessel_type: Tug
+    length_m: 37.0
+    beam_m: 11.4
+    gross_tonnage: 472
+    year_built: '2009'
+    destination_declared: SEPANGGAR
+- id: AIS-533180177
+  type: CIVILIAN_TANKER
+  callsign: MT ORKIM GAS BRILLIANCE
+  initial_position:
+    lat: 6.04137
+    lon: 116.08668
+  waypoints:
+  - lat: 6.04137
+    lon: 116.08668
+    speed: 0.0
+    time: 00:00
+  - lat: 6.04096
+    lon: 116.08619
+    speed: 0.0
+    time: 01:56
+  - lat: 6.04093
+    lon: 116.0863
+    speed: 0.0
+    time: 02:47
+  - lat: 6.04091
+    lon: 116.08621
+    speed: 0.0
+    time: 03:57
+  - lat: 6.04092
+    lon: 116.08619
+    speed: 0.0
+    time: 04:33
+  - lat: 6.04092
+    lon: 116.08614
+    speed: 0.0
+    time: 05:25
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533180177'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: ORKIM GAS BRILLIANCE
+    call_sign: 9MVO5
+    flag: MYS
+    vessel_type: LPG Tanker
+    length_m: 97.4
+    beam_m: 15.0
+    draught_m: 5.3
+    gross_tonnage: 3122
+    deadweight: 3251
+    year_built: '2015'
+    destination_declared: MY SEP
+- id: AIS-533257000
+  type: CIVILIAN_CARGO
+  callsign: MV THAILINE
+  initial_position:
+    lat: 6.07105
+    lon: 116.11779
+  waypoints:
+  - lat: 6.07105
+    lon: 116.11779
+    speed: 0.0
+    time: 00:00
+  - lat: 6.07101
+    lon: 116.1178
+    speed: 0.0
+    time: 02:23
+  - lat: 6.07107
+    lon: 116.1178
+    speed: 0.0
+    time: 02:59
+  - lat: 6.07108
+    lon: 116.11783
+    speed: 0.0
+    time: 04:00
+  - lat: 6.06233
+    lon: 116.09276
+    speed: 9.3
+    time: 04:59
+  - lat: 6.0461
+    lon: 116.06511
+    speed: 6.4
+    time: 05:16
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533257000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: THAILINE
+    call_sign: 9WCA2
+    flag: MYS
+    vessel_type: General Cargo
+    length_m: 84.6
+    beam_m: 16.5
+    gross_tonnage: 2712
+    deadweight: 4000
+    year_built: '1997'
+    destination_declared: PASIR GUDANG
+    destination_lat: 1.43297
+    destination_lon: 103.9119
+- id: AIS-533814008
+  type: CIVILIAN_BOAT
+  callsign: MV TANJUNG TRANG
+  initial_position:
+    lat: 6.09708
+    lon: 116.11674
+  waypoints:
+  - lat: 6.09708
+    lon: 116.11674
+    speed: 0.0
+    time: 00:00
+  - lat: 6.09709
+    lon: 116.11672
+    speed: 0.0
+    time: 02:45
+  - lat: 6.09709
+    lon: 116.11673
+    speed: 0.0
+    time: 03:16
+  - lat: 6.0971
+    lon: 116.11672
+    speed: 0.0
+    time: 04:18
+  - lat: 6.09711
+    lon: 116.11672
+    speed: 0.2
+    time: 05:08
+  - lat: 6.09119
+    lon: 116.11815
+    speed: 2.7
+    time: 05:46
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533814008'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: TANJUNG TRANG
+    call_sign: 9WEO8
+    flag: MYS
+    vessel_type: Buoy-Laying Vessel
+    length_m: 52.0
+    beam_m: 14.0
+    gross_tonnage: 1060
+    deadweight: 300
+    year_built: '2004'
+    destination_declared: KOTA KINABALU
+- id: AIS-564031000
+  type: CIVILIAN_CARGO
+  callsign: MV CHANYA NAREE
+  initial_position:
+    lat: 6.08086
+    lon: 116.0611
+  waypoints:
+  - lat: 6.08086
+    lon: 116.0611
+    speed: 0.1
+    time: 00:00
+  - lat: 6.08089
+    lon: 116.06119
+    speed: 0.0
+    time: 02:47
+  - lat: 6.0809
+    lon: 116.06126
+    speed: 0.0
+    time: 03:01
+  - lat: 6.08081
+    lon: 116.06123
+    speed: 0.0
+    time: 04:23
+  - lat: 6.0803
+    lon: 116.0611
+    speed: 0.1
+    time: 04:46
+  - lat: 6.07984
+    lon: 116.06083
+    speed: 0.0
+    time: 05:28
+  - lat: 6.07981
+    lon: 116.06087
+    speed: 0.0
+    time: 05:43
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '564031000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: CHANYA NAREE
+    call_sign: 9V2252
+    flag: SGP
+    vessel_type: Cement Carrier
+    length_m: 157.0
+    beam_m: 25.5
+    draught_m: 6.1
+    gross_tonnage: 15198
+    deadweight: 21114
+    year_built: '2014'
+    destination_declared: KOTA KINABALU
+    destination_lat: 6.04194
+    destination_lon: 116.1014
+- id: AIS-574000870
+  type: CIVILIAN_CARGO
+  callsign: MV TIEN MINH 88
+  initial_position:
+    lat: 5.99733
+    lon: 116.08184
+  waypoints:
+  - lat: 5.99733
+    lon: 116.08184
+    speed: 0.0
+    time: 00:00
+  - lat: 5.99733
+    lon: 116.08184
+    speed: 0.0
+    time: 02:26
+  - lat: 5.99732
+    lon: 116.08186
+    speed: 0.0
+    time: 03:02
+  - lat: 5.99732
+    lon: 116.08183
+    speed: 0.0
+    time: 04:03
+  - lat: 5.99732
+    lon: 116.08183
+    speed: 0.0
+    time: 04:50
+  - lat: 5.99733
+    lon: 116.08183
+    speed: 0.0
+    time: 05:31
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '574000870'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: TIEN MINH 88
+    call_sign: 3WCK9
+    flag: VNM
+    vessel_type: Bulk Carrier
+    length_m: 78.0
+    beam_m: 12.0
+    draught_m: 5.2
+    gross_tonnage: 1599
+    deadweight: 3162
+    year_built: '2011'
+    destination_declared: KOTA KINABALU
+    destination_lat: 6.04194
+    destination_lon: 116.1014
+- id: AIS-574003640
+  type: CIVILIAN_CARGO
+  callsign: MV GREEN PACIFIC
+  initial_position:
+    lat: 6.06938
+    lon: 116.11667
+  waypoints:
+  - lat: 6.06938
+    lon: 116.11667
+    speed: 0.0
+    time: 00:00
+  - lat: 6.06943
+    lon: 116.11665
+    speed: 0.0
+    time: 02:23
+  - lat: 6.06939
+    lon: 116.11667
+    speed: 0.0
+    time: 03:01
+  - lat: 6.06937
+    lon: 116.11664
+    speed: 0.0
+    time: 04:02
+  - lat: 6.06939
+    lon: 116.11667
+    speed: 0.0
+    time: 04:58
+  - lat: 6.06937
+    lon: 116.11667
+    speed: 0.0
+    time: 05:31
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '574003640'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: GREEN PACIFIC
+    call_sign: 3WYN7
+    flag: VNM
+    vessel_type: Container Ship
+    length_m: 147.0
+    beam_m: 25.0
+    draught_m: 8.8
+    gross_tonnage: 12545
+    deadweight: 15210
+    year_built: '2008'
+    destination_declared: KOTA KINABALU
+    destination_lat: 6.04194
+    destination_lon: 116.1014
+- id: AIS-574375000
+  type: CIVILIAN_CARGO
+  callsign: MV TTC HAI PHONG
+  initial_position:
+    lat: 5.9951
+    lon: 116.07959
+  waypoints:
+  - lat: 5.9951
+    lon: 116.07959
+    speed: 0.0
+    time: 00:00
+  - lat: 5.99513
+    lon: 116.07959
+    speed: 0.0
+    time: 02:26
+  - lat: 5.99513
+    lon: 116.07954
+    speed: 0.0
+    time: 03:01
+  - lat: 5.99512
+    lon: 116.07959
+    speed: 0.0
+    time: 03:56
+  - lat: 5.9951
+    lon: 116.07957
+    speed: 0.0
+    time: 04:28
+  - lat: 5.99512
+    lon: 116.07959
+    speed: 0.0
+    time: 05:04
+  - lat: 5.99512
+    lon: 116.07957
+    speed: 0.0
+    time: 05:31
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '574375000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: TTC HAI PHONG
+    call_sign: 3WOM
+    flag: VNM
+    vessel_type: General Cargo
+    length_m: 102.8
+    beam_m: 17.0
+    draught_m: 4.5
+    gross_tonnage: 4095
+    deadweight: 6568
+    year_built: '2006'
+    destination_declared: KOTA KINABALU,MALAYS
+- id: AIS-574932000
+  type: CIVILIAN_FISHING
+  callsign: FB THANH DAT 9900 A18
+  initial_position:
+    lat: 6.03237
+    lon: 116.084
+  waypoints:
+  - lat: 6.03237
+    lon: 116.084
+    speed: 0.0
+    time: 00:00
+  - lat: 6.03225
+    lon: 116.08385
+    speed: 0.0
+    time: 02:14
+  - lat: 6.03218
+    lon: 116.08355
+    speed: 0.0
+    time: 02:53
+  - lat: 6.03218
+    lon: 116.0835
+    speed: 0.0
+    time: 03:45
+  - lat: 6.03215
+    lon: 116.08332
+    speed: 0.0
+    time: 04:30
+  - lat: 6.03217
+    lon: 116.08323
+    speed: 0.0
+    time: 05:31
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '574932000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: THANH DAT 9900 A18
+    flag: VNM
+    vessel_type: Fishing
+- id: AIS-667001951
+  type: CIVILIAN_CARGO
+  callsign: MV GOLDEN ROCK
+  initial_position:
+    lat: 6.03073
+    lon: 116.09084
+  waypoints:
+  - lat: 6.03073
+    lon: 116.09084
+    speed: 0.0
+    time: 00:00
+  - lat: 6.0304
+    lon: 116.09048
+    speed: 0.1
+    time: 02:20
+  - lat: 6.03037
+    lon: 116.09042
+    speed: 0.0
+    time: 02:56
+  - lat: 6.0303
+    lon: 116.09033
+    speed: 0.0
+    time: 04:03
+  - lat: 6.0301
+    lon: 116.09033
+    speed: 0.1
+    time: 04:33
+  - lat: 6.0301
+    lon: 116.09039
+    speed: 0.2
+    time: 04:46
+  - lat: 6.03011
+    lon: 116.09039
+    speed: 0.1
+    time: 05:13
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '667001951'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: GOLDEN ROCK
+    call_sign: 9LU2754
+    flag: SL
+    vessel_type: Cargo
+    length_m: 99.0
+    beam_m: 22.0
+- id: AIS-227553080
+  type: CIVILIAN_BOAT
+  callsign: MV AMARYLLIS II
+  initial_position:
+    lat: 6.88717
+    lon: 116.85783
+  waypoints:
+  - lat: 6.88717
+    lon: 116.85783
+    speed: 0.0
+    time: 00:00
+  - lat: 6.88719
+    lon: 116.85784
+    speed: 0.0
+    time: 02:33
+  - lat: 6.88717
+    lon: 116.85783
+    speed: 0.0
+    time: 04:04
+  - lat: 6.88717
+    lon: 116.85783
+    speed: 0.0
+    time: 04:36
+  - lat: 6.88718
+    lon: 116.85784
+    speed: 0.0
+    time: 05:34
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '227553080'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: AMARYLLIS II
+    call_sign: FGD2864
+    flag: FRA
+    vessel_type: Sailing Vessel
+    length_m: 15.0
+    beam_m: 8.0
+- id: AIS-372734000
+  type: CIVILIAN_CARGO
+  callsign: MV STARDOM WAVE
+  initial_position:
+    lat: 4.22885
+    lon: 119.67033
+  waypoints:
+  - lat: 4.22885
+    lon: 119.67033
+    speed: 12.1
+    time: 00:00
+  - lat: 4.87091
+    lon: 119.66645
+    speed: 12.1
+    time: 03:05
+  - lat: 5.06443
+    lon: 119.67056
+    speed: 11.5
+    time: 03:57
+  - lat: 5.24057
+    lon: 119.68808
+    speed: 11.3
+    time: 04:53
+  - lat: 5.34896
+    lon: 119.71429
+    speed: 11.6
+    time: 05:31
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '372734000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: STARDOM WAVE
+    call_sign: 3FRO4
+    flag: PAN
+    vessel_type: Bulk Carrier
+    length_m: 230.0
+    beam_m: 38.0
+    draught_m: 7.6
+    gross_tonnage: 49991
+    deadweight: 88783
+    year_built: '2017'
+    destination_declared: TW MLI
+- id: AIS-533133691
+  type: CIVILIAN_BOAT
+  callsign: MV HIBISCUS LAND
+  initial_position:
+    lat: 6.03678
+    lon: 115.97421
+  waypoints:
+  - lat: 6.03678
+    lon: 115.97421
+    speed: 4.9
+    time: 00:00
+  - lat: 6.05406
+    lon: 116.10133
+    speed: 0.0
+    time: 03:00
+  - lat: 6.0541
+    lon: 116.10135
+    speed: 0.0
+    time: 04:03
+  - lat: 6.05413
+    lon: 116.10136
+    speed: 0.0
+    time: 05:03
+  - lat: 6.05398
+    lon: 116.10123
+    speed: 0.1
+    time: 05:34
+  - lat: 6.05398
+    lon: 116.10123
+    speed: 0.1
+    time: 05:35
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533133691'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: HIBISCUS LAND
+    call_sign: 9WME6
+    flag: MYS
+    vessel_type: Tug
+    length_m: 21.0
+    beam_m: 7.0
+- id: AIS-574003220
+  type: CIVILIAN_TANKER
+  callsign: MT AULAC BELLA
+  initial_position:
+    lat: 6.08493
+    lon: 116.12443
+  waypoints:
+  - lat: 6.08493
+    lon: 116.12443
+    speed: 0.0
+    time: 00:00
+  - lat: 6.08497
+    lon: 116.1244
+    speed: 0.0
+    time: 02:58
+  - lat: 6.085
+    lon: 116.12443
+    speed: 0.0
+    time: 03:56
+  - lat: 6.085
+    lon: 116.12439
+    speed: 0.0
+    time: 04:28
+  - lat: 6.08497
+    lon: 116.12434
+    speed: 0.0
+    time: 05:04
+  - lat: 6.085
+    lon: 116.12434
+    speed: 0.0
+    time: 05:31
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '574003220'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: AULAC BELLA
+    call_sign: XVWB9
+    flag: VNM
+    vessel_type: Oil or Chemical Tanker
+    length_m: 128.6
+    beam_m: 20.4
+    draught_m: 6.0
+    gross_tonnage: 8635
+    deadweight: 13153
+    year_built: '2007'
+    destination_declared: TAWAU
+    destination_lat: 4.24969
+    destination_lon: 117.9051
+- id: AIS-235060034
+  type: CIVILIAN_BOAT
+  callsign: MV RHUMB DO
+  initial_position:
+    lat: 6.89165
+    lon: 116.85836
+  waypoints:
+  - lat: 6.89165
+    lon: 116.85836
+    speed: 0.0
+    time: 00:00
+  - lat: 6.89164
+    lon: 116.8584
+    speed: 0.0
+    time: 03:24
+  - lat: 6.89164
+    lon: 116.8584
+    speed: 0.0
+    time: 04:20
+  - lat: 6.89164
+    lon: 116.8584
+    speed: 0.0
+    time: 04:25
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '235060034'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: RHUMB DO
+    call_sign: 2WMH
+    flag: GBR
+    vessel_type: Sailing Vessel
+    length_m: 11.0
+    beam_m: 3.0
+    gross_tonnage: 8
+    year_built: '1977'
+- id: AIS-457648000
+  type: CIVILIAN_CARGO
+  callsign: MV YZ18
+  initial_position:
+    lat: 6.04091
+    lon: 116.09893
+  waypoints:
+  - lat: 6.04091
+    lon: 116.09893
+    speed: 0.0
+    time: 00:00
+  - lat: 6.04066
+    lon: 116.09912
+    speed: 0.0
+    time: 02:53
+  - lat: 6.04065
+    lon: 116.09912
+    speed: 0.0
+    time: 03:28
+  - lat: 6.12094
+    lon: 116.04748
+    speed: 9.3
+    time: 04:24
+  - lat: 6.12094
+    lon: 116.04748
+    speed: 9.3
+    time: 04:27
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '457648000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: YZ18
+    call_sign: JVVK8
+    flag: MNG
+    vessel_type: Aggregates Carrier
+    length_m: 122.0
+    beam_m: 22.0
+    destination_declared: K K
+- id: AIS-538011816
+  type: CIVILIAN_CARGO
+  callsign: MV KIRA OCEAN
+  initial_position:
+    lat: 3.23327
+    lon: 119.46259
+  waypoints:
+  - lat: 3.23327
+    lon: 119.46259
+    speed: 10.6
+    time: 00:00
+  - lat: 3.98742
+    lon: 119.57333
+    speed: 11.0
+    time: 03:59
+  - lat: 4.0988
+    lon: 119.5896
+    speed: 11.5
+    time: 04:31
+  - lat: 4.0988
+    lon: 119.5896
+    speed: 11.5
+    time: 04:37
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '538011816'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: KIRA OCEAN
+    call_sign: V7A3520
+    flag: MHL
+    vessel_type: Bulk Carrier
+    length_m: 190.0
+    beam_m: 32.3
+    draught_m: 7.6
+    gross_tonnage: 33064
+    deadweight: 57809
+    year_built: '2011'
+    destination_declared: CN PUTIAN
+- id: AIS-353163000
+  type: CIVILIAN_CARGO
+  callsign: MV BELLEVUE
+  initial_position:
+    lat: 3.60625
+    lon: 119.64661
+  waypoints:
+  - lat: 3.60625
+    lon: 119.64661
+    speed: 12.0
+    time: 00:00
+  - lat: 3.97526
+    lon: 119.64504
+    speed: 11.8
+    time: 01:59
+  - lat: 4.11271
+    lon: 119.6504
+    speed: 12.8
+    time: 02:36
+  - lat: 4.11271
+    lon: 119.6504
+    speed: 12.8
+    time: 02:43
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '353163000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: BELLEVUE
+    call_sign: 3EWE5
+    flag: PAN
+    vessel_type: Bulk Carrier
+    length_m: 245.0
+    beam_m: 43.0
+    draught_m: 13.4
+    gross_tonnage: 64877
+    deadweight: 119346
+    year_built: '2011'
+    destination_declared: CNQIN
+- id: AIS-533130607
+  type: CIVILIAN_TANKER_VLCC
+  callsign: MT SERI CEMPAKA
+  initial_position:
+    lat: 6.18703
+    lon: 115.99664
+  waypoints:
+  - lat: 6.18703
+    lon: 115.99664
+    speed: 10.8
+    time: 00:00
+  - lat: 6.27361
+    lon: 115.66267
+    speed: 12.1
+    time: 02:01
+  - lat: 6.4147
+    lon: 115.46152
+    speed: 0.6
+    time: 04:00
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533130607'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: SERI CEMPAKA
+    call_sign: 9MWM8
+    flag: MYS
+    vessel_type: LNG Tanker
+    length_m: 290.0
+    beam_m: 48.9
+    draught_m: 9.4
+    gross_tonnage: 133948
+    deadweight: 84311
+    year_built: '2017'
+    destination_declared: PFLNG 1 MY
+- id: AIS-533132804
+  type: CIVILIAN_BOAT
+  callsign: MV BANK WIN
+  initial_position:
+    lat: 5.96689
+    lon: 116.05537
+  waypoints:
+  - lat: 5.96689
+    lon: 116.05537
+    speed: 0.0
+    time: 00:00
+  - lat: 5.96689
+    lon: 116.05539
+    speed: 0.0
+    time: 01:41
+  - lat: 5.96689
+    lon: 116.05539
+    speed: 0.0
+    time: 01:48
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533132804'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: BANK WIN
+    call_sign: 9M3355
+    flag: MYS
+    vessel_type: Pleasure Craft
+    length_m: 23.0
+    beam_m: 7.0
+- id: AIS-533170439
+  type: CIVILIAN_CARGO
+  callsign: MV MICLYN EMPRESS
+  initial_position:
+    lat: 5.74164
+    lon: 115.84368
+  waypoints:
+  - lat: 5.74164
+    lon: 115.84368
+    speed: 0.3
+    time: 00:00
+  - lat: 5.71526
+    lon: 115.85684
+    speed: 0.8
+    time: 03:22
+  - lat: 5.71156
+    lon: 115.85816
+    speed: 0.8
+    time: 03:40
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533170439'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MICLYN EMPRESS
+    call_sign: 9MWQ5
+    flag: MYS
+    vessel_type: Fire Fighting Vessel
+    length_m: 58.7
+    beam_m: 14.6
+    gross_tonnage: 1537
+    deadweight: 1275
+    year_built: '2008'
+    destination_declared: SPM KIMANIS
+- id: AIS-533999012
+  type: CIVILIAN_BOAT
+  callsign: MV SABAH TUG NO10
+  initial_position:
+    lat: 6.0951
+    lon: 116.11971
+  waypoints:
+  - lat: 6.0951
+    lon: 116.11971
+    speed: 0.0
+    time: 00:00
+  - lat: 6.09508
+    lon: 116.11965
+    speed: 0.0
+    time: 02:17
+  - lat: 6.09504
+    lon: 116.11965
+    speed: 0.0
+    time: 03:12
+  - lat: 6.09533
+    lon: 116.11976
+    speed: 0.0
+    time: 05:28
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533999012'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: SABAH TUG NO10
+    flag: MYS
+    vessel_type: Tug
+    length_m: 25.0
+    beam_m: 8.0
+- id: AIS-205335000
+  type: CIVILIAN_CARGO
+  callsign: MV MINERAL POLSKA
+  initial_position:
+    lat: 3.03589
+    lon: 119.52693
+  waypoints:
+  - lat: 3.03589
+    lon: 119.52693
+    speed: 11.5
+    time: 00:00
+  - lat: 3.15354
+    lon: 119.53284
+    speed: 11.3
+    time: 00:38
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '205335000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MINERAL POLSKA
+    call_sign: ONMH
+    flag: BEL
+    vessel_type: Bulk Carrier
+    length_m: 300.0
+    beam_m: 50.0
+    destination_declared: TW KHH
+- id: AIS-372116000
+  type: CIVILIAN_CARGO
+  callsign: MV MARS
+  initial_position:
+    lat: 6.0663
+    lon: 116.0107
+  waypoints:
+  - lat: 6.0663
+    lon: 116.0107
+    speed: 11.3
+    time: 00:00
+  - lat: 6.15383
+    lon: 115.78497
+    speed: 11.1
+    time: 01:21
+  - lat: 6.15383
+    lon: 115.78497
+    speed: 11.1
+    time: 01:22
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '372116000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: MARS
+    call_sign: 3EID5
+    flag: PAN
+    vessel_type: General Cargo
+    length_m: 124.5
+    beam_m: 20.5
+    draught_m: 8.5
+    gross_tonnage: 9981
+    deadweight: 13395
+    year_built: '2006'
+    destination_declared: ID BATAM
+- id: AIS-477614400
+  type: CIVILIAN_TANKER_VLCC
+  callsign: MT DAPENG STAR
+  initial_position:
+    lat: 3.47017
+    lon: 119.64162
+  waypoints:
+  - lat: 3.47017
+    lon: 119.64162
+    speed: 15.6
+    time: 00:00
+  - lat: 3.7677
+    lon: 119.65501
+    speed: 15.1
+    time: 01:00
+  - lat: 3.7677
+    lon: 119.65501
+    speed: 15.1
+    time: 01:09
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '477614400'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: DAPENG STAR
+    call_sign: VRFT7
+    flag: HKG
+    vessel_type: LNG Tanker
+    length_m: 292.3
+    beam_m: 43.4
+    draught_m: 9.5
+    gross_tonnage: 97871
+    deadweight: 82428
+    year_built: '2009'
+    destination_declared: DAPENG CHINA
+- id: AIS-533160006
+  type: CIVILIAN_BOAT
+  callsign: MV EASTPORT BRAVO
+  initial_position:
+    lat: 6.00535
+    lon: 116.08401
+  waypoints:
+  - lat: 6.00535
+    lon: 116.08401
+    speed: 5.9
+    time: 00:00
+  - lat: 6.00535
+    lon: 116.08401
+    speed: 5.9
+    time: 00:04
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533160006'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: EASTPORT BRAVO
+    call_sign: 9W0P7
+    flag: MYS
+    vessel_type: Tug
+    length_m: 29.0
+    beam_m: 9.0
+- id: AIS-533210068
+  type: CIVILIAN_FISHING
+  callsign: FB HG
+  initial_position:
+    lat: 6.00871
+    lon: 116.00983
+  waypoints:
+  - lat: 6.00871
+    lon: 116.00983
+    speed: 0.0
+    time: 00:00
+  - lat: 6.00441
+    lon: 116.01833
+    speed: 22.3
+    time: 02:26
+  - lat: 6.00235
+    lon: 116.06764
+    speed: 7.9
+    time: 03:13
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '533210068'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: HG
+    flag: MYS
+    vessel_type: Fishing
+    length_m: 26.0
+    beam_m: 6.0
+- id: AIS-563230700
+  type: CIVILIAN_CARGO
+  callsign: MV WAN HAI 376
+  initial_position:
+    lat: 3.01481
+    lon: 119.53685
+  waypoints:
+  - lat: 3.01481
+    lon: 119.53685
+    speed: 15.7
+    time: 00:00
+  - lat: 3.22037
+    lon: 119.55181
+    speed: 15.3
+    time: 00:49
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '563230700'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: WAN HAI 376
+    call_sign: 9V7867
+    flag: SGP
+    vessel_type: Container Ship
+    length_m: 203.5
+    beam_m: 35.0
+    year_built: '2024'
+    destination_declared: TWTPE
+- id: AIS-564909000
+  type: CIVILIAN_CARGO
+  callsign: MV KOTA HAKIM
+  initial_position:
+    lat: 7.94819
+    lon: 117.18063
+  waypoints:
+  - lat: 7.94819
+    lon: 117.18063
+    speed: 13.0
+    time: 00:00
+  - lat: 7.39713
+    lon: 116.57711
+    speed: 12.6
+    time: 03:58
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '564909000'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: KOTA HAKIM
+    call_sign: 9V8257
+    flag: SGP
+    vessel_type: Container Ship
+    length_m: 159.5
+    beam_m: 25.0
+    draught_m: 7.5
+    gross_tonnage: 13491
+    deadweight: 18830
+    year_built: '2001'
+    destination_declared: SINGAPORE
+    destination_lat: 1.25937
+    destination_lon: 103.7544
+- id: AIS-636024599
+  type: CIVILIAN_CARGO
+  callsign: MV BLUE UNION ALPHA
+  initial_position:
+    lat: 6.16636
+    lon: 115.80909
+  waypoints:
+  - lat: 6.16636
+    lon: 115.80909
+    speed: 12.5
+    time: 00:00
+  - lat: 6.22212
+    lon: 115.71276
+    speed: 12.3
+    time: 00:32
+  - lat: 6.22212
+    lon: 115.71276
+    speed: 12.3
+    time: 00:33
+  metadata:
+    skip_terrain_check: true
+    ais_active: true
+    mmsi: '636024599'
+    source: AIS_REAL
+    nav_status: Under Way Using Engine
+    vessel_name: BLUE UNION ALPHA
+    call_sign: 5LTJ6
+    flag: LBR
+    vessel_type: Bulk Carrier
+    length_m: 169.4
+    beam_m: 27.2
+    draught_m: 5.4
+    gross_tonnage: 17019
+    deadweight: 28386
+    year_built: '2011'
+    destination_declared: KUCHING
+    destination_lat: 1.56261
+    destination_lon: 110.3808
