@@ -7,7 +7,7 @@
  * Uses JMSML DISA SVGs for MIL-STD-2525D symbols.
  *
  * Features:
- * - Smooth position interpolation via SampledPositionProperty
+ * - Live position via CallbackProperty (reads entry.data.position each frame)
  * - Trail polylines with fading alpha
  * - Pixel-distance declutter with ring offset (pixelOffset only, no extra entities)
  * - Pooled HTML labels — no Cesium Label objects
@@ -208,22 +208,19 @@ export function initEntityManager(viewer, config) {
     const lon = pos.longitude || 0;
     const alt = pos.altitude_m || 0;
 
-    const sampledPosition = new Cesium.SampledPositionProperty();
-    sampledPosition.setInterpolationOptions({
-      interpolationDegree: 1,
-      interpolationAlgorithm: Cesium.LinearApproximation
-    });
-    sampledPosition.forwardExtrapolationType = Cesium.ExtrapolationType.HOLD;
-    sampledPosition.backwardExtrapolationType = Cesium.ExtrapolationType.HOLD;
-
-    const now = entityData.timestamp
-      ? Cesium.JulianDate.fromIso8601(entityData.timestamp)
-      : viewer.clock.currentTime;
-    sampledPosition.addSample(now, Cesium.Cartesian3.fromDegrees(lon, lat, alt));
+    const livePosition = new Cesium.CallbackProperty((time, result) => {
+      const entry = entities.get(id);
+      const p = entry?.data?.position;
+      if (!p || p.latitude == null || p.longitude == null) return undefined;
+      return Cesium.Cartesian3.fromDegrees(
+        p.longitude, p.latitude, p.altitude_m || 0,
+        Cesium.Ellipsoid.WGS84, result
+      );
+    }, false);
 
     const cesiumEntity = dataSource.entities.add({
       id: `entity-${id}`,
-      position: sampledPosition,
+      position: livePosition,
       billboard: {
         image: getSymbolImage(entityData),
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
@@ -263,7 +260,6 @@ export function initEntityManager(viewer, config) {
     entities.set(id, {
       cesiumEntity,
       cesiumTrail,
-      sampledPosition,
       data: entityData,
       visible: true,
       createdAtGeneration: snapshotGeneration
@@ -280,11 +276,6 @@ export function initEntityManager(viewer, config) {
     const lat = pos.latitude || 0;
     const lon = pos.longitude || 0;
     const alt = pos.altitude_m || 0;
-
-    const time = entityData.timestamp
-      ? Cesium.JulianDate.fromIso8601(entityData.timestamp)
-      : viewer.clock.currentTime;
-    entry.sampledPosition.addSample(time, Cesium.Cartesian3.fromDegrees(lon, lat, alt));
 
     const typeChanged = entityData.entity_type !== entry.data.entity_type;
     if (typeChanged || entityData.status !== entry.data.status) {
@@ -336,6 +327,9 @@ export function initEntityManager(viewer, config) {
     }
 
     entry.data = entityData;
+
+    // Re-apply visibility on every update so filter/trail state stays in sync
+    applyVisibility(id);
   }
 
   function removeEntity(id) {

@@ -118,7 +118,8 @@
   font-size: 11px;
   font-family: var(--font-sans);
   cursor: pointer;
-  max-width: 200px;
+  min-width: 420px;
+  width: auto;
 }
 .header-select:focus {
   outline: none;
