@@ -328,8 +328,13 @@ class ScenarioLoader:
                 movements[entity.entity_id] = movement
 
         # Load included entity files (external YAML lists of scenario_entities)
+        # Supports both v2 format (background.include) and legacy (include_entities)
         scenario_dir = Path(scenario_path).parent
-        for include_path in scenario.get("include_entities", []):
+        bg = scenario.get("background", {})
+        include_list = bg.get("include", []) if isinstance(bg, dict) else []
+        if not include_list:
+            include_list = scenario.get("include_entities", [])
+        for include_path in include_list:
             inc_file = Path(include_path)
             if not inc_file.is_absolute():
                 inc_file = scenario_dir / inc_file
@@ -367,7 +372,7 @@ class ScenarioLoader:
             f"{len(events)} events over {duration_min} minutes"
         )
 
-        has_bg = bool(scenario.get("include_entities")) or bool(scenario.get("background_entities"))
+        has_bg = bool(include_list) or bool(scenario.get("background_entities")) or bool(bg.get("entities"))
 
         return ScenarioState(
             name=name,

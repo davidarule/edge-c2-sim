@@ -13,14 +13,9 @@ scenario:
     lat: 3.41
     lon: 100.49
   zoom: 9
-  # v2 schema format
   background:
     include:
       - ais_background_malacca.yaml
-  # Legacy loader compatibility (until loader updated)
-  include_entities:
-    - ais_background_malacca.yaml
-  background_entities: []
 
   # ==============================================================
   # SCENARIO PHYSICS SUMMARY
