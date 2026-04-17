@@ -252,18 +252,12 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
       // Also hide individual labels for clustered entities so they don't
       // show through the cluster icon.
       if (!cluster._settingsPanelListenerAdded) {
-        // Before each cluster pass, restore trails and clear HTML label suppression.
-        // The clusterEvent fires per-cluster, so we reset once at the start.
+        // Cluster event: style cluster icons, suppress individual labels.
+        // Trails are in a SEPARATE DataSource — clustering doesn't touch them.
         cluster.clusterEvent.addEventListener((clusteredEntities, clusterObj) => {
-          // On first cluster of a recalculation pass, restore all trails and HTML labels
           if (!cluster._passRestored) {
-            const allEntities = entityManager.getDataSource().entities.values;
-            for (const e of allEntities) {
-              if (e.id && e.id.startsWith('trail-')) e.show = true;
-            }
             entityManager.clearCesiumClustered();
             cluster._passRestored = true;
-            // Reset flag after microtask (all clusters in this pass fire synchronously)
             Promise.resolve().then(() => { cluster._passRestored = false; });
           }
           clusterObj.label.show = false;
@@ -273,18 +267,12 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
           clusterObj.billboard.horizontalOrigin = Cesium.HorizontalOrigin.CENTER;
           clusterObj.billboard.disableDepthTestDistance = Number.POSITIVE_INFINITY;
 
-          // Hide labels and trails on individual entities absorbed into this cluster
-          const ds = entityManager.getDataSource();
+          // Suppress HTML labels for clustered entities
           for (const ce of clusteredEntities) {
             if (ce.label) ce.label.show = false;
-            // Suppress HTML label div via entity-manager
             if (ce.id && ce.id.startsWith('entity-')) {
               const entityId = ce.id.replace('entity-', '');
               entityManager.addCesiumClustered(entityId);
-              // Hide trail
-              const trailId = ce.id.replace('entity-', 'trail-');
-              const trailEntity = ds.entities.getById(trailId);
-              if (trailEntity) trailEntity.show = false;
             }
           }
         });

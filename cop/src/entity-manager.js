@@ -37,12 +37,17 @@ const DECLUTTER_FULL_ALT = 5000;      // Below 5km: full spread radius
 const DECLUTTER_ZERO_ALT = 80000;     // Above 80km: no declutter (0px spread)
 
 export function initEntityManager(viewer, config) {
-  // Use a CustomDataSource so Cesium EntityCluster works
+  // Entity DataSource — managed by Cesium EntityCluster for clustering
   const dataSource = new Cesium.CustomDataSource('entities');
   viewer.dataSources.add(dataSource);
 
+  // Trail DataSource — SEPARATE from entities, NOT managed by clustering
+  const trailDataSource = new Cesium.CustomDataSource('trails');
+  viewer.dataSources.add(trailDataSource);
+
   const entities = new Map();
-  const trailPositions = new Map();
+  const trails = new Map();        // entity_id -> { points, cesiumEntity, dirty }
+  const trailPositions = new Map(); // kept for API compat — points to trails.get(id).points
   const updateCounters = new Map();
   const symbolCache = new Map();
   const clickHandlers = [];
@@ -195,6 +200,78 @@ export function initEntityManager(viewer, config) {
     return config.agencyColors[agency] || config.agencyColors.UNKNOWN;
   }
 
+  // === TRAIL SYSTEM ===
+  // Single source of truth for trail visibility — called from everywhere
+  function updateTrailVisibility(entityId) {
+    const trail = trails.get(entityId);
+    if (!trail) return;
+
+    const entry = entities.get(entityId);
+    const hidden = !entry ||
+                   filters.agencies.has(entry.data.agency) ||
+                   filters.domains.has(entry.data.domain);
+
+    const override = entityTrailOverrides.get(entityId);
+    const userVisible = override !== undefined ? override : globalTrailsVisible;
+
+    trail.cesiumEntity.show = !hidden && userVisible;
+  }
+
+  // Update Cesium polyline positions — only called when trail data changes
+  function updateTrailPolyline(entityId) {
+    const trail = trails.get(entityId);
+    if (!trail || !trail.dirty) return;
+
+    const valid = trail.points.filter(p =>
+      p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon)
+    );
+
+    if (valid.length >= 2) {
+      trail.cesiumEntity.polyline.positions = Cesium.Cartesian3.fromDegreesArrayHeights(
+        valid.flatMap(p => [p.lon, p.lat, p.alt || 0])
+      );
+    } else {
+      trail.cesiumEntity.polyline.positions = [];
+    }
+
+    trail.dirty = false;
+  }
+
+  function createTrail(entityId, entityData) {
+    const pos = entityData.position || {};
+    const lat = pos.latitude || 0;
+    const lon = pos.longitude || 0;
+    const alt = pos.altitude_m || 0;
+    const ts = entityData.timestamp ? new Date(entityData.timestamp).getTime() : Date.now();
+
+    const agencyColor = Cesium.Color.fromCssColorString(getAgencyColor(entityData.agency));
+
+    const cesiumEntity = trailDataSource.entities.add({
+      id: `trail-${entityId}`,
+      polyline: {
+        positions: [],
+        width: TRAIL_WIDTH,
+        show: globalTrailsVisible,
+        material: agencyColor.withAlpha(0.9),
+        clampToGround: false,
+        depthFailMaterial: agencyColor.withAlpha(0.4)
+      }
+    });
+
+    const points = [{ lat, lon, alt, ts }];
+    trails.set(entityId, { points, cesiumEntity, dirty: true });
+    trailPositions.set(entityId, points); // alias for API compat
+  }
+
+  function removeTrail(entityId) {
+    const trail = trails.get(entityId);
+    if (trail) {
+      trailDataSource.entities.remove(trail.cesiumEntity);
+      trails.delete(entityId);
+      trailPositions.delete(entityId);
+    }
+  }
+
   // === ENTITY CRUD ===
   function addOrUpdateEntity(entityData) {
     const id = entityData.entity_id;
@@ -237,41 +314,18 @@ export function initEntityManager(viewer, config) {
       // No Cesium Label — callsign labels are HTML overlay divs (see updateLabelOverlay)
     });
 
-    const ts = entityData.timestamp ? new Date(entityData.timestamp).getTime() : Date.now();
-    trailPositions.set(id, [{ lat, lon, alt, ts }]);
     updateCounters.set(id, 0);
-
-    const agencyColor = Cesium.Color.fromCssColorString(getAgencyColor(entityData.agency));
-
-    const cesiumTrail = dataSource.entities.add({
-      id: `trail-${id}`,
-      polyline: {
-        positions: new Cesium.CallbackProperty(() => {
-          // Don't check entry.visible here — trail.show handles visibility.
-          // Checking visible causes flicker when Cesium clustering toggles entities.
-          const points = trailPositions.get(id) || [];
-          if (points.length < 2) return [];
-          return points
-            .filter(p => p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon))
-            .map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
-        }, false),
-        width: TRAIL_WIDTH,
-        show: globalTrailsVisible,
-        material: agencyColor.withAlpha(0.9),
-        clampToGround: false,
-        depthFailMaterial: agencyColor.withAlpha(0.4)
-      }
-    });
+    createTrail(id, entityData);
 
     entities.set(id, {
       cesiumEntity,
-      cesiumTrail,
       data: entityData,
       visible: true,
       createdAtGeneration: snapshotGeneration
     });
 
     applyVisibility(id);
+    updateTrailVisibility(id);
   }
 
   function updateExisting(id, entityData) {
@@ -298,51 +352,47 @@ export function initEntityManager(viewer, config) {
     // AIS tracking state: grey out when transponder goes dark, restore on reclassification
     const prevAisActive = entry.data.metadata?.ais_active !== false;
     const currAisActive = entityData.metadata?.ais_active !== false;
+    const trail = trails.get(id);
     if (typeChanged) {
-      // Entity reclassified — restore full-colour rendering regardless of ais_active
       entry.cesiumEntity.billboard.color = Cesium.Color.WHITE;
-      entry.cesiumTrail.polyline.material =
-        Cesium.Color.fromCssColorString(getAgencyColor(entityData.agency)).withAlpha(0.9);
+      if (trail) {
+        trail.cesiumEntity.polyline.material =
+          Cesium.Color.fromCssColorString(getAgencyColor(entityData.agency)).withAlpha(0.9);
+      }
     } else if (!currAisActive && prevAisActive) {
-      // AIS just went dark — grey out symbol and trail
       entry.cesiumEntity.billboard.color = new Cesium.Color(0.53, 0.53, 0.53, 0.65);
-      entry.cesiumTrail.polyline.material = new Cesium.Color(0.53, 0.53, 0.53, 0.45);
+      if (trail) {
+        trail.cesiumEntity.polyline.material = new Cesium.Color(0.53, 0.53, 0.53, 0.45);
+      }
     }
 
+    // Trail point accumulation
     const count = (updateCounters.get(id) || 0) + 1;
     updateCounters.set(id, count);
-    // Skip trail accumulation for first few updates after a snapshot to prevent
-    // trail artifacts from old->new position jumps, regardless of sim speed
     const suppressTrail = entry.createdAtGeneration === snapshotGeneration && count < TRAIL_UPDATE_INTERVAL * 3;
     const isStationary = (entityData.speed_knots || 0) < 0.1;
-    if (!suppressTrail && !isStationary && count % TRAIL_UPDATE_INTERVAL === 0) {
-      const trail = trailPositions.get(id) || [];
-      // Use clean track position (pre-noise) if available, else noisy position
+    if (!suppressTrail && !isStationary && count % TRAIL_UPDATE_INTERVAL === 0 && trail) {
       const meta = entityData.metadata || {};
       const trailLat = meta.track_lat != null ? meta.track_lat : lat;
       const trailLon = meta.track_lon != null ? meta.track_lon : lon;
-      const lastPoint = trail[trail.length - 1];
+      const lastPoint = trail.points[trail.points.length - 1];
       const dist = lastPoint
         ? Math.sqrt(Math.pow(trailLat - lastPoint.lat, 2) + Math.pow(trailLon - lastPoint.lon, 2))
         : Infinity;
       if (dist > MIN_TRAIL_DISTANCE_DEG) {
         const ts = entityData.timestamp ? new Date(entityData.timestamp).getTime() : Date.now();
-        trail.push({ lat: trailLat, lon: trailLon, alt, ts });
-        // Cap max trail points (drop oldest)
-        while (trail.length > MAX_TRAIL_POINTS) {
-          trail.shift();
-        }
-        // Prune points older than trail duration
+        trail.points.push({ lat: trailLat, lon: trailLon, alt, ts });
+        while (trail.points.length > MAX_TRAIL_POINTS) trail.points.shift();
         const cutoff = ts - globalTrailDurationH * 3600 * 1000;
-        while (trail.length > 2 && trail[0].ts < cutoff) {
-          trail.shift();
-        }
+        while (trail.points.length > 2 && trail.points[0].ts < cutoff) trail.points.shift();
+        trail.dirty = true;
+        updateTrailPolyline(id);
       }
     }
 
     entry.data = entityData;
 
-    // Re-apply visibility on every update so filter/trail state stays in sync
+    // Re-apply visibility
     applyVisibility(id);
   }
 
@@ -350,9 +400,8 @@ export function initEntityManager(viewer, config) {
     const entry = entities.get(id);
     if (entry) {
       dataSource.entities.remove(entry.cesiumEntity);
-      dataSource.entities.remove(entry.cesiumTrail);
+      removeTrail(id);
       entities.delete(id);
-      trailPositions.delete(id);
       updateCounters.delete(id);
       declutterOffsets.delete(id);
       declutteredIds.delete(id);
@@ -379,13 +428,10 @@ export function initEntityManager(viewer, config) {
     const hidden = filters.agencies.has(entry.data.agency) ||
                    filters.domains.has(entry.data.domain);
 
-    // Per-entity trail override takes precedence over global toggle
-    const trailOverride = entityTrailOverrides.get(id);
-    const trailVisible = trailOverride !== undefined ? trailOverride : globalTrailsVisible;
-
     entry.cesiumEntity.show = !hidden;
-    entry.cesiumTrail.show = !hidden && trailVisible;
     entry.visible = !hidden;
+    // Trail visibility handled by updateTrailVisibility() — separate system
+    updateTrailVisibility(id);
   }
 
   // === PIXEL-DISTANCE DECLUTTER WITH RING OFFSET ===
@@ -416,8 +462,6 @@ export function initEntityManager(viewer, config) {
     });
     declutterOffsets.clear();
     declutteredIds.clear();
-    // Re-apply correct trail visibility via standard path
-    entities.forEach((_, id) => applyVisibility(id));
   }
 
   function resetEntry(id) {
@@ -428,7 +472,6 @@ export function initEntityManager(viewer, config) {
     }
     declutterOffsets.delete(id);
     declutteredIds.delete(id);
-    applyVisibility(id);
   }
 
   function declutterEntities() {
@@ -504,8 +547,6 @@ export function initEntityManager(viewer, config) {
         if (entry && entry.cesiumEntity.billboard) {
           entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(offsetX, offsetY);
           entry.cesiumEntity.billboard.scale = globalIconScale * scaleMultiplier;
-          // Hide trails in declutter groups; HTML labels excluded via declutteredIds check
-          entry.cesiumTrail.show = false;
           declutterOffsets.set(item.id, { x: offsetX, y: offsetY });
           declutteredIds.add(item.id);
         }
@@ -569,6 +610,7 @@ export function initEntityManager(viewer, config) {
   return {
     loadSnapshot(entityList) {
       entities.forEach((_, id) => removeEntity(id));
+      trails.clear();
       trailPositions.clear();
       updateCounters.clear();
       entityTrailOverrides.clear();
@@ -577,24 +619,20 @@ export function initEntityManager(viewer, config) {
       setTimeout(declutterEntities, 500);
     },
     loadTrailHistory(trailData) {
-      // trailData: { entity_id: [ {lat, lon, alt, ts}, ... ], ... }
       if (!trailData) return;
       for (const [id, points] of Object.entries(trailData)) {
-        if (!entities.has(id)) continue;
-        const trail = trailPositions.get(id) || [];
-        // Prepend history before current trail points
+        const trail = trails.get(id);
+        if (!trail) continue;
         const historyPoints = points.map(p => ({
           lat: p.lat, lon: p.lon, alt: p.alt || 0,
           ts: p.ts || 0
         }));
-        // Merge: history + existing (dedup by checking last history ts vs first existing ts)
         const merged = [...historyPoints];
-        for (const existing of trail) {
+        for (const existing of trail.points) {
           if (!historyPoints.length || existing.ts > historyPoints[historyPoints.length - 1].ts) {
             merged.push(existing);
           }
         }
-        // Prune to trail duration
         if (merged.length > 0) {
           const latestTs = merged[merged.length - 1].ts;
           const cutoff = latestTs - globalTrailDurationH * 3600 * 1000;
@@ -602,7 +640,9 @@ export function initEntityManager(viewer, config) {
             merged.shift();
           }
         }
-        trailPositions.set(id, merged);
+        trail.points = merged;
+        trail.dirty = true;
+        updateTrailPolyline(id);
       }
     },
     updateEntity: addOrUpdateEntity,
@@ -660,11 +700,7 @@ export function initEntityManager(viewer, config) {
     },
     setTrailsVisible(visible) {
       globalTrailsVisible = visible;
-      entities.forEach((entry, id) => {
-        const trailOverride = entityTrailOverrides.get(id);
-        const show = trailOverride !== undefined ? trailOverride : visible;
-        entry.cesiumTrail.show = show && entry.visible;
-      });
+      trails.forEach((_, id) => updateTrailVisibility(id));
     },
     updateSidcForEntity(entityId, newSidc) {
       // Per-entity SIDC override
@@ -691,13 +727,14 @@ export function initEntityManager(viewer, config) {
     },
     setTrailDuration(hours) {
       globalTrailDurationH = hours;
-      // Prune existing trails to new duration
       const now = Date.now();
       const cutoff = now - hours * 3600 * 1000;
-      trailPositions.forEach((trail) => {
-        while (trail.length > 2 && trail[0].ts < cutoff) {
-          trail.shift();
+      trails.forEach((trail, id) => {
+        while (trail.points.length > 2 && trail.points[0].ts < cutoff) {
+          trail.points.shift();
         }
+        trail.dirty = true;
+        updateTrailPolyline(id);
       });
     },
     getTrailDuration() {
@@ -705,14 +742,11 @@ export function initEntityManager(viewer, config) {
     },
     setEntityTrailVisible(entityId, visible) {
       if (visible === null || visible === undefined) {
-        entityTrailOverrides.delete(entityId);  // Reset to global
+        entityTrailOverrides.delete(entityId);
       } else {
         entityTrailOverrides.set(entityId, visible);
       }
-      const entry = entities.get(entityId);
-      if (entry) {
-        entry.cesiumTrail.show = visible !== false && entry.visible;
-      }
+      updateTrailVisibility(entityId);
     },
     getEntityTrailVisible(entityId) {
       const override = entityTrailOverrides.get(entityId);
