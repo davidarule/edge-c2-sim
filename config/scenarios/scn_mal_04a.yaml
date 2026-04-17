@@ -1,0 +1,339 @@
+scenario:
+  name: "SCN-MAL-04A: Unknown Submarine Contact — ASW Response, Reactive Chain"
+  description: >
+    RMAF maritime patrol aircraft detects anomalous MAD contact in the
+    northern Malacca Strait — submerged vessel at periscope depth, no
+    transit notification on file. RMN activates ASW response: frigate
+    with hull sonar, second MPA scrambled, OPV establishes northern
+    barrier. Contact eventually identified as Indonesian submarine
+    KRI Nagapasa on undeclared transit — administrative error.
+
+    Demonstrates: multi-domain ASW operations, MPA-surface coordination,
+    submarine contact prosecution, diplomatic notification protocol.
+  duration_minutes: 60
+  center: {lat: 5.30, lon: 100.00}
+  zoom: 9
+  background:
+    include:
+      - ais_background_malacca.yaml
+
+  scenario_entities:
+
+    # TUDM Peregrine 2 — MPA on patrol, detects contact
+    - id: RMN-MPA-001
+      type: RMAF_MPA
+      callsign: TUDM Peregrine 2
+      agency: RMAF
+      initial_position:
+        lat: 5.400
+        lon: 100.100
+        speed_kn: 180
+        heading_deg: 220
+      metadata:
+        aircraft_type: Beechcraft Super King Air B200T
+        home_base: {lat: 5.300, lon: 100.300}
+        altitude_ft: 1500
+        sensors: [MAD_boom, sonobuoys, APS-143_radar, FLIR]
+
+    # TUDM Peregrine 3 — second MPA, standby at Subang
+    - id: RMN-MPA-002
+      type: RMAF_MPA
+      callsign: TUDM Peregrine 3
+      agency: RMAF
+      initial_position:
+        lat: 3.131
+        lon: 101.549
+        speed_kn: 0
+        heading_deg: 0
+      metadata:
+        aircraft_type: Beechcraft Super King Air B200T
+        home_base: {lat: 3.131, lon: 101.549}
+        altitude_ft: 300
+        sensors: [MAD_boom, sonobuoys, APS-143_radar, FLIR]
+
+    # KD Lekiu — primary ASW frigate
+    - id: RMN-FF-001
+      type: MIL_NAVAL_FRIGATE
+      callsign: KD Lekiu
+      agency: MIL
+      initial_position:
+        lat: 5.300
+        lon: 100.050
+        speed_kn: 15
+        heading_deg: 250
+      metadata:
+        vessel_type: Lekiu-class Guided Missile Frigate
+        hull_number: "30"
+        callsign_radio: KD LEKIU
+        sensors: [hull_mounted_sonar, towed_array, Type_996_radar]
+
+    # KD Kedah — northern surface barrier
+    - id: RMN-OPV-001
+      type: MIL_NAVAL
+      callsign: KD Kedah
+      agency: MIL
+      initial_position:
+        lat: 5.600
+        lon: 99.800
+        speed_kn: 12
+        heading_deg: 210
+      metadata:
+        vessel_type: Kedah-class Offshore Patrol Vessel
+        hull_number: "171"
+        callsign_radio: KD KEDAH
+
+    # CONTACT ALPHA — submerged submarine, heading SE
+    - id: CONTACT-001
+      type: MIL_SUBMARINE
+      callsign: SUBMERGED CONTACT ALPHA
+      sidc: "10013500001100000000"
+      initial_position:
+        lat: 5.220
+        lon: 99.890
+        speed_kn: 9
+        heading_deg: 120
+      metadata:
+        ais_active: false
+        vessel_type: Diesel-electric submarine (Type 209/1300)
+        estimated_depth_m: 45
+
+  events:
+
+    # ========================================
+    # PHASE 1: DETECTION
+    # ========================================
+
+    - id: routine_patrol
+      time: "00:00"
+      type: DETECTION
+      description: MPA on routine patrol, northern strait.
+      on_initiate: >
+        TUDM Peregrine 2 on routine maritime patrol, northern Malacca
+        Strait. Altitude 1,500ft. Commercial traffic normal.
+      alert_agencies: [RMAF]
+
+    - id: mad_alert
+      time: "00:03"
+      type: DETECTION
+      description: MAD system triggered — large ferrous mass at shallow depth.
+      on_initiate: >
+        TUDM Peregrine 2: MAD ALERT — Magnetic Anomaly Detection
+        triggered. Bearing 235°, range 2nm. Signature consistent with
+        large ferrous mass at shallow depth. Executing contact protocol.
+      source: RMN-MPA-001
+      position: {lat: 5.220, lon: 99.890}
+      alert_agencies: [RMAF, MIL]
+      severity: WARNING
+      # MPA begins prosecution — orbit the contact
+      target: RMN-MPA-001
+      action: orbit
+      orbit_center: CONTACT-001
+      orbit_radius_nm: 2.0
+      orbit_speed: 140
+      altitude_m: 150
+
+    - id: mad_confirmed
+      after: {event: mad_alert, phase: initiate, offset: "00:02:00"}
+      type: ALERT
+      description: Second MAD pass confirms submerged contact.
+      on_initiate: >
+        TUDM Peregrine 2: MAD CONFIRMED — diesel-electric submarine.
+        Contact moving SE at 8-9 knots. Datum established 5.21°N
+        99.91°E. No submarine transit notification on file. Classify
+        UNKNOWN SUBMARINE CONTACT ALPHA.
+      source: RMN-MPA-001
+      position: {lat: 5.210, lon: 99.912}
+      alert_agencies: [RMAF, MIL]
+      severity: CRITICAL
+
+    # ========================================
+    # PHASE 2: ASW RESPONSE
+    # ========================================
+
+    - id: asw_activated
+      after: {event: mad_confirmed}
+      type: ORDER
+      description: RMN Western Fleet activates ASW response.
+      on_initiate: >
+        RMN Western Fleet: ASW response activated. KD Lekiu diverted
+        to datum at best speed. TUDM Peregrine 3 scrambled from Subang.
+      alert_agencies: [RMAF, MIL]
+      severity: CRITICAL
+
+    - id: lekiu_intercept
+      after: {event: asw_activated}
+      type: ORDER
+      description: KD Lekiu diverted to prosecute contact.
+      on_initiate: >
+        KD Lekiu proceeding to datum at 28 knots. Hull-mounted sonar
+        and towed array standing by.
+      target: RMN-FF-001
+      action: intercept
+      intercept_target: CONTACT-001
+      speed: 28
+      alert_agencies: [MIL]
+      on_complete: >
+        KD Lekiu on datum. Active sonar — contact echo confirmed.
+        Bearing 275°, depth 45m, heading 098°, speed 8kn.
+      on_complete_action: orbit
+      orbit_center: CONTACT-001
+      orbit_radius_nm: 1.5
+      orbit_speed: 12
+
+    - id: mpa2_scramble
+      after: {event: asw_activated}
+      type: ORDER
+      description: Second MPA scrambled from Subang for sonobuoy resupply.
+      on_initiate: >
+        TUDM Peregrine 3 scrambled from RMAF Subang. Fresh sonobuoys
+        and full fuel. ETA ~40 minutes.
+      target: RMN-MPA-002
+      action: transit
+      destination: {lat: 5.145, lon: 99.825}
+      speed: 220
+      alert_agencies: [RMAF, MIL]
+      on_complete: >
+        TUDM Peregrine 3 on scene. Immediate sonobuoy drop — contact
+        re-acquired. Two MPAs now coordinating via COP.
+      on_complete_action: orbit
+      orbit_center: CONTACT-001
+      orbit_radius_nm: 3.0
+      orbit_speed: 130
+
+    - id: kedah_barrier
+      after: {event: asw_activated, phase: initiate, offset: "00:03:00"}
+      type: ORDER
+      description: KD Kedah ordered to northern barrier position.
+      on_initiate: >
+        KD Kedah ordered north to barrier position — cut off Andaman
+        Sea exit route. Prevent contact transiting unidentified.
+      target: RMN-OPV-001
+      action: transit
+      destination: {lat: 5.482, lon: 99.698}
+      speed: 22
+      alert_agencies: [MIL]
+      severity: CRITICAL
+      on_complete: >
+        KD Kedah in barrier position. Northern chokepoint covered.
+      on_complete_action: hold_station
+
+    # ========================================
+    # PHASE 3: PROSECUTION & INTELLIGENCE
+    # ========================================
+
+    - id: lofar_analysis
+      after: {event: mad_confirmed, phase: initiate, offset: "00:07:00"}
+      type: DETECTION
+      description: LOFAR analysis identifies submarine type.
+      on_initiate: >
+        Peregrine 2 LOFAR: narrowband propulsion signature suggests
+        Type 209 or similar. Regional operators: Indonesia (Nagapasa),
+        Singapore (Archer), Myanmar. Indonesia most probable.
+      source: RMN-MPA-001
+      alert_agencies: [MIL]
+      severity: WARNING
+
+    - id: contact_tracked
+      after: {event: lofar_analysis, phase: initiate, offset: "00:06:00"}
+      type: DETECTION
+      description: Sonobuoy pattern tracking contact SE.
+      on_initiate: >
+        Contact tracked by sonobuoy pattern. Speed 8kn, heading
+        095-105° SE. Depth 40-55m — periscope depth regime. Contact
+        likely unaware of prosecution.
+      source: RMN-MPA-001
+      position: {lat: 5.168, lon: 99.975}
+      alert_agencies: [MIL]
+
+    - id: diplomatic_protocol
+      after: {event: contact_tracked, phase: initiate, offset: "00:04:00"}
+      type: ALERT
+      description: Diplomatic notification protocol activated.
+      on_initiate: >
+        Indonesian naval attaché contacted — no knowledge of authorised
+        transit. Submarine squadron contacted directly. DIPLOMATIC
+        NOTIFICATION PROTOCOL activated — Malaysian Chief of Navy
+        notified.
+      alert_agencies: [MIL]
+      severity: CRITICAL
+
+    # Sub reacts to prosecution — slows and alters course
+    - id: sub_reacts
+      after: {event: lekiu_intercept, phase: complete, offset: "00:04:00"}
+      type: DETECTION
+      description: Contact alters course — possible awareness of prosecution.
+      target: CONTACT-001
+      action: escape
+      bearing_deg: 105
+      speed: 7
+
+    - id: surface_demand
+      after: {event: diplomatic_protocol, phase: initiate, offset: "00:10:00"}
+      type: ALERT
+      description: RMN authorises surface demand — UWT transmitted.
+      on_initiate: >
+        RMN Western Fleet authorises SURFACE DEMAND. Peregrine 2
+        transmits on underwater telephone. No response. KD Lekiu
+        maintaining contact — possible depth change.
+      alert_agencies: [MIL]
+      severity: CRITICAL
+
+    # ========================================
+    # PHASE 4: IDENTIFICATION & RESOLUTION
+    # ========================================
+
+    - id: indonesia_confirms
+      after: {event: mpa2_scramble, phase: complete, offset: "00:03:00"}
+      type: ALERT
+      description: Indonesian Navy confirms — KRI Nagapasa on undeclared transit.
+      on_initiate: >
+        Indonesian Navy HQ CONFIRMATION: KRI Nagapasa (403),
+        Type 209/1400. Transit notification filed with Indonesian
+        liaison only — NOT transmitted to Malaysian MMOC.
+        Administrative error, not hostile intent.
+      alert_agencies: [MIL]
+      severity: WARNING
+
+    - id: surface_renewed
+      after: {event: indonesia_confirms, phase: initiate, offset: "00:04:00"}
+      type: ORDER
+      description: Surface demand renewed through diplomatic channel.
+      on_initiate: >
+        Contact identified as KRI Nagapasa — friendly TNI-AL sub.
+        Surface demand renewed via diplomatic channel. KD Lekiu
+        maintaining safe standoff. MPAs passive monitoring only.
+      target: CONTACT-001
+      action: escape
+      bearing_deg: 100
+      speed: 3
+      alert_agencies: [MIL]
+
+    - id: contact_surfaces
+      after: {event: surface_renewed, phase: initiate, offset: "00:03:00"}
+      type: DETECTION
+      description: Submarine surfaces — KRI Nagapasa identified visually.
+      on_initiate: >
+        KRI Nagapasa surfacing. KD Lekiu visual: Indonesian Navy
+        submarine, pennant 403. VHF contact established. Indonesian
+        flag hoisted. Incident professional — no hostile action.
+      target: CONTACT-001
+      action: hold_station
+      source: RMN-FF-001
+      position: {lat: 5.115, lon: 100.028}
+      alert_agencies: [MIL]
+      # Reclassify to friendly
+      reclassify:
+        targets: [CONTACT-001]
+        new_type: MIL_SUBMARINE_FRIENDLY
+      callsign_override: "KRI Nagapasa (403)"
+
+    - id: endstate
+      after: {event: contact_surfaces, phase: initiate, offset: "00:05:00"}
+      type: RESOLUTION
+      description: Scenario complete — contact identified, diplomatic note prepared.
+      on_initiate: >
+        ENDSTATE — KRI Nagapasa identified and surface-navigating under
+        RMN escort. Transit notification admin error. Detection to
+        identification in 45 minutes. Two MPAs, one frigate, one OPV
+        coordinated via single COP.
+      alert_agencies: [RMAF, MIL]
