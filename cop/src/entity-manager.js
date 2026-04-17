@@ -171,9 +171,13 @@ export function initEntityManager(viewer, config) {
 
   // === JMSML SYMBOL RENDERING ===
   function getSidcForEntity(entity) {
-    // Per-entity override takes precedence
+    // Per-entity override takes precedence (set by SIDC change events)
     if (entitySidcOverrides.has(entity.entity_id)) {
       return entitySidcOverrides.get(entity.entity_id);
+    }
+    // Entity-level SIDC from server (e.g., initial identity override)
+    if (entity.sidc && entity.sidc.length >= 20) {
+      return entity.sidc;
     }
     return config.sidcMap[entity.entity_type] || config.defaultSidc;
   }
