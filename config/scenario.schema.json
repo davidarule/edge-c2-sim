@@ -408,41 +408,6 @@
       ]
     },
 
-    "Trigger": {
-      "type": "object",
-      "required": ["type"],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["arrival", "intercept_complete", "proximity", "elapsed"],
-          "description": "Trigger condition type"
-        },
-        "entity": {
-          "type": "string",
-          "description": "Entity ID to watch"
-        },
-        "target": {
-          "type": "string",
-          "description": "Target entity ID (for proximity)"
-        },
-        "range_nm": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Proximity range in nautical miles"
-        },
-        "after_event": {
-          "type": "string",
-          "description": "Event ID to wait for (elapsed trigger)"
-        },
-        "delay_min": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Minutes after referenced event (elapsed trigger)"
-        }
-      },
-      "additionalProperties": false
-    },
-
     "Event": {
       "type": "object",
       "required": ["type", "description"],
