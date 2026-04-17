@@ -1,0 +1,522 @@
+scenario:
+  name: "SCN-ESS-02A: Kidnapping-for-Ransom Response — Semporna"
+  description: >
+    Armed group from southern Philippines crosses Sulu Sea in speedboats,
+    attacks fishing village on Pulau Bum Bum, seizes hostages. ESSCOM
+    activates full response under Operation Pasir: RMP Marine Police,
+    GOF tactical teams, RMN naval pursuit, RMAF helicopter insertion,
+    MMEA sea curfew enforcement, Immigration border lockdown. Militants
+    attempt to flee with hostages — intercepted near international boundary.
+
+    Demonstrates: cross-border incursion detection, ESSCOM joint command,
+    Operation Pasir protocols, multi-agency pursuit, hostage rescue.
+  duration_minutes: 75
+  center: {lat: 4.45, lon: 118.65}
+  zoom: 11
+  background:
+    include:
+      - ais_background_esszone.yaml
+
+  scenario_entities:
+
+    # === HOSTILE SPEEDBOATS ===
+
+    - id: HOSTILE-001
+      type: SUSPECT_VESSEL
+      callsign: Suspect Speedboat 1
+      sidc: "10013000001400000000"
+      initial_position: {lat: 4.85, lon: 119.10, speed_kn: 30, heading_deg: 240}
+      metadata:
+        ais_active: false
+        vessel_type: High-speed fibreglass boat
+        estimated_crew: 8
+        armed: true
+
+    - id: HOSTILE-002
+      type: SUSPECT_VESSEL
+      callsign: Suspect Speedboat 2
+      sidc: "10013000001400000000"
+      initial_position: {lat: 4.87, lon: 119.08, speed_kn: 30, heading_deg: 240}
+      metadata:
+        ais_active: false
+        vessel_type: High-speed fibreglass boat
+        estimated_crew: 6
+        armed: true
+
+    # === RMP MARINE POLICE ===
+
+    - id: RMP-MP-201
+      type: RMP_PATROL_BOAT
+      callsign: PDRM Marine Semporna 01
+      agency: RMP
+      initial_position: {lat: 4.48, lon: 118.61, speed_kn: 0, heading_deg: 0}
+      metadata: {vessel_type: Rigid Hull Fender Boat, equipment: [FLIR, NVG, M4_rifle]}
+
+    - id: RMP-MP-202
+      type: RMP_PATROL_BOAT
+      callsign: PDRM Marine Semporna 02
+      agency: RMP
+      initial_position: {lat: 4.48, lon: 118.62, speed_kn: 0, heading_deg: 0}
+
+    - id: RMP-MP-203
+      type: RMP_PATROL_BOAT
+      callsign: PDRM Marine Semporna 03
+      agency: RMP
+      initial_position: {lat: 4.50, lon: 118.60, speed_kn: 12, heading_deg: 90}
+
+    # === RMP GOF ===
+
+    - id: RMP-GOF-201
+      type: RMP_TACTICAL_TEAM
+      callsign: GOF Tactical Team Alpha
+      agency: RMP
+      embarked_on: RMAF-HELI-202
+      initial_position: {lat: 5.84, lon: 118.07}
+      metadata: {unit_size: 16, equipment: [rifle, body_armor, NVG, sniper_rifle]}
+
+    - id: RMP-GOF-202
+      type: RMP_TACTICAL_TEAM
+      callsign: GOF Team Bravo
+      agency: RMP
+      initial_position: {lat: 4.48, lon: 118.61, speed_kn: 0, heading_deg: 0}
+      metadata: {unit_size: 12, equipment: [rifle, body_armor]}
+
+    # === RMN NAVAL ===
+
+    - id: RMN-FIC-201
+      type: MIL_NAVAL
+      callsign: KD G2000 Bravo
+      agency: MIL
+      initial_position: {lat: 4.48, lon: 118.61, speed_kn: 0, heading_deg: 0}
+      metadata: {vessel_type: G2000 Mk II Fast Interceptor Craft}
+
+    - id: RMN-FIC-202
+      type: MIL_NAVAL
+      callsign: KD G2000 Charlie
+      agency: MIL
+      initial_position: {lat: 5.84, lon: 118.10, speed_kn: 0, heading_deg: 0}
+      metadata: {vessel_type: G2000 Mk II Fast Interceptor Craft}
+
+    - id: RMN-PV-201
+      type: MIL_NAVAL
+      callsign: KD Jerong
+      agency: MIL
+      initial_position: {lat: 5.03, lon: 118.33, speed_kn: 10, heading_deg: 180}
+      metadata: {vessel_type: Patrol vessel}
+
+    # === MMEA ===
+
+    - id: MMEA-PV-201
+      type: MMEA_PATROL
+      callsign: KM Semporna
+      agency: MMEA
+      initial_position: {lat: 4.48, lon: 118.61, speed_kn: 10, heading_deg: 90}
+
+    - id: MMEA-FI-201
+      type: MMEA_FAST_INTERCEPT
+      callsign: KM Kilat 3
+      agency: MMEA
+      initial_position: {lat: 4.24, lon: 117.90, speed_kn: 0, heading_deg: 0}
+
+    # === RMAF AIR ===
+
+    - id: RMAF-HELI-201
+      type: RMAF_HELICOPTER
+      callsign: TUDM EC725 Hunter
+      agency: RMAF
+      initial_position: {lat: 5.04, lon: 118.33, speed_kn: 0, heading_deg: 0}
+      metadata: {aircraft_type: EC725, home_base: {lat: 5.04, lon: 118.33}, armament: FN MAG 7.62mm}
+
+    - id: RMAF-HELI-202
+      type: RMAF_HELICOPTER
+      callsign: TUDM Blackhawk 1
+      agency: RMAF
+      initial_position: {lat: 5.04, lon: 118.33, speed_kn: 0, heading_deg: 0}
+      metadata: {aircraft_type: S-70A Blackhawk, home_base: {lat: 5.04, lon: 118.33}}
+
+    - id: RMAF-MPA-201
+      type: RMAF_MPA
+      callsign: TUDM MPA Eagle
+      agency: RMAF
+      initial_position: {lat: 5.30, lon: 115.25, speed_kn: 0, heading_deg: 0}
+      metadata: {aircraft_type: B350, home_base: {lat: 5.30, lon: 115.25}}
+
+    # === MILITARY GROUND ===
+
+    - id: MIL-INF-201
+      type: MIL_INFANTRY_SQUAD
+      callsign: Malay Regiment Squad 1
+      agency: MIL
+      initial_position: {lat: 4.25, lon: 117.89, speed_kn: 0, heading_deg: 0}
+      metadata: {unit_size: 10, equipment: [rifle, radio, NVG]}
+
+    # === CUSTOMS & IMMIGRATION ===
+
+    - id: CI-BORDER-201
+      type: CI_OFFICER
+      callsign: Immigration Rapid Response
+      agency: CI
+      initial_position: {lat: 4.24, lon: 117.89, speed_kn: 0, heading_deg: 0}
+      metadata: {unit_size: 8}
+
+    - id: CI-BORDER-202
+      type: CI_OFFICER
+      callsign: Customs Marine Unit
+      agency: CI
+      initial_position: {lat: 4.48, lon: 118.61, speed_kn: 0, heading_deg: 0}
+
+  events:
+
+    # ========================================
+    # PHASE 1: INCURSION DETECTION
+    # ========================================
+
+    - id: radar_contact
+      time: "00:05"
+      type: DETECTION
+      description: Coastal radar detects fast contacts from Sulu Sea.
+      on_initiate: >
+        Coastal radar Station 10: two fast-moving contacts approaching
+        from Sulu Sea at 30 knots. Heading SW toward Semporna.
+      position: {lat: 4.75, lon: 118.95}
+      alert_agencies: [MIL, MMEA]
+      severity: WARNING
+
+    - id: esscom_flags
+      after: {event: radar_contact, phase: initiate, offset: "00:03:00"}
+      type: ALERT
+      description: ESSCOM flags as potential hostile incursion.
+      on_initiate: >
+        ESSCOM Fusion Centre: speed and trajectory consistent with
+        cross-border attack pattern. Potential hostile incursion.
+      alert_agencies: [RMP, MIL, MMEA, RMAF, CI]
+      severity: CRITICAL
+
+    - id: op_pasir
+      after: {event: esscom_flags, phase: initiate, offset: "00:02:00"}
+      type: ORDER
+      description: Operation Pasir enhanced protocols activated.
+      on_initiate: >
+        ESSCOM activates Operation Pasir. Sea curfew zone expanded
+        around Semporna.
+      alert_agencies: [RMP, MIL, MMEA]
+
+    - id: rmp_intercept
+      after: {event: op_pasir, phase: initiate, offset: "00:02:00"}
+      type: ORDER
+      description: RMP Marine Police ordered to intercept.
+      on_initiate: >
+        RMP Marine Police Semporna ordered to intercept approaching
+        contacts.
+      targets: [RMP-MP-201, RMP-MP-202, RMP-MP-203]
+      action: intercept
+      intercept_target: HOSTILE-001
+      alert_agencies: [RMP]
+
+    - id: rmn_scramble
+      after: {event: op_pasir, phase: initiate, offset: "00:05:00"}
+      type: ORDER
+      description: RMN fast interceptor scrambled from Semporna.
+      on_initiate: >
+        RMN G2000 Bravo scrambled from Semporna naval detachment.
+      target: RMN-FIC-201
+      action: intercept
+      intercept_target: HOSTILE-001
+      alert_agencies: [MIL]
+
+    # ========================================
+    # PHASE 2: LANDFALL & HOSTAGE TAKING
+    # ========================================
+
+    - id: landfall
+      time: "00:18"
+      type: ALERT
+      description: Contacts make landfall on Pulau Bum Bum.
+      on_initiate: >
+        Contacts make landfall on Pulau Bum Bum. Armed group storms
+        fishing village.
+      position: {lat: 4.47, lon: 118.66}
+      targets: [HOSTILE-001, HOSTILE-002]
+      action: hold_station
+      alert_agencies: [RMP, MIL, MMEA, RMAF, CI]
+      severity: CRITICAL
+      sidc_override: "10063000001400000000"
+      callsign_override: Hostile Speedboat
+
+    - id: fisherman_report
+      after: {event: landfall, phase: initiate, offset: "00:02:00"}
+      type: ALERT
+      description: Fisherman escapes and reports armed attack.
+      on_initiate: >
+        Fisherman escapes via mobile phone. 12-15 armed men, automatic
+        weapons. Multiple hostages including foreign tourists.
+      alert_agencies: [RMP, MIL, MMEA, RMAF, CI]
+      severity: CRITICAL
+
+    - id: critical_incident
+      after: {event: fisherman_report, phase: initiate, offset: "00:02:00"}
+      type: ORDER
+      description: ESSCOM declares CRITICAL INCIDENT — full activation.
+      on_initiate: >
+        ESSCOM declares CRITICAL INCIDENT. Full multi-agency activation.
+      alert_agencies: [RMP, MIL, MMEA, RMAF, CI]
+      severity: CRITICAL
+
+    # ========================================
+    # PHASE 3: FULL RESPONSE
+    # ========================================
+
+    - id: gof_bravo
+      after: {event: critical_incident}
+      type: ORDER
+      description: GOF Team Bravo deploys from Semporna.
+      on_initiate: >
+        GOF Team Bravo scrambled from Semporna to Pulau Bum Bum.
+      target: RMP-GOF-202
+      action: transit
+      destination: {lat: 4.47, lon: 118.66}
+      speed: 25
+      alert_agencies: [RMP]
+
+    - id: ec725_dispatch
+      after: {event: critical_incident, phase: initiate, offset: "00:02:00"}
+      type: ORDER
+      description: EC725 dispatched for armed aerial surveillance.
+      on_initiate: >
+        RMAF EC725 Hunter dispatched from Lahad Datu for armed
+        aerial surveillance over Semporna.
+      target: RMAF-HELI-201
+      action: transit
+      destination: {lat: 4.47, lon: 118.66}
+      speed: 120
+      alert_agencies: [RMAF]
+      on_complete: >
+        EC725 on station over Pulau Bum Bum — reports militants
+        loading hostages onto speedboats.
+      on_complete_action: orbit
+      orbit_radius_nm: 1.0
+      orbit_speed: 60
+
+    - id: blackhawk_gof
+      after: {event: critical_incident, phase: initiate, offset: "00:03:00"}
+      type: ORDER
+      description: Blackhawk airlifts GOF Alpha from Sandakan.
+      on_initiate: >
+        RMAF Blackhawk dispatched to airlift GOF Team Alpha from
+        Sandakan to Semporna staging area.
+      target: RMAF-HELI-202
+      action: transit
+      destination: {lat: 5.84, lon: 118.07}
+      speed: 120
+      alert_agencies: [RMAF]
+      on_complete: >
+        GOF Team Alpha loaded onto Blackhawk at Sandakan.
+
+    - id: sea_curfew
+      after: {event: critical_incident, phase: initiate, offset: "00:04:00"}
+      type: ORDER
+      description: MMEA enforces sea curfew.
+      on_initiate: >
+        MMEA enforces sea curfew — no unauthorised vessels to leave
+        Semporna waters.
+      targets: [MMEA-PV-201, MMEA-FI-201]
+      alert_agencies: [MMEA]
+
+    - id: jerong_block
+      after: {event: critical_incident, phase: initiate, offset: "00:06:00"}
+      type: ORDER
+      description: KD Jerong blocks northern escape.
+      on_initiate: >
+        KD Jerong diverted to block northern escape route.
+      target: RMN-PV-201
+      action: transit
+      destination: {lat: 4.60, lon: 118.80}
+      speed: 22
+      alert_agencies: [MIL]
+      on_complete_action: hold_station
+
+    - id: g2000c_south
+      after: {event: critical_incident, phase: initiate, offset: "00:07:00"}
+      type: ORDER
+      description: G2000 Charlie from Sandakan heading south.
+      on_initiate: >
+        G2000 Charlie from MAWILLA 2 Sandakan — full speed south.
+      target: RMN-FIC-202
+      action: transit
+      destination: {lat: 4.60, lon: 118.80}
+      speed: 35
+      alert_agencies: [MIL]
+
+    - id: border_lockdown
+      after: {event: critical_incident, phase: initiate, offset: "00:08:00"}
+      type: ORDER
+      description: Immigration border lockdown.
+      on_initiate: >
+        Immigration activates border lockdown. All sea crossings
+        Semporna/Tawau suspended.
+      targets: [CI-BORDER-201, CI-BORDER-202]
+      alert_agencies: [CI]
+
+    - id: mpa_dispatch
+      after: {event: critical_incident, phase: initiate, offset: "00:10:00"}
+      type: ORDER
+      description: MPA launched for wide-area Sulu Sea surveillance.
+      on_initiate: >
+        RMAF MPA Eagle launched from Labuan for wide-area maritime
+        surveillance of Sulu Sea approaches.
+      target: RMAF-MPA-201
+      action: transit
+      destination: {lat: 4.70, lon: 118.90}
+      speed: 220
+      alert_agencies: [RMAF]
+      on_complete_action: orbit
+      orbit_radius_nm: 10.0
+      orbit_speed: 150
+
+    # ========================================
+    # PHASE 4: MILITANTS FLEE
+    # ========================================
+
+    - id: militants_depart
+      after: {event: ec725_dispatch, phase: complete, offset: "00:02:00"}
+      type: ALERT
+      description: Militants departing with hostages heading NE.
+      on_initiate: >
+        Hostile speedboats departing Pulau Bum Bum heading northeast
+        toward Philippine waters at high speed!
+      alert_agencies: [RMP, MIL, MMEA, RMAF]
+      severity: CRITICAL
+
+    - id: hostile1_escape
+      after: {event: militants_depart}
+      type: ALERT
+      description: Speedboat 1 flees toward Philippines.
+      on_initiate: >
+        Speedboat 1 heading NE at 28 knots toward international
+        boundary. Hostages aboard.
+      target: HOSTILE-001
+      action: escape
+      bearing_deg: 45
+      speed: 28
+      alert_agencies: [MIL, MMEA]
+      severity: CRITICAL
+
+    - id: hostile2_escape
+      after: {event: militants_depart, phase: initiate, offset: "00:02:00"}
+      type: ALERT
+      description: Speedboat 2 flees — delayed departure.
+      on_initiate: >
+        Speedboat 2 departing — heading NE at 25 knots. Second
+        group of hostages.
+      target: HOSTILE-002
+      action: escape
+      bearing_deg: 50
+      speed: 25
+      alert_agencies: [MIL, MMEA]
+      severity: CRITICAL
+
+    - id: ec725_pursue
+      after: {event: hostile1_escape, phase: initiate, offset: "00:02:00"}
+      type: ORDER
+      description: EC725 breaks orbit to pursue fleeing boats.
+      on_initiate: >
+        EC725 Hunter breaking orbit — pursuing fleeing speedboats.
+      target: RMAF-HELI-201
+      action: intercept
+      intercept_target: HOSTILE-001
+      alert_agencies: [RMAF]
+
+    - id: g2000b_pursue
+      after: {event: hostile2_escape, phase: initiate, offset: "00:02:00"}
+      type: ORDER
+      description: G2000 Bravo pursues Speedboat 2.
+      on_initiate: >
+        G2000 Bravo in pursuit of Speedboat 2.
+      target: RMN-FIC-201
+      action: intercept
+      intercept_target: HOSTILE-002
+      alert_agencies: [MIL]
+      on_complete: >
+        G2000 Bravo intercepts Speedboat 2 — militants surrender
+        after warning shots. 4 hostages recovered alive.
+
+    - id: g2000c_intercept
+      after: {event: hostile1_escape, phase: initiate, offset: "00:10:00"}
+      type: ORDER
+      description: G2000 Charlie intercepts Speedboat 1 near boundary.
+      on_initiate: >
+        G2000 Charlie on high-speed intercept — closing from north.
+      target: RMN-FIC-202
+      action: intercept
+      intercept_target: HOSTILE-001
+      alert_agencies: [MIL]
+      on_complete: >
+        G2000 Charlie intercepts Speedboat 1 near boundary. Militants
+        cornered by G2000 + EC725 overhead. Hostages released.
+
+    # ========================================
+    # PHASE 5: SECURING & RESOLUTION
+    # ========================================
+
+    - id: gof_alpha_arrives
+      after: {event: blackhawk_gof, phase: complete, offset: "00:10:00"}
+      type: ORDER
+      description: Blackhawk delivers GOF Alpha to Semporna staging.
+      on_initiate: >
+        GOF Team Alpha arrives at Semporna staging — secures
+        detained militants from Speedboat 2.
+      target: RMAF-HELI-202
+      action: transit
+      destination: {lat: 4.48, lon: 118.61}
+      speed: 120
+      alert_agencies: [RMP]
+
+    - id: gof_alpha_disembark
+      after: {event: gof_alpha_arrives, phase: complete}
+      type: ORDER
+      description: GOF Alpha deployed at Semporna.
+      target: RMP-GOF-201
+      action: disembark
+      alert_agencies: [RMP]
+
+    - id: infantry_deploy
+      after: {event: critical_incident, phase: initiate, offset: "00:23:00"}
+      type: ORDER
+      description: Army secures Pulau Bum Bum village.
+      on_initiate: >
+        Malay Regiment squad deployed from Tawau by fast boat to
+        secure Pulau Bum Bum village.
+      target: MIL-INF-201
+      action: transit
+      destination: {lat: 4.47, lon: 118.66}
+      speed: 20
+      alert_agencies: [MIL]
+
+    - id: suspects_processed
+      after: {event: g2000c_intercept, phase: complete, offset: "00:05:00"}
+      type: ORDER
+      description: Detained suspects transferred to RMP custody.
+      on_initiate: >
+        All detained suspects transferred to RMP custody. Immigration
+        team processing identities.
+      targets: [CI-BORDER-201, CI-BORDER-202]
+      alert_agencies: [RMP, CI]
+
+    - id: trilateral_notify
+      after: {event: suspects_processed, phase: initiate, offset: "00:02:00"}
+      type: ALERT
+      description: ESSCOM notifies trilateral partners.
+      on_initiate: >
+        ESSCOM notifies Philippine and Indonesian Maritime Command
+        Centres — further cross-border activity possible.
+      alert_agencies: [MIL, MMEA]
+
+    - id: endstate
+      after: {event: trilateral_notify, phase: initiate, offset: "00:05:00"}
+      type: RESOLUTION
+      description: All hostages recovered, militants detained.
+      on_initiate: >
+        ENDSTATE: All hostages recovered safely. 14 militants detained.
+        2 speedboats seized. Operation Pasir enhanced patrols continue
+        for 72 hours.
+      alert_agencies: [RMP, MIL, MMEA, RMAF, CI]
