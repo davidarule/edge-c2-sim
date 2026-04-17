@@ -87,13 +87,17 @@ export function initEntityManager(viewer, config) {
   }
 
   let lastLabelFrameTs = 0;
+  let lastHadConnectors = false;
   function updateLabelOverlay(ts) {
     requestAnimationFrame(updateLabelOverlay);
     if (ts - lastLabelFrameTs < LABEL_FRAME_MS) return;
     lastLabelFrameTs = ts;
 
-    // Redraw declutter connectors every frame so they track camera movement
-    if (declutterOffsets.size > 0) drawConnectors();
+    // Redraw connectors while active; run one more frame after state empties
+    // so drawConnectors()'s clearRect wipes stale lines/dots/badges.
+    const hasConnectors = declutterOffsets.size > 0;
+    if (hasConnectors || lastHadConnectors) drawConnectors();
+    lastHadConnectors = hasConnectors;
 
     // Hide all pool slots
     for (const div of labelPool) div.style.display = 'none';
