@@ -142,22 +142,14 @@ scenario:
       position: {lat: 3.392, lon: 100.514}
       alert_agencies: [MMEA]
 
-    - id: ssas_alert
-      time: "00:05"
-      type: DISTRESS
-      description: Master spots two fast boats approaching and covertly activates SSAS.
-      on_initiate: >
-        SSAS COVERT ALERT — MT Labuan Palm. Master has activated Ship
-        Security Alert System. Two fast boats approaching at high speed
-        from the Indonesian side. No boarding yet.
-      target: TANKER-001
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: CRITICAL
-
+    # Pirates accelerate toward tanker first — captain sees intent
     - id: pirate1_sprint
-      after: {event: ssas_alert}
+      time: "00:05"
       type: DETECTION
-      description: Pirate 1 sprints to intercept tanker.
+      description: Unknown boat 1 accelerates toward tanker.
+      on_initiate: >
+        Unknown fast boat accelerating on intercept course toward
+        MT Labuan Palm. Speed 25 knots, closing rapidly.
       target: PIRATE-001
       action: intercept
       intercept_target: TANKER-001
@@ -168,9 +160,9 @@ scenario:
       hold_target: TANKER-001
 
     - id: pirate2_sprint
-      after: {event: ssas_alert}
+      time: "00:05"
       type: DETECTION
-      description: Pirate 2 sprints to intercept tanker.
+      description: Unknown boat 2 accelerates toward tanker.
       target: PIRATE-002
       action: intercept
       intercept_target: TANKER-001
@@ -181,6 +173,19 @@ scenario:
       orbit_center: TANKER-001
       orbit_radius_nm: 0.18
       orbit_speed: 4
+
+    # Captain sees fast boats approaching and activates SSAS 30 seconds later
+    - id: ssas_alert
+      after: {event: pirate1_sprint, phase: initiate, offset: "00:00:30"}
+      type: DISTRESS
+      description: Master sees fast boats closing and covertly activates SSAS.
+      on_initiate: >
+        SSAS COVERT ALERT — MT Labuan Palm. Master has activated Ship
+        Security Alert System. Two fast boats approaching at high speed
+        from the Indonesian side. No boarding yet.
+      target: TANKER-001
+      alert_agencies: [MMEA, MIL, RMP]
+      severity: CRITICAL
 
     - id: pirates_aboard
       after: {event: pirate1_sprint, phase: complete, offset: "00:00:30"}
