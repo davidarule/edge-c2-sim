@@ -232,7 +232,7 @@ class ScenarioEvent:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "time_offset_s": self.time_offset.total_seconds(),
+            "time_offset_s": self.time_offset.total_seconds() if self.time_offset else None,
             "event_type": self.event_type,
             "description": self.on_initiate or self.description,
             "severity": self.severity,

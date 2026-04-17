@@ -79,6 +79,8 @@ async def simulation_loop(
         elapsed = clock.get_elapsed()
         spawned = []
         for eid, (entity, spawn_at) in pending.items():
+            if spawn_at is None:
+                continue  # Embarked entity — spawned by disembark action
             if elapsed >= spawn_at:
                 entity_store.add_entity(entity)
                 spawned.append(eid)

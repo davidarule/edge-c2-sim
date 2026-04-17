@@ -321,6 +321,8 @@ class EventEngine:
         elif action == "orbit":
             orbit_center = source_event.metadata.get("orbit_center")
             radius_nm = source_event.metadata.get("orbit_radius_nm", 1.0)
+            if not source_event.metadata.get("orbit_radius_nm"):
+                logger.debug(f"on_complete orbit for {entity_id}: using default radius/speed (not specified in source event)")
             orbit_speed = source_event.metadata.get(
                 "orbit_speed",
                 _get_action_speed(entity.entity_type, "orbit") or 40,
@@ -737,7 +739,9 @@ class EventEngine:
         ]
         if window and self._fired:
             last_time = self._fired[-1].time_offset
-            upcoming = [e for e in upcoming if e.time_offset <= last_time + window]
+            if last_time is not None:
+                upcoming = [e for e in upcoming
+                           if e.time_offset is not None and e.time_offset <= last_time + window]
         return upcoming
 
     @property

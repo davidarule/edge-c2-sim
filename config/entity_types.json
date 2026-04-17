@@ -634,10 +634,12 @@
       "can_carry": false,
       "description": "RMP UTK counter-terrorism team (foot or RHIB)",
       "default_sidc": "10031000001211000000",
-      "max_speed_kn": 6,
+      "max_speed_kn": 25,
       "action_speeds_kn": {
-        "transit": 4,
-        "patrol": 3
+        "transit": 20,
+        "patrol": 3,
+        "intercept": 25,
+        "approach": 4
       }
     },
     "SUSPECT_FAST_BOAT": {
