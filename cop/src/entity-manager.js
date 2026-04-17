@@ -259,7 +259,7 @@ export function initEntityManager(viewer, config) {
         width: TRAIL_WIDTH,
         show: globalTrailsVisible,
         material: agencyColor.withAlpha(0.9),
-        clampToGround: false
+        clampToGround: true
       }
     });
 
