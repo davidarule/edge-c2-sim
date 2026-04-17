@@ -143,6 +143,7 @@ scenario:
       alert_agencies: [MMEA]
 
     # Pirates accelerate toward tanker first — captain sees intent
+    # Pirates accelerate toward tanker — still Unknown identity
     - id: pirate1_sprint
       time: "00:05"
       type: DETECTION
@@ -154,8 +155,6 @@ scenario:
       action: intercept
       intercept_target: TANKER-001
       speed: 25
-      sidc_override: "10053000001400000000"
-      callsign_override: Suspect Boat 1
       on_complete_action: hold_station
       hold_target: TANKER-001
 
@@ -167,14 +166,12 @@ scenario:
       action: intercept
       intercept_target: TANKER-001
       speed: 25
-      sidc_override: "10053000001400000000"
-      callsign_override: Suspect Boat 2
       on_complete_action: orbit
       orbit_center: TANKER-001
       orbit_radius_nm: 0.18
       orbit_speed: 4
 
-    # Captain sees fast boats approaching and activates SSAS 30 seconds later
+    # Captain sees fast boats and activates SSAS 30 seconds later
     - id: ssas_alert
       after: {event: pirate1_sprint, phase: initiate, offset: "00:00:30"}
       type: DISTRESS
@@ -186,6 +183,28 @@ scenario:
       target: TANKER-001
       alert_agencies: [MMEA, MIL, RMP]
       severity: CRITICAL
+
+    # MMEA assesses boats as Suspect 30 seconds after receiving SSAS
+    - id: pirates_suspect
+      after: {event: ssas_alert, phase: initiate, offset: "00:00:30"}
+      type: ALERT
+      description: MMEA classifies approaching boats as Suspect.
+      on_initiate: >
+        MMEA assessment: two fast boats on intercept course classified
+        SUSPECT. Speed and bearing consistent with piracy approach.
+      target: PIRATE-001
+      sidc_override: "10053000001400000000"
+      callsign_override: Suspect Boat 1
+      alert_agencies: [MMEA]
+      severity: WARNING
+
+    - id: pirate2_suspect
+      after: {event: ssas_alert, phase: initiate, offset: "00:00:30"}
+      type: ALERT
+      description: Second boat also classified Suspect.
+      target: PIRATE-002
+      sidc_override: "10053000001400000000"
+      callsign_override: Suspect Boat 2
 
     - id: pirates_aboard
       after: {event: pirate1_sprint, phase: complete, offset: "00:00:30"}
