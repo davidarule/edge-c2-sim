@@ -590,6 +590,18 @@ class ScenarioLoader:
                     )
         # standby: no movement (entity stays in place)
 
+        # v2: entity with initial speed/heading but no waypoints — create drift movement
+        if not movement and initial_speed > 0 and not embarked_on:
+            from simulator.movement.escape import EscapeMovement
+            movement = EscapeMovement(
+                start_lat=pos.get("lat", 0.0),
+                start_lon=pos.get("lon", 0.0),
+                bearing_deg=initial_heading,
+                speed_knots=initial_speed,
+                start_time=start,
+                alt_m=pos.get("alt_m", 0.0),
+            )
+
         return entity, movement
 
     def _create_background_entities(
