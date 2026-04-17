@@ -1,3 +1,16 @@
+# SCN-MAL-04A: Unknown Submarine Contact — ASW Response
+# Version: 2.0
+# Schema: v2 (action-based reactive chains)
+# Created: 2026-04-17
+# Author: BrumbieSoft
+#
+# Changelog:
+#   v2.0 (2026-04-17) — Complete rewrite to action-based reactive chains.
+#     Zero waypoints. Submarine prosecution with escape bearing changes.
+#     MPA orbit/search patterns via actions. Frigate sonar prosecution
+#     chain. Surface demand via diplomatic event dependency.
+#   v1.0 (2026-04-10) — Original waypoint-based scenario (scn_mal_04.yaml)
+
 scenario:
   name: "SCN-MAL-04A: Unknown Submarine Contact — ASW Response, Reactive Chain"
   description: >

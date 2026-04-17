@@ -1,3 +1,15 @@
+# SCN-ESS-01A: IUU Fishing Fleet Intercept — Sulu Sea
+# Version: 2.0
+# Schema: v2 (action-based reactive chains)
+# Created: 2026-04-17
+# Author: BrumbieSoft
+#
+# Changelog:
+#   v2.0 (2026-04-17) — Complete rewrite to action-based reactive chains.
+#     Zero waypoints. Fleet scatter with multiple escape bearings.
+#     ESSCOM coordination. Boarding and detention actions.
+#   v1.0 (2026-04-09) — Original waypoint-based scenario (sulu_sea_fishing_intercept.yaml)
+
 scenario:
   name: "SCN-ESS-01A: IUU Fishing Fleet Intercept — Sulu Sea"
   description: >

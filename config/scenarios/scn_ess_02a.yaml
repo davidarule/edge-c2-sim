@@ -1,3 +1,15 @@
+# SCN-ESS-02A: Kidnapping-for-Ransom Response — Semporna
+# Version: 2.0
+# Schema: v2 (action-based reactive chains)
+# Created: 2026-04-17
+# Author: BrumbieSoft
+#
+# Changelog:
+#   v2.0 (2026-04-17) — Complete rewrite to action-based reactive chains.
+#     Zero waypoints. embarked_on for GOF Alpha tactical team.
+#     Hostage/KFR pursuit pattern with helicopter overwatch.
+#   v1.0 (2026-04-09) — Original waypoint-based scenario (semporna_kfr_response.yaml)
+
 scenario:
   name: "SCN-ESS-02A: Kidnapping-for-Ransom Response — Semporna"
   description: >

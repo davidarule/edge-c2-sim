@@ -1,3 +1,16 @@
+# SCN-MAL-02A: Tanker Armed Robbery — Reactive Chain
+# Version: 2.0
+# Schema: v2 (action-based reactive chains)
+# Created: 2026-04-17
+# Author: BrumbieSoft
+#
+# Changelog:
+#   v2.0 (2026-04-17) — Complete rewrite to action-based reactive chains.
+#     Zero waypoints. embarked_on for UTK boarding team. SIDC identity
+#     escalation via events (Unknown → Suspect → Hostile). All response
+#     orders chain from confirmed boarding (pirates_aboard event).
+#   v1.0 (2026-04-09) — Original waypoint-based scenario (scn_mal_02.yaml)
+
 scenario:
   name: "SCN-MAL-02A: Tanker Armed Robbery — Reactive Chain"
   description: >

@@ -1,3 +1,16 @@
+# SCN-MAL-03A: MALSINDO Trilateral Coordinated Patrol
+# Version: 2.0
+# Schema: v2 (action-based reactive chains)
+# Created: 2026-04-17
+# Author: BrumbieSoft
+#
+# Changelog:
+#   v2.0 (2026-04-17) — Complete rewrite to action-based reactive chains.
+#     Zero waypoints. Concurrent dual-incident chains. Trilateral agencies
+#     (Malaysia MMEA, Indonesia Bakamla, Singapore PCG). Joint boarding
+#     and custody transfer via event dependencies.
+#   v1.0 (2026-04-10) — Original waypoint-based scenario (scn_mal_03.yaml)
+
 scenario:
   name: "SCN-MAL-03A: MALSINDO Trilateral Coordinated Patrol — Reactive Chain"
   description: >
