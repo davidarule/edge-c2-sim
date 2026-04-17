@@ -412,11 +412,12 @@ export function initEntityManager(viewer, config) {
       if (entry && entry.cesiumEntity.billboard) {
         entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
         entry.cesiumEntity.billboard.scale = globalIconScale;
-        entry.cesiumTrail.show = getTrailVisibleForEntity(id) && entry.visible;
       }
     });
     declutterOffsets.clear();
     declutteredIds.clear();
+    // Re-apply correct trail visibility via standard path
+    entities.forEach((_, id) => applyVisibility(id));
   }
 
   function resetEntry(id) {
@@ -424,10 +425,10 @@ export function initEntityManager(viewer, config) {
     if (entry && entry.cesiumEntity.billboard) {
       entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
       entry.cesiumEntity.billboard.scale = globalIconScale;
-      entry.cesiumTrail.show = getTrailVisibleForEntity(id) && entry.visible;
     }
     declutterOffsets.delete(id);
     declutteredIds.delete(id);
+    applyVisibility(id);
   }
 
   function declutterEntities() {
