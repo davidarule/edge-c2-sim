@@ -171,6 +171,7 @@ async def simulation_loop(
 
         # Process events
         fired_events = event_engine.tick(sim_time)
+        scenario_ended = False
         for event in fired_events:
             event_dict = event.to_dict()
             event_dict["time"] = sim_time.isoformat()
@@ -179,6 +180,13 @@ async def simulation_loop(
                     await adapter.push_event(event_dict)
                 except Exception as e:
                     logger.debug(f"Event push error: {e}")
+            # Stop clock on RESOLUTION event (scenario endstate)
+            if event.event_type == "RESOLUTION":
+                scenario_ended = True
+
+        if scenario_ended:
+            clock.pause()
+            logger.info("Scenario ENDSTATE — clock paused")
 
         # Push bulk entity updates
         all_entities = entity_store.get_all_entities()
