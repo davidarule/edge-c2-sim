@@ -125,7 +125,16 @@ async def simulation_loop(
 
             # Apply metadata overrides from waypoints
             if noisy_state.metadata_overrides:
-                entity.metadata.update(noisy_state.metadata_overrides)
+                overrides = noisy_state.metadata_overrides
+                # Special keys update entity-level fields
+                if "sidc" in overrides:
+                    entity.sidc = overrides["sidc"]
+                if "callsign" in overrides:
+                    entity.callsign = overrides["callsign"]
+                # Rest goes to metadata dict
+                entity.metadata.update(
+                    {k: v for k, v in overrides.items() if k not in ("sidc", "callsign")}
+                )
 
             entity_store.upsert_entity(entity)
 

@@ -280,7 +280,14 @@ export function initEntityManager(viewer, config) {
     const alt = pos.altitude_m || 0;
 
     const typeChanged = entityData.entity_type !== entry.data.entity_type;
-    if (typeChanged || entityData.status !== entry.data.status) {
+    // Detect per-entity SIDC change (e.g. identity escalation: Unknown→Suspect→Hostile)
+    const sidcChanged = entityData.sidc && entityData.sidc.length >= 10
+      && entityData.sidc !== entry.data.sidc;
+    if (sidcChanged) {
+      entitySidcOverrides.set(id, entityData.sidc);
+      symbolCache.delete(entityData.sidc);
+    }
+    if (typeChanged || sidcChanged || entityData.status !== entry.data.status) {
       entry.cesiumEntity.billboard.image = getSymbolImage(entityData);
     }
 

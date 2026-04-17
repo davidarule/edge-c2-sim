@@ -196,7 +196,7 @@ class TestSpawnAt:
         state = ScenarioLoader().load("config/scenarios/scn_mal_02.yaml")
         utk = state.entities.get("RMP-UTK-001")
         assert utk is not None
-        assert utk.spawn_at == timedelta(hours=1, minutes=11)
+        assert utk.spawn_at == timedelta(hours=1, minutes=3)
 
     def test_deferred_entity_not_in_store_at_start(self):
         """Entities with spawn_at should not be in the store at scenario start."""

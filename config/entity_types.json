@@ -1,0 +1,690 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Edge C2 Entity Type Definitions",
+  "description": "Constraints and properties for each entity type. All speeds in knots, altitudes in metres. Action speeds/altitudes are defaults that scenario events can override.",
+  "entity_types": {
+    "CIVILIAN_BOAT": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "can_embark": false,
+      "can_carry": false,
+      "description": "Small civilian boat",
+      "default_sidc": "10043000001400000000",
+      "max_speed_kn": 15,
+      "action_speeds_kn": {
+        "transit": 12,
+        "patrol": 7,
+        "intercept": 15,
+        "approach": 4,
+        "escort": 5,
+        "search": 4
+      }
+    },
+    "CIVILIAN_CARGO": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 130,
+        "k_coef": 3.5,
+        "c_coef": 2.5
+      },
+      "can_embark": false,
+      "can_carry": false,
+      "description": "General cargo vessel ~130m",
+      "default_sidc": "10043000001401010000",
+      "max_speed_kn": 16,
+      "action_speeds_kn": {
+        "transit": 13,
+        "patrol": 7,
+        "intercept": 16,
+        "approach": 5,
+        "escort": 6,
+        "search": 4
+      }
+    },
+    "CIVILIAN_COMMERCIAL": {
+      "domain": "AIR",
+      "surface": "air",
+      "can_embark": false,
+      "can_carry": false,
+      "description": "Commercial airliner",
+      "default_sidc": "10040100001200000000",
+      "max_altitude_m": 12000,
+      "max_speed_kn": 400,
+      "action_speeds_kn": {
+        "transit": 340,
+        "patrol": 220,
+        "intercept": 400,
+        "orbit": 120,
+        "search": 180
+      },
+      "action_altitudes_m": {
+        "transit": 10000,
+        "patrol": 8000
+      }
+    },
+    "CIVILIAN_FISHING": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 25,
+        "k_coef": 2.5,
+        "c_coef": 1.5
+      },
+      "can_embark": false,
+      "can_carry": false,
+      "description": "Small fishing vessel",
+      "default_sidc": "10043000001402000000",
+      "max_speed_kn": 8,
+      "action_speeds_kn": {
+        "transit": 6,
+        "patrol": 3,
+        "intercept": 8,
+        "approach": 2,
+        "escort": 3,
+        "search": 3
+      }
+    },
+    "CIVILIAN_LIGHT": {
+      "domain": "AIR",
+      "surface": "air",
+      "can_embark": false,
+      "can_carry": false,
+      "description": "Light aircraft (Cessna etc)",
+      "default_sidc": "10040100001201000000",
+      "max_altitude_m": 3000,
+      "max_speed_kn": 140,
+      "action_speeds_kn": {
+        "transit": 119,
+        "patrol": 77,
+        "intercept": 140,
+        "orbit": 42,
+        "search": 63
+      },
+      "action_altitudes_m": {
+        "transit": 1500,
+        "patrol": 1000,
+        "orbit": 800
+      }
+    },
+    "CIVILIAN_PASSENGER": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "can_embark": false,
+      "can_carry": false,
+      "description": "Passenger ferry",
+      "default_sidc": "10043000001401030000",
+      "max_speed_kn": 20,
+      "action_speeds_kn": {
+        "transit": 16,
+        "patrol": 9,
+        "intercept": 20,
+        "approach": 6,
+        "escort": 7,
+        "search": 5
+      }
+    },
+    "CIVILIAN_TANKER": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 180,
+        "k_coef": 4.0,
+        "c_coef": 3.0
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 4,
+      "description": "Product tanker ~180m",
+      "default_sidc": "10043000001401020000",
+      "max_speed_kn": 14,
+      "action_speeds_kn": {
+        "transit": 11,
+        "patrol": 6,
+        "intercept": 14,
+        "approach": 4,
+        "escort": 5,
+        "search": 4
+      }
+    },
+    "CIVILIAN_TANKER_VLCC": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 300,
+        "k_coef": 4.5,
+        "c_coef": 3.5
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 4,
+      "description": "VLCC crude tanker ~300m",
+      "default_sidc": "10043000001401020000",
+      "max_speed_kn": 14,
+      "action_speeds_kn": {
+        "transit": 11,
+        "patrol": 6,
+        "intercept": 14,
+        "approach": 4,
+        "escort": 5,
+        "search": 4
+      }
+    },
+    "CIVILIAN_TOURIST": {
+      "domain": "PERSONNEL",
+      "surface": "land",
+      "can_embark": true,
+      "can_carry": false,
+      "description": "Tourist / civilian on foot",
+      "default_sidc": "10041000001100000000",
+      "max_speed_kn": 3,
+      "action_speeds_kn": {
+        "transit": 2,
+        "patrol": 2
+      }
+    },
+    "CI_IMMIGRATION_TEAM": {
+      "domain": "PERSONNEL",
+      "surface": "land",
+      "can_embark": true,
+      "can_carry": false,
+      "description": "Immigration enforcement team",
+      "default_sidc": "10031500001703000000",
+      "max_speed_kn": 4,
+      "action_speeds_kn": {
+        "transit": 3,
+        "patrol": 2
+      }
+    },
+    "CI_OFFICER": {
+      "domain": "PERSONNEL",
+      "surface": "land",
+      "can_embark": true,
+      "can_carry": false,
+      "description": "Customs/Immigration officer",
+      "default_sidc": "10031500001703000000",
+      "max_speed_kn": 4,
+      "action_speeds_kn": {
+        "transit": 3,
+        "patrol": 2
+      }
+    },
+    "HOSTILE_PERSONNEL": {
+      "domain": "PERSONNEL",
+      "surface": "land",
+      "can_embark": true,
+      "can_carry": false,
+      "description": "Hostile combatant on foot",
+      "default_sidc": "10061000001201000000",
+      "max_speed_kn": 6,
+      "action_speeds_kn": {
+        "transit": 5,
+        "patrol": 3
+      }
+    },
+    "HOSTILE_VESSEL": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 20,
+      "description": "Hostile vessel",
+      "default_sidc": "10063000001400000000",
+      "max_speed_kn": 35,
+      "action_speeds_kn": {
+        "transit": 28,
+        "patrol": 16,
+        "intercept": 35,
+        "approach": 8,
+        "escort": 12,
+        "search": 9
+      }
+    },
+    "MIL_APC": {
+      "domain": "GROUND_VEHICLE",
+      "surface": "land",
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 12,
+      "description": "Armored personnel carrier",
+      "default_sidc": "10031500001201010000",
+      "max_speed_kn": 40,
+      "action_speeds_kn": {
+        "transit": 28,
+        "patrol": 12,
+        "intercept": 40,
+        "approach": 8
+      }
+    },
+    "MIL_INFANTRY": {
+      "domain": "PERSONNEL",
+      "surface": "land",
+      "can_embark": true,
+      "can_carry": false,
+      "description": "Infantry soldier",
+      "max_speed_kn": 4,
+      "action_speeds_kn": {
+        "transit": 3,
+        "patrol": 2
+      },
+      "default_sidc": "10031000001201000000"
+    },
+    "MIL_INFANTRY_SQUAD": {
+      "domain": "PERSONNEL",
+      "surface": "land",
+      "can_embark": true,
+      "can_carry": false,
+      "description": "Infantry squad (8-12 personnel)",
+      "default_sidc": "10031000001201000000",
+      "max_speed_kn": 6,
+      "action_speeds_kn": {
+        "transit": 5,
+        "patrol": 3
+      }
+    },
+    "MIL_NAVAL": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 80,
+        "k_coef": 3.0,
+        "c_coef": 2.5
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 30,
+      "description": "Navy corvette/OPV ~80m",
+      "default_sidc": "10033000001202060003",
+      "max_speed_kn": 35,
+      "action_speeds_kn": {
+        "transit": 28,
+        "patrol": 12,
+        "intercept": 35,
+        "approach": 5,
+        "escort": 12,
+        "search": 9
+      }
+    },
+    "MIL_NAVAL_FIC": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 50,
+        "k_coef": 2.5,
+        "c_coef": 1.5
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 15,
+      "description": "Navy fast intercept craft ~50m",
+      "default_sidc": "10033000001205010000",
+      "max_speed_kn": 35,
+      "action_speeds_kn": {
+        "transit": 28,
+        "patrol": 15,
+        "intercept": 35,
+        "approach": 5,
+        "escort": 12,
+        "search": 9
+      }
+    },
+    "MIL_NAVAL_FRIGATE": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 105,
+        "k_coef": 3.0,
+        "c_coef": 2.5
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 40,
+      "description": "Lekiu-class frigate ~105m",
+      "default_sidc": "10033000001202040000",
+      "max_speed_kn": 30,
+      "action_speeds_kn": {
+        "transit": 24,
+        "patrol": 15,
+        "intercept": 30,
+        "approach": 5,
+        "escort": 12,
+        "search": 8
+      }
+    },
+    "MIL_SUBMARINE": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 60,
+        "k_coef": 3.0,
+        "c_coef": 2.0
+      },
+      "can_embark": false,
+      "can_carry": false,
+      "description": "Hostile/unknown submarine",
+      "default_sidc": "10013500000000000000",
+      "max_speed_kn": 20,
+      "action_speeds_kn": {
+        "transit": 16,
+        "patrol": 7,
+        "intercept": 20,
+        "approach": 3,
+        "escort": 7,
+        "search": 5
+      }
+    },
+    "MIL_SUBMARINE_FRIENDLY": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 60,
+        "k_coef": 3.0,
+        "c_coef": 2.0
+      },
+      "can_embark": false,
+      "can_carry": false,
+      "description": "Friendly submarine",
+      "default_sidc": "10033500000000000000",
+      "max_speed_kn": 20,
+      "action_speeds_kn": {
+        "transit": 16,
+        "patrol": 7,
+        "intercept": 20,
+        "approach": 3,
+        "escort": 7,
+        "search": 5
+      }
+    },
+    "MIL_VEHICLE": {
+      "domain": "GROUND_VEHICLE",
+      "surface": "land",
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 6,
+      "description": "Military vehicle",
+      "default_sidc": "10031500001202000000",
+      "max_speed_kn": 50,
+      "action_speeds_kn": {
+        "transit": 35,
+        "patrol": 15,
+        "intercept": 50,
+        "approach": 10
+      }
+    },
+    "MMEA_FAST_INTERCEPT": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 39,
+        "k_coef": 2.0,
+        "c_coef": 1.2
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 10,
+      "description": "MMEA fast intercept craft 39m",
+      "default_sidc": "10033000001205010000",
+      "max_speed_kn": 50,
+      "action_speeds_kn": {
+        "transit": 40,
+        "patrol": 18,
+        "intercept": 50,
+        "approach": 5,
+        "escort": 12,
+        "search": 12
+      }
+    },
+    "MMEA_PATROL": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 60,
+        "k_coef": 3.0,
+        "c_coef": 2.0
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 20,
+      "description": "MMEA patrol vessel ~60m",
+      "default_sidc": "10033000001205020000",
+      "max_speed_kn": 28,
+      "action_speeds_kn": {
+        "transit": 22,
+        "patrol": 12,
+        "intercept": 28,
+        "approach": 5,
+        "escort": 10,
+        "search": 8
+      }
+    },
+    "RMAF_FIGHTER": {
+      "domain": "AIR",
+      "surface": "air",
+      "can_embark": false,
+      "can_carry": false,
+      "description": "Fighter jet",
+      "default_sidc": "10030100001101020000",
+      "max_altitude_m": 15000,
+      "max_speed_kn": 550,
+      "action_speeds_kn": {
+        "transit": 450,
+        "patrol": 350,
+        "intercept": 550,
+        "orbit": 250,
+        "search": 248
+      },
+      "action_altitudes_m": {
+        "transit": 10000,
+        "patrol": 8000,
+        "orbit": 5000,
+        "intercept": 8000
+      }
+    },
+    "RMAF_HELICOPTER": {
+      "domain": "AIR",
+      "surface": "air",
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 20,
+      "description": "EC725/AW139 helicopter",
+      "default_sidc": "10030100001102000000",
+      "max_altitude_m": 5000,
+      "max_speed_kn": 140,
+      "action_speeds_kn": {
+        "transit": 120,
+        "patrol": 60,
+        "intercept": 140,
+        "orbit": 40,
+        "search": 50
+      },
+      "action_altitudes_m": {
+        "transit": 300,
+        "patrol": 300,
+        "orbit": 150,
+        "search": 100,
+        "intercept": 150
+      }
+    },
+    "RMAF_MPA": {
+      "domain": "AIR",
+      "surface": "air",
+      "can_embark": false,
+      "can_carry": false,
+      "description": "Maritime patrol aircraft (B200T)",
+      "default_sidc": "10030100001101000300",
+      "max_altitude_m": 8000,
+      "max_speed_kn": 280,
+      "action_speeds_kn": {
+        "transit": 220,
+        "patrol": 180,
+        "intercept": 280,
+        "orbit": 150,
+        "search": 120
+      },
+      "action_altitudes_m": {
+        "transit": 3000,
+        "patrol": 2000,
+        "orbit": 1500,
+        "search": 150,
+        "intercept": 1000
+      }
+    },
+    "RMAF_TRANSPORT": {
+      "domain": "AIR",
+      "surface": "air",
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 40,
+      "description": "Transport aircraft",
+      "default_sidc": "10030100001101310000",
+      "max_altitude_m": 8000,
+      "max_speed_kn": 280,
+      "action_speeds_kn": {
+        "transit": 238,
+        "patrol": 154,
+        "intercept": 280,
+        "orbit": 84,
+        "search": 126
+      },
+      "action_altitudes_m": {
+        "transit": 5000,
+        "patrol": 3000,
+        "orbit": 2000
+      }
+    },
+    "RMP_MARINE_PATROL": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 15,
+        "k_coef": 2.0,
+        "c_coef": 1.2
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 8,
+      "description": "RMP marine police patrol boat",
+      "default_sidc": "10033000001208010000",
+      "max_speed_kn": 30,
+      "action_speeds_kn": {
+        "transit": 24,
+        "patrol": 14,
+        "intercept": 30,
+        "approach": 8,
+        "escort": 10,
+        "search": 8
+      }
+    },
+    "RMP_OFFICER": {
+      "domain": "PERSONNEL",
+      "surface": "land",
+      "can_embark": true,
+      "can_carry": false,
+      "description": "Police officer on foot",
+      "default_sidc": "10031000001401000000",
+      "max_speed_kn": 4,
+      "action_speeds_kn": {
+        "transit": 3,
+        "patrol": 2
+      }
+    },
+    "RMP_PATROL_BOAT": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 8,
+        "k_coef": 1.8,
+        "c_coef": 1.0
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 6,
+      "description": "RMP patrol boat ~8m",
+      "default_sidc": "10033000001208010000",
+      "max_speed_kn": 30,
+      "action_speeds_kn": {
+        "transit": 24,
+        "patrol": 14,
+        "intercept": 30,
+        "approach": 8,
+        "escort": 10,
+        "search": 8
+      }
+    },
+    "RMP_PATROL_CAR": {
+      "domain": "GROUND_VEHICLE",
+      "surface": "land",
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 4,
+      "description": "Police patrol vehicle",
+      "default_sidc": "10031500001700000000",
+      "max_speed_kn": 80,
+      "action_speeds_kn": {
+        "transit": 56,
+        "patrol": 30,
+        "intercept": 80,
+        "approach": 5
+      }
+    },
+    "RMP_TACTICAL_TEAM": {
+      "domain": "PERSONNEL",
+      "surface": "any",
+      "can_embark": true,
+      "can_carry": false,
+      "description": "RMP UTK counter-terrorism team (foot or RHIB)",
+      "default_sidc": "10031000001211000000",
+      "max_speed_kn": 6,
+      "action_speeds_kn": {
+        "transit": 4,
+        "patrol": 3
+      }
+    },
+    "SUSPECT_FAST_BOAT": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 10,
+        "k_coef": 1.5,
+        "c_coef": 0.8
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 8,
+      "description": "Fast boat ~10m (pirate skiff etc)",
+      "default_sidc": "10013000001400000000",
+      "max_speed_kn": 45,
+      "action_speeds_kn": {
+        "transit": 36,
+        "patrol": 20,
+        "intercept": 45,
+        "approach": 8,
+        "escort": 16,
+        "search": 11
+      }
+    },
+    "SUSPECT_VESSEL": {
+      "domain": "MARITIME",
+      "surface": "water",
+      "turn_params": {
+        "loa_m": 100,
+        "k_coef": 3.5,
+        "c_coef": 2.5
+      },
+      "can_embark": false,
+      "can_carry": true,
+      "carry_capacity": 20,
+      "description": "Suspect/unidentified vessel",
+      "default_sidc": "10053000001400000000",
+      "max_speed_kn": 35,
+      "action_speeds_kn": {
+        "transit": 28,
+        "patrol": 16,
+        "intercept": 35,
+        "approach": 8,
+        "escort": 12,
+        "search": 9
+      }
+    }
+  }
+}

@@ -103,26 +103,38 @@ class EventEngine:
                 logger.warning(f"Intercept event for {target_id} missing intercept_target")
                 return
 
-            type_def = ENTITY_TYPES.get(entity.entity_type, {})
-            speed_range = type_def.get("speed_range", (10, 20))
-            max_speed = speed_range[1]
-            min_speed = speed_range[0]
-
-            new_movement = InterceptMovement(
-                entity_speed_knots=max_speed,
-                target_entity_id=event.intercept_target,
-                entity_store=self._entity_store,
-                pursuer_entity_id=target_id,
-                min_speed_knots=min_speed,
-            )
-            self._movements[target_id] = new_movement
             entity.status = EntityStatus.INTERCEPTING
-            entity.speed_knots = max_speed
+
+            # Skip movement override if entity already has explicit waypoints
+            existing = self._movements.get(target_id)
+            if existing and isinstance(existing, WaypointMovement) and len(existing._waypoints) > 2:
+                logger.info(f"[{event.event_type}] {target_id} has explicit waypoints — status updated, movement preserved")
+            else:
+                type_def = ENTITY_TYPES.get(entity.entity_type, {})
+                speed_range = type_def.get("speed_range", (10, 20))
+                max_speed = speed_range[1]
+                min_speed = speed_range[0]
+
+                new_movement = InterceptMovement(
+                    entity_speed_knots=max_speed,
+                    target_entity_id=event.intercept_target,
+                    entity_store=self._entity_store,
+                    pursuer_entity_id=target_id,
+                    min_speed_knots=min_speed,
+                )
+                self._movements[target_id] = new_movement
+                entity.speed_knots = max_speed
 
         elif action in ("deploy", "respond"):
             entity.status = EntityStatus.RESPONDING
 
             if event.destination:
+                # Skip movement override if entity already has explicit waypoints
+                existing = self._movements.get(target_id)
+                if existing and isinstance(existing, WaypointMovement) and len(existing._waypoints) > 2:
+                    logger.info(f"[{event.event_type}] {target_id} has explicit waypoints — status updated, movement preserved")
+                    continue
+
                 # Create waypoint movement from current position to destination
                 current_pos = entity.position
                 type_def = ENTITY_TYPES.get(entity.entity_type, {})
@@ -204,22 +216,26 @@ class EventEngine:
 
         elif action == "pursue":
             # Pursue is like intercept but at max speed
-            if event.intercept_target:
-                type_def = ENTITY_TYPES.get(entity.entity_type, {})
-                speed_range = type_def.get("speed_range", (10, 20))
-                max_speed = speed_range[1]
-                min_speed = speed_range[0]
-
-                new_movement = InterceptMovement(
-                    entity_speed_knots=max_speed,
-                    target_entity_id=event.intercept_target,
-                    entity_store=self._entity_store,
-                    pursuer_entity_id=target_id,
-                    min_speed_knots=min_speed,
-                )
-                self._movements[target_id] = new_movement
-                entity.speed_knots = max_speed
             entity.status = EntityStatus.INTERCEPTING
+            if event.intercept_target:
+                existing = self._movements.get(target_id)
+                if existing and isinstance(existing, WaypointMovement) and len(existing._waypoints) > 2:
+                    logger.info(f"[pursue] {target_id} has explicit waypoints — status updated, movement preserved")
+                else:
+                    type_def = ENTITY_TYPES.get(entity.entity_type, {})
+                    speed_range = type_def.get("speed_range", (10, 20))
+                    max_speed = speed_range[1]
+                    min_speed = speed_range[0]
+
+                    new_movement = InterceptMovement(
+                        entity_speed_knots=max_speed,
+                        target_entity_id=event.intercept_target,
+                        entity_store=self._entity_store,
+                        pursuer_entity_id=target_id,
+                        min_speed_knots=min_speed,
+                    )
+                    self._movements[target_id] = new_movement
+                    entity.speed_knots = max_speed
 
         elif action == "reclassify":
             new_type = event.metadata.get("new_type")

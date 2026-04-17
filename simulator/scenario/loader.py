@@ -178,7 +178,7 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
     },
     "RMP_TACTICAL_TEAM": {
         "domain": Domain.PERSONNEL, "agency": Agency.RMP,
-        "speed_range": (0, 6), "sidc": "SFGP------",
+        "speed_range": (0, 25), "sidc": "SFGP------",  # up to 25kn for RHIB ops
     },
     "MIL_INFANTRY_SQUAD": {
         "domain": Domain.PERSONNEL, "agency": Agency.MIL,
