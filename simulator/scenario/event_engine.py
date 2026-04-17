@@ -19,7 +19,7 @@ from typing import Any
 
 from geopy.distance import geodesic
 
-from simulator.core.entity import EntityStatus
+from simulator.core.entity import EntityStatus, Position
 from simulator.core.entity_store import EntityStore
 from simulator.movement.approach import ApproachMovement
 from simulator.movement.escape import EscapeMovement
@@ -126,11 +126,13 @@ class EventEngine:
         entity_store: EntityStore,
         movements: dict[str, Any],
         scenario_start: datetime,
+        pending_spawns: dict[str, tuple] | None = None,
     ) -> None:
         self._events = list(events)
         self._entity_store = entity_store
         self._movements = movements
         self._scenario_start = scenario_start
+        self._pending_spawns = pending_spawns or {}
         self._fired: list[ScenarioEvent] = []
         self._fired_set: set[int] = set()
         self._pending_completions: list[_PendingCompletion] = []
@@ -408,8 +410,14 @@ class EventEngine:
         for target_id in target_ids:
             entity = self._entity_store.get_entity(target_id)
             if not entity:
-                logger.warning(f"Event target '{target_id}' not found in store")
-                continue
+                # Check pending spawns (embarked or deferred entities)
+                if target_id in self._pending_spawns:
+                    entity, _ = self._pending_spawns.pop(target_id)
+                    self._entity_store.add_entity(entity)
+                    logger.info(f"Spawned pending entity: {target_id}")
+                else:
+                    logger.warning(f"Event target '{target_id}' not found in store")
+                    continue
             self._apply_action(event, entity, target_id, sim_time)
 
     def _apply_action(
@@ -569,10 +577,18 @@ class EventEngine:
             entity.speed_knots = cruise
 
         elif action == "disembark":
-            # Entity spawns at carrier's current position
-            # The entity should already be in the store via spawn_at or embarked_on
+            # Entity disembarks from carrier — update position to carrier's current location
+            carrier_id = entity.metadata.get("embarked_on")
+            if carrier_id:
+                carrier = self._entity_store.get_entity(carrier_id)
+                if carrier:
+                    entity.position = Position(
+                        latitude=carrier.position.latitude,
+                        longitude=carrier.position.longitude,
+                        altitude_m=carrier.position.altitude_m,
+                    )
+                    entity.heading_deg = carrier.heading_deg
             entity.status = EntityStatus.ACTIVE
-            # Position is already set (from embarked tracking or spawn_at)
 
         # === LEGACY ACTIONS (backward compatible) ===
 

@@ -517,6 +517,11 @@ class ScenarioLoader:
         if "spawn_at" in entry:
             spawn_at = _parse_time_offset(entry["spawn_at"])
 
+        # Embarked on carrier: entity hidden and tracks carrier position
+        embarked_on = entry.get("embarked_on")
+        if embarked_on:
+            metadata["embarked_on"] = embarked_on
+
         # Read initial speed/heading from position (v2 format)
         initial_speed = pos.get("speed_kn", 0.0)
         initial_heading = pos.get("heading_deg", 0.0)

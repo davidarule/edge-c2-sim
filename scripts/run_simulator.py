@@ -252,13 +252,22 @@ async def run(
     clock = SimulationClock(start_time=start_time, speed=speed)
     store = EntityStore()
 
-    # Populate entity store from scenario (defer entities with spawn_at)
+    # Populate entity store from scenario
+    # - spawn_at entities: deferred until sim clock reaches time
+    # - embarked_on entities: deferred until disembark action
     pending_spawns: dict[str, tuple] = {}  # entity_id -> (entity, timedelta)
+    embarked_entities: dict[str, str] = {}  # entity_id -> carrier_id
     if scenario_state:
         for entity in scenario_state.entities.values():
             if entity.spawn_at is not None:
                 pending_spawns[entity.entity_id] = (entity, entity.spawn_at)
                 logger.info(f"Deferred spawn: {entity.entity_id} at +{entity.spawn_at}")
+            elif entity.metadata.get("embarked_on"):
+                carrier_id = entity.metadata["embarked_on"]
+                embarked_entities[entity.entity_id] = carrier_id
+                # Store the entity object for later disembark
+                pending_spawns[entity.entity_id] = (entity, None)
+                logger.info(f"Embarked: {entity.entity_id} on {carrier_id}")
             else:
                 store.add_entity(entity)
 
@@ -267,8 +276,10 @@ async def run(
             entity_store=store,
             movements=scenario_state.movements,
             scenario_start=scenario_state.start_time,
+            pending_spawns=pending_spawns,
         )
         sim_context["pending_spawns"] = pending_spawns
+        sim_context["embarked_entities"] = embarked_entities
 
     # Initialize domain simulators
     maritime_sim = MaritimeSimulator(store)
