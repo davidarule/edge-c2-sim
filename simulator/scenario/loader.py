@@ -224,12 +224,15 @@ class ScenarioEvent:
     alert_agencies: list[str] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
     source: str | None = None
+    on_initiate: str | None = None
+    on_complete: str | None = None
+    on_complete_action: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "time_offset_s": self.time_offset.total_seconds(),
             "event_type": self.event_type,
-            "description": self.description,
+            "description": self.on_initiate or self.description,
             "severity": self.severity,
             "target": self.target,
             "targets": self.targets,
@@ -729,12 +732,16 @@ class ScenarioLoader:
                 position=entry.get("position"),
                 alert_agencies=entry.get("alert_agencies", []),
                 source=entry.get("source"),
+                on_initiate=entry.get("on_initiate"),
+                on_complete=entry.get("on_complete"),
+                on_complete_action=entry.get("on_complete_action"),
                 metadata={
                     k: v for k, v in entry.items()
                     if k not in {
                         "time", "type", "description", "severity", "target",
                         "targets", "action", "intercept_target", "destination",
                         "area", "position", "alert_agencies", "source",
+                        "on_initiate", "on_complete", "on_complete_action", "id",
                     }
                 },
             )
