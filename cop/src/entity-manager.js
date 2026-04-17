@@ -246,20 +246,12 @@ export function initEntityManager(viewer, config) {
     const cesiumTrail = dataSource.entities.add({
       id: `trail-${id}`,
       polyline: {
-        positions: new Cesium.CallbackProperty(() => {
-          const entry = entities.get(id);
-          if (!entry || !entry.visible) return [];
-          const points = trailPositions.get(id) || [];
-          const valid = points.filter(p =>
-            p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon)
-          );
-          if (valid.length < 2) return [];
-          return valid.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
-        }, false),
+        positions: [],
         width: TRAIL_WIDTH,
         show: globalTrailsVisible,
         material: agencyColor.withAlpha(0.9),
-        clampToGround: true
+        clampToGround: false,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY
       }
     });
 
@@ -336,6 +328,12 @@ export function initEntityManager(viewer, config) {
         const cutoff = ts - globalTrailDurationH * 3600 * 1000;
         while (trail.length > 2 && trail[0].ts < cutoff) {
           trail.shift();
+        }
+        // Update Cesium polyline positions directly (no CallbackProperty)
+        if (trail.length >= 2) {
+          entry.cesiumTrail.polyline.positions = trail
+            .filter(p => p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon))
+            .map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
         }
       }
     }
@@ -602,6 +600,13 @@ export function initEntityManager(viewer, config) {
           }
         }
         trailPositions.set(id, merged);
+        // Update Cesium polyline
+        const entry = entities.get(id);
+        if (entry && merged.length >= 2) {
+          entry.cesiumTrail.polyline.positions = merged
+            .filter(p => p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon))
+            .map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
+        }
       }
     },
     updateEntity: addOrUpdateEntity,
@@ -690,12 +695,18 @@ export function initEntityManager(viewer, config) {
     },
     setTrailDuration(hours) {
       globalTrailDurationH = hours;
-      // Prune existing trails to new duration
+      // Prune existing trails to new duration and update polylines
       const now = Date.now();
       const cutoff = now - hours * 3600 * 1000;
-      trailPositions.forEach((trail) => {
+      trailPositions.forEach((trail, id) => {
         while (trail.length > 2 && trail[0].ts < cutoff) {
           trail.shift();
+        }
+        const entry = entities.get(id);
+        if (entry && trail.length >= 2) {
+          entry.cesiumTrail.polyline.positions = trail
+            .filter(p => p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon))
+            .map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
         }
       });
     },
