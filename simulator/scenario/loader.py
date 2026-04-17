@@ -214,7 +214,7 @@ class ScenarioEvent:
     event_type: str
     description: str
     id: str | None = None
-    after: str | None = None
+    after: str | dict | None = None
     severity: str = "INFO"
     target: str | None = None
     targets: list[str] | None = None
@@ -537,7 +537,7 @@ class ScenarioLoader:
             speed_knots=initial_speed,
             course_deg=initial_heading,
             status=EntityStatus.IDLE if entry.get("behavior") == "standby" else EntityStatus.ACTIVE,
-            sidc=type_def.get("sidc", ""),
+            sidc=entry.get("sidc") or type_def.get("sidc", ""),
             metadata=metadata,
             initial_position=Position(
                 latitude=pos.get("lat", 0.0),

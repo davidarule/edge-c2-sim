@@ -186,6 +186,28 @@ scenario:
       alert_agencies: [MMEA, MIL, RMP]
       severity: CRITICAL
 
+    # Escalate pirate identity to HOSTILE on confirmed boarding
+    - id: pirate1_hostile
+      after: {event: pirates_aboard}
+      type: ALERT
+      description: Pirates confirmed hostile — armed boarding in progress.
+      on_initiate: >
+        Intelligence assessment: armed perpetrators classified HOSTILE.
+        Weapons confirmed. Rules of engagement updated.
+      target: PIRATE-001
+      sidc_override: "10063000001400000000"
+      callsign_override: Hostile Boat 1
+      alert_agencies: [MMEA, MIL, RMP]
+      severity: WARNING
+
+    - id: pirate2_hostile
+      after: {event: pirates_aboard}
+      type: ALERT
+      description: Pirate 2 escalated to hostile.
+      target: PIRATE-002
+      sidc_override: "10063000001400000000"
+      callsign_override: Hostile Boat 2
+
     # ========================================
     # PHASE 2: MULTI-AGENCY RESPONSE
     # (All triggered by confirmed boarding)
@@ -318,8 +340,6 @@ scenario:
       action: escape
       bearing_deg: 215
       speed: 28
-      sidc_override: "10063000001400000000"
-      callsign_override: Hostile Boat 2
       alert_agencies: [MMEA, MIL, RMP]
       severity: CRITICAL
 
@@ -334,8 +354,6 @@ scenario:
       action: escape
       bearing_deg: 210
       speed: 28
-      sidc_override: "10063000001400000000"
-      callsign_override: Hostile Boat 1
       alert_agencies: [MMEA, MIL, RMP]
       severity: CRITICAL
 
