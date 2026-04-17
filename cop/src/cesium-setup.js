@@ -29,18 +29,36 @@ export async function initCesium(containerId, config) {
 
   if (offlineMode) {
     viewerOptions.baseLayer = Cesium.ImageryLayer.fromProviderAsync(
-      Cesium.TileMapServiceImageryProvider.fromUrl(
-        Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
-      )
+      Cesium.TileMapServiceImageryProvider.fromUrl('/tiles/NaturalEarth', {
+        fileExtension: 'jpg',
+        maximumLevel: 6,
+      })
     );
     viewerOptions.terrain = undefined;
-    console.log('[CesiumSetup] Offline mode — using bundled NaturalEarthII imagery');
+    console.log('[CesiumSetup] Offline mode — using local Natural Earth II tiles (zoom 0-6)');
   }
 
   const viewer = new Cesium.Viewer(containerId, viewerOptions);
 
   if (offlineMode) {
     viewer.scene.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+  } else {
+    // Online mode: if Ion tiles fail to load, fall back to local tiles
+    const baseLayer = viewer.imageryLayers.get(0);
+    if (baseLayer && baseLayer.imageryProvider) {
+      baseLayer.imageryProvider.errorEvent.addEventListener(async () => {
+        if (viewer._fallbackApplied) return;
+        viewer._fallbackApplied = true;
+        console.warn('[CesiumSetup] Ion tile load failed — falling back to local Natural Earth tiles');
+        viewer.imageryLayers.removeAll();
+        const localProvider = await Cesium.TileMapServiceImageryProvider.fromUrl('/tiles/NaturalEarth', {
+          fileExtension: 'jpg',
+          maximumLevel: 6,
+        });
+        viewer.imageryLayers.addImageryProvider(localProvider);
+        viewer.scene.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+      });
+    }
   }
 
   // Dark globe background

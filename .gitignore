@@ -46,6 +46,9 @@ credentials.json
 # Cesium
 cesium-ion-token.txt
 
+# Tile generation cache (source raster, not needed in repo)
+scripts/tile_cache/
+
 # Build outputs
 *.log
 coverage/
