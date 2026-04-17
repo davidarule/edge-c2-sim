@@ -519,17 +519,6 @@
         },
 
         {
-          "_comment": "action: orbit — REQUIRES at least one of: orbit_center, orbit_center_lat",
-          "if": { "properties": { "action": { "const": "orbit" } }, "required": ["action"] },
-          "then": {
-            "anyOf": [
-              { "required": ["orbit_center"] },
-              { "required": ["orbit_center_lat", "orbit_center_lon"] }
-            ]
-          }
-        },
-
-        {
           "_comment": "type: AIS_LOSS REQUIRES target",
           "if": { "properties": { "type": { "const": "AIS_LOSS" } } },
           "then": {
@@ -547,40 +536,11 @@
         },
 
         {
-          "_comment": "trigger: proximity REQUIRES entity, target, range_nm",
-          "if": {
-            "properties": { "trigger": { "properties": { "type": { "const": "proximity" } } } },
-            "required": ["trigger"]
-          },
+          "_comment": "after dependency REQUIRES event field",
+          "if": { "required": ["after"] },
           "then": {
             "properties": {
-              "trigger": { "required": ["entity", "target", "range_nm"] }
-            }
-          }
-        },
-
-        {
-          "_comment": "trigger: arrival REQUIRES entity",
-          "if": {
-            "properties": { "trigger": { "properties": { "type": { "const": "arrival" } } } },
-            "required": ["trigger"]
-          },
-          "then": {
-            "properties": {
-              "trigger": { "required": ["entity"] }
-            }
-          }
-        },
-
-        {
-          "_comment": "trigger: elapsed REQUIRES after_event and delay_min",
-          "if": {
-            "properties": { "trigger": { "properties": { "type": { "const": "elapsed" } } } },
-            "required": ["trigger"]
-          },
-          "then": {
-            "properties": {
-              "trigger": { "required": ["after_event", "delay_min"] }
+              "after": { "required": ["event"] }
             }
           }
         }
