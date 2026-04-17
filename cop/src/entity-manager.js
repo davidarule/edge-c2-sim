@@ -314,7 +314,8 @@ export function initEntityManager(viewer, config) {
     // Skip trail accumulation for first few updates after a snapshot to prevent
     // trail artifacts from old->new position jumps, regardless of sim speed
     const suppressTrail = entry.createdAtGeneration === snapshotGeneration && count < TRAIL_UPDATE_INTERVAL * 3;
-    if (!suppressTrail && count % TRAIL_UPDATE_INTERVAL === 0) {
+    const isStationary = (entityData.speed_knots || 0) < 0.1;
+    if (!suppressTrail && !isStationary && count % TRAIL_UPDATE_INTERVAL === 0) {
       const trail = trailPositions.get(id) || [];
       // Use clean track position (pre-noise) if available, else noisy position
       const meta = entityData.metadata || {};
