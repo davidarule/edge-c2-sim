@@ -1,9 +1,10 @@
 """
-Timed event processor with action-based movement and completion tracking.
+Reactive event engine with action-based movement and dependency chains.
 
-Checks the scenario event timeline each simulation tick. When an event's
-time arrives, it fires: broadcasting the event through transport adapters
-and modifying entity behavior as specified.
+Events fire based on:
+- Absolute time (time: "00:05")
+- Dependencies on other events (after: "ssas_alert:complete + 00:05")
+- Both (time acts as minimum guard)
 
 Supports v2 actions (transit, orbit, hold_station, escape, approach, rtb)
 with automatic completion detection and on_complete message generation.
@@ -12,6 +13,7 @@ with automatic completion detection and on_complete message generation.
 import json
 import logging
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
@@ -70,6 +72,42 @@ def _get_max_speed(entity_type: str) -> float:
 
 
 @dataclass
+class EventDependency:
+    """Parsed 'after' field: event_id, phase, and time offset."""
+    event_id: str
+    phase: str       # "initiate" or "complete"
+    offset: timedelta
+
+
+_AFTER_RE = re.compile(
+    r'^(?P<event_id>[a-zA-Z0-9_]+)'
+    r'(?::(?P<phase>complete|initiate))?'
+    r'(?:\s*(?P<sign>[+-])\s*(?P<offset>\d{1,2}:\d{2}(?::\d{2})?))?$'
+)
+
+
+def parse_after(after_str: str) -> EventDependency:
+    """Parse an 'after' dependency string."""
+    m = _AFTER_RE.match(after_str.strip())
+    if not m:
+        raise ValueError(f"Invalid after syntax: {after_str!r}")
+    event_id = m.group("event_id")
+    phase = m.group("phase") or "initiate"
+    offset = timedelta(0)
+    if m.group("offset"):
+        parts = m.group("offset").split(":")
+        if len(parts) == 2:
+            offset = timedelta(hours=int(parts[0]), minutes=int(parts[1]))
+        elif len(parts) == 3:
+            offset = timedelta(
+                hours=int(parts[0]), minutes=int(parts[1]), seconds=int(parts[2]),
+            )
+        if m.group("sign") == "-":
+            offset = -offset
+    return EventDependency(event_id=event_id, phase=phase, offset=offset)
+
+
+@dataclass
 class _PendingCompletion:
     """Tracks an in-progress action awaiting movement completion."""
     entity_id: str
@@ -80,7 +118,7 @@ class _PendingCompletion:
 
 
 class EventEngine:
-    """Processes timed scenario events and modifies entity behavior."""
+    """Processes scenario events with dependency chain resolution."""
 
     def __init__(
         self,
@@ -89,7 +127,7 @@ class EventEngine:
         movements: dict[str, Any],
         scenario_start: datetime,
     ) -> None:
-        self._events = sorted(events, key=lambda e: e.time_offset)
+        self._events = list(events)
         self._entity_store = entity_store
         self._movements = movements
         self._scenario_start = scenario_start
@@ -97,32 +135,93 @@ class EventEngine:
         self._fired_set: set[int] = set()
         self._pending_completions: list[_PendingCompletion] = []
 
+        # Dependency tracking
+        self._initiated_at: dict[str, datetime] = {}   # event_id -> sim_time
+        self._completed_at: dict[str, datetime] = {}   # event_id -> sim_time
+        self._event_index: dict[str, int] = {}          # event_id -> index
+
+        # Pre-parse dependencies
+        self._parsed_deps: dict[int, EventDependency] = {}
+        for i, event in enumerate(self._events):
+            if event.id:
+                self._event_index[event.id] = i
+            if event.after:
+                self._parsed_deps[i] = parse_after(event.after)
+
     def tick(self, sim_time: datetime) -> list[ScenarioEvent]:
-        """Check and fire events whose time has arrived.
-        Returns list of newly fired events (including completion events)."""
+        """Fire events whose time/dependencies are satisfied.
+        Uses cascading resolution so zero-offset chains fire in one tick."""
         elapsed = sim_time - self._scenario_start
         newly_fired = []
 
-        # 1. Fire timed events
-        for i, event in enumerate(self._events):
-            if i in self._fired_set:
-                continue
-            if event.time_offset <= elapsed:
-                self._fire_event(event, sim_time)
-                self._fired.append(event)
-                self._fired_set.add(i)
-                newly_fired.append(event)
-                logger.info(f"[{event.event_type}] {event.description[:80]}")
+        # Cascading loop — re-scan until no new events fire
+        changed = True
+        while changed:
+            changed = False
+            for i, event in enumerate(self._events):
+                if i in self._fired_set:
+                    continue
 
-                # Register completion tracking if on_complete is set
-                if event.on_complete:
-                    self._register_completion(event)
+                ready = self._is_ready(event, i, elapsed, sim_time)
+                if ready:
+                    self._fire_event(event, sim_time)
+                    self._fired.append(event)
+                    self._fired_set.add(i)
+                    newly_fired.append(event)
+                    changed = True
 
-        # 2. Check pending completions
+                    # Record initiation time
+                    if event.id:
+                        self._initiated_at[event.id] = sim_time
+                    logger.info(f"[{event.event_type}] {event.description[:80]}")
+
+                    # Register completion tracking
+                    if event.on_complete or event.on_complete_action:
+                        self._register_completion(event)
+
+        # Check pending completions
         completion_events = self._check_completions(sim_time)
         newly_fired.extend(completion_events)
 
         return newly_fired
+
+    def _is_ready(
+        self, event: ScenarioEvent, index: int,
+        elapsed: timedelta, sim_time: datetime,
+    ) -> bool:
+        """Check if an event's firing conditions are met."""
+        has_time = event.time_offset is not None
+        has_after = index in self._parsed_deps
+
+        if not has_time and not has_after:
+            # No trigger at all — fire immediately (shouldn't happen)
+            return True
+
+        if has_after:
+            dep = self._parsed_deps[index]
+            dep_satisfied, dep_time = self._check_dependency(dep)
+            if not dep_satisfied or dep_time is None:
+                return False
+            fire_at = dep_time + dep.offset
+            if sim_time < fire_at:
+                return False
+            # If also has time, use it as minimum guard
+            if has_time and event.time_offset > elapsed:
+                return False
+            return True
+
+        # Time-only event
+        return has_time and event.time_offset <= elapsed
+
+    def _check_dependency(self, dep: EventDependency) -> tuple[bool, datetime | None]:
+        """Check if a dependency is satisfied. Returns (satisfied, timestamp)."""
+        if dep.phase == "initiate":
+            ts = self._initiated_at.get(dep.event_id)
+            return (ts is not None, ts)
+        elif dep.phase == "complete":
+            ts = self._completed_at.get(dep.event_id)
+            return (ts is not None, ts)
+        return False, None
 
     def _register_completion(self, event: ScenarioEvent) -> None:
         """Register an event for completion tracking."""
@@ -162,25 +261,33 @@ class EventEngine:
                 entity = self._entity_store.get_entity(pc.entity_id)
                 elapsed = sim_time - self._scenario_start
 
-                # Generate completion event
-                completion_event = ScenarioEvent(
-                    time_offset=elapsed,
-                    event_type="ARRIVAL" if not hasattr(movement, 'is_intercepted')
-                               else "INTERCEPT",
-                    description=pc.on_complete,
-                    on_initiate=pc.on_complete,
-                    severity=pc.source_event.severity,
-                    target=pc.entity_id,
-                    source=pc.entity_id,
-                    alert_agencies=list(pc.source_event.alert_agencies),
-                    position={
-                        "lat": entity.position.latitude,
-                        "lon": entity.position.longitude,
-                    } if entity else None,
-                )
-                completed.append(completion_event)
-                self._fired.append(completion_event)
-                logger.info(f"[COMPLETION] {pc.entity_id}: {pc.on_complete[:80]}")
+                # Record completion time for dependency chain
+                source_id = pc.source_event.id
+                if source_id:
+                    self._completed_at[source_id] = sim_time
+
+                # Generate completion event (if on_complete message provided)
+                if pc.on_complete:
+                    completion_event = ScenarioEvent(
+                        time_offset=elapsed,
+                        event_type="ARRIVAL" if not hasattr(movement, 'is_intercepted')
+                                   else "INTERCEPT",
+                        description=pc.on_complete,
+                        on_initiate=pc.on_complete,
+                        severity=pc.source_event.severity,
+                        target=pc.entity_id,
+                        source=pc.entity_id,
+                        alert_agencies=list(pc.source_event.alert_agencies),
+                        position={
+                            "lat": entity.position.latitude,
+                            "lon": entity.position.longitude,
+                        } if entity else None,
+                    )
+                    completed.append(completion_event)
+                    self._fired.append(completion_event)
+                    logger.info(f"[COMPLETION] {pc.entity_id}: {pc.on_complete[:80]}")
+                else:
+                    logger.info(f"[COMPLETION] {pc.entity_id} action complete (no message)")
 
                 # Apply on_complete_action if set
                 if pc.on_complete_action and entity:
@@ -596,10 +703,12 @@ class EventEngine:
             logger.info(f"Reclassified {target_id}: {old_type} -> {new_type}")
 
     def reset(self) -> None:
-        """Reset all fired events and pending completions."""
+        """Reset all fired events, pending completions, and dependency state."""
         self._fired.clear()
         self._fired_set.clear()
         self._pending_completions.clear()
+        self._initiated_at.clear()
+        self._completed_at.clear()
 
     def get_fired_events(self) -> list[ScenarioEvent]:
         return list(self._fired)

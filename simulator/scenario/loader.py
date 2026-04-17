@@ -209,10 +209,12 @@ def _parse_time_offset(time_str: str) -> timedelta:
 
 @dataclass
 class ScenarioEvent:
-    """A timed event in the scenario timeline."""
-    time_offset: timedelta
+    """A timed or dependency-triggered event in the scenario timeline."""
+    time_offset: timedelta | None
     event_type: str
     description: str
+    id: str | None = None
+    after: str | None = None
     severity: str = "INFO"
     target: str | None = None
     targets: list[str] | None = None
@@ -515,6 +517,10 @@ class ScenarioLoader:
         if "spawn_at" in entry:
             spawn_at = _parse_time_offset(entry["spawn_at"])
 
+        # Read initial speed/heading from position (v2 format)
+        initial_speed = pos.get("speed_kn", 0.0)
+        initial_heading = pos.get("heading_deg", 0.0)
+
         entity = Entity(
             entity_id=entity_id,
             entity_type=entity_type,
@@ -522,6 +528,9 @@ class ScenarioLoader:
             agency=agency,
             callsign=entry.get("callsign", entity_id),
             position=position,
+            heading_deg=initial_heading,
+            speed_knots=initial_speed,
+            course_deg=initial_heading,
             status=EntityStatus.IDLE if entry.get("behavior") == "standby" else EntityStatus.ACTIVE,
             sidc=type_def.get("sidc", ""),
             metadata=metadata,
@@ -722,11 +731,16 @@ class ScenarioLoader:
         """Parse event definitions into ScenarioEvent objects."""
         events = []
         for entry in events_raw:
-            time_offset = _parse_time_offset(entry["time"])
+            # time is optional for dependency-based events
+            time_str = entry.get("time")
+            time_offset = _parse_time_offset(time_str) if time_str else None
+
             event = ScenarioEvent(
                 time_offset=time_offset,
                 event_type=entry.get("type", "INFO"),
                 description=entry.get("description", ""),
+                id=entry.get("id"),
+                after=entry.get("after"),
                 severity=entry.get("severity", "INFO"),
                 target=entry.get("target"),
                 targets=entry.get("targets"),
@@ -746,14 +760,17 @@ class ScenarioLoader:
                         "time", "type", "description", "severity", "target",
                         "targets", "action", "intercept_target", "destination",
                         "area", "position", "alert_agencies", "source",
-                        "on_initiate", "on_complete", "on_complete_action", "id",
+                        "on_initiate", "on_complete", "on_complete_action",
+                        "id", "after",
                     }
                 },
             )
             events.append(event)
 
-        # Sort by time
-        events.sort(key=lambda e: e.time_offset)
+        # Sort time-based events first (by time), dependency events after
+        events.sort(key=lambda e: (
+            e.time_offset if e.time_offset is not None else timedelta(days=999)
+        ))
         return events
 
     def validate(self, scenario_path: str) -> list[str]:

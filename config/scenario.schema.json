@@ -95,6 +95,19 @@
           "minimum": 0,
           "default": 0,
           "description": "Altitude in metres"
+        },
+        "speed_kn": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0,
+          "description": "Initial speed in knots"
+        },
+        "heading_deg": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360,
+          "default": 0,
+          "description": "Initial heading in degrees true"
         }
       },
       "additionalProperties": false
@@ -434,9 +447,9 @@
       "type": "object",
       "required": ["type", "description"],
       "properties": {
-        "id":                { "type": "string", "description": "Event identifier for cross-referencing" },
-        "time":              { "$ref": "#/$defs/TimeOffset", "description": "When to fire (required if no trigger)" },
-        "trigger":           { "$ref": "#/$defs/Trigger", "description": "Condition-based firing (required if no time)" },
+        "id":                { "type": "string", "description": "Event identifier for cross-referencing and dependency chains" },
+        "time":              { "$ref": "#/$defs/TimeOffset", "description": "Absolute scenario time to fire" },
+        "after":             { "type": "string", "pattern": "^[a-zA-Z0-9_]+(:(complete|initiate))?(\\s*[+-]\\s*[0-9]{2}:[0-9]{2}(:[0-9]{2})?)?$", "description": "Dependency: fire after another event. Syntax: event_id[:phase][ +/- HH:MM]" },
         "type":              { "$ref": "#/$defs/EventType" },
         "description":       { "type": "string", "description": "Author's intent — not displayed in timeline" },
         "on_initiate":       { "type": "string", "description": "Timeline message when event fires" },
@@ -471,9 +484,9 @@
         "area":              { "type": "string", "description": "GeoJSON zone reference" }
       },
 
-      "oneOf": [
+      "anyOf": [
         { "required": ["time"] },
-        { "required": ["trigger"] }
+        { "required": ["after"] }
       ],
 
       "allOf": [
