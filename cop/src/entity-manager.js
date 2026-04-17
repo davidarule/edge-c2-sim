@@ -108,7 +108,6 @@ export function initEntityManager(viewer, config) {
     entities.forEach((entry, id) => {
       if (poolIdx >= LABEL_POOL_SIZE) return;
       if (!entry.visible) return;
-      if (declutteredIds.has(id)) return;
       if (cesiumClusteredIds.has(id)) return;
 
       // AIS labels only when zoomed in enough
@@ -169,6 +168,14 @@ export function initEntityManager(viewer, config) {
 
   // Snapshot generation counter — suppress trail accumulation for first N updates after reset
   let snapshotGeneration = 0;
+
+  // === DECLUTTER CONNECTOR OVERLAY ===
+  // Canvas overlay for lines connecting decluttered icons to their true positions
+  const connectorCanvas = document.createElement('canvas');
+  connectorCanvas.id = 'declutter-connectors';
+  connectorCanvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:4;';
+  viewer.container.appendChild(connectorCanvas);
+  const connectorCtx = connectorCanvas.getContext('2d');
 
   // Declutter state
   const declutterOffsets = new Map(); // entity_id -> { x, y } pixel offset
@@ -462,6 +469,7 @@ export function initEntityManager(viewer, config) {
     });
     declutterOffsets.clear();
     declutteredIds.clear();
+    drawConnectors(); // Clear connector lines
   }
 
   function resetEntry(id) {
@@ -551,6 +559,56 @@ export function initEntityManager(viewer, config) {
           declutteredIds.add(item.id);
         }
       }
+    });
+
+    drawConnectors();
+  }
+
+  function drawConnectors() {
+    // Resize canvas to match viewer
+    const cw = viewer.canvas.clientWidth;
+    const ch = viewer.canvas.clientHeight;
+    if (connectorCanvas.width !== cw || connectorCanvas.height !== ch) {
+      connectorCanvas.width = cw;
+      connectorCanvas.height = ch;
+    }
+    connectorCtx.clearRect(0, 0, cw, ch);
+
+    if (declutterOffsets.size === 0) return;
+
+    const scene = viewer.scene;
+
+    declutterOffsets.forEach((offset, id) => {
+      const entry = entities.get(id);
+      if (!entry || !entry.visible) return;
+
+      const pos = entry.data.position;
+      if (!pos) return;
+
+      const cartesian = Cesium.Cartesian3.fromDegrees(
+        pos.longitude, pos.latitude, pos.altitude_m || 0
+      );
+      const sp = Cesium.SceneTransforms.worldToWindowCoordinates(scene, cartesian);
+      if (!sp) return;
+
+      const trueX = sp.x;
+      const trueY = sp.y;
+      const iconX = trueX + offset.x;
+      const iconY = trueY + offset.y;
+
+      // Draw connector line
+      connectorCtx.beginPath();
+      connectorCtx.moveTo(trueX, trueY);
+      connectorCtx.lineTo(iconX, iconY);
+      connectorCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      connectorCtx.lineWidth = 1;
+      connectorCtx.stroke();
+
+      // Draw dot at true position
+      connectorCtx.beginPath();
+      connectorCtx.arc(trueX, trueY, 3, 0, Math.PI * 2);
+      connectorCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      connectorCtx.fill();
     });
   }
 
