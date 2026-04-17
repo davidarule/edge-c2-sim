@@ -418,8 +418,23 @@ scenario:
         All weapons secured.
       on_complete_action: hold_station
 
+    # Pirates forced to stop when KD Perak intercepts
+    - id: pirate1_detained
+      after: {event: perak_intercept, phase: complete}
+      type: ALERT
+      description: Pirate 1 stopped and detained by KD Perak.
+      target: PIRATE-001
+      action: hold_station
+
+    - id: pirate2_detained
+      after: {event: perak_intercept, phase: complete}
+      type: ALERT
+      description: Pirate 2 stopped and detained by KD Perak.
+      target: PIRATE-002
+      action: hold_station
+
     - id: endstate
-      after: {event: bridge_secure, phase: initiate, offset: "00:10:00"}
+      after: {event: perak_intercept, phase: complete, offset: "00:02:00"}
       type: RESOLUTION
       description: Scenario complete.
       on_initiate: >
