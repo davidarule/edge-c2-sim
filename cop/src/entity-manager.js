@@ -462,7 +462,96 @@ export function initEntityManager(viewer, config) {
     return override !== undefined ? override : globalTrailsVisible;
   }
 
-  function resetAllDeclutter() {
+  // === HOVER-TO-EXPAND DECLUTTER ===
+  // Icons overlap at true positions by default. On mouse hover near an
+  // overlap group, icons expand with spiral layout and identity-coloured
+  // connector lines. On mouse leave, they collapse back.
+
+  let overlapGroups = [];          // [{center, items: [{id, screenPos}]}]
+  let expandedGroupIdx = -1;       // Index of currently expanded group (-1 = none)
+  const HOVER_DETECT_RADIUS = 40;  // px — how close mouse must be to trigger expand
+  const EXPAND_BASE_RADIUS = 50;   // px — base spiral radius
+  const EXPAND_SPIRAL_STEP = 15;   // px — additional radius per ring in spiral
+
+  // Identity colours for connector lines
+  const IDENTITY_COLOURS = {
+    '1': 'rgba(255, 220, 50, 0.7)',   // Unknown — yellow
+    '2': 'rgba(100, 180, 255, 0.7)',  // Assumed Friend — blue
+    '3': 'rgba(100, 180, 255, 0.7)',  // Friend — blue
+    '4': 'rgba(100, 220, 100, 0.7)',  // Neutral — green
+    '5': 'rgba(255, 220, 50, 0.7)',   // Suspect — yellow
+    '6': 'rgba(255, 80, 80, 0.7)',    // Hostile — red
+  };
+
+  function getIdentityColour(entityData) {
+    const sidc = getSidcForEntity(entityData);
+    if (sidc && sidc.length >= 4) {
+      return IDENTITY_COLOURS[sidc[3]] || 'rgba(255, 255, 255, 0.4)';
+    }
+    return 'rgba(255, 255, 255, 0.4)';
+  }
+
+  function findOverlapGroups(items, threshold) {
+    const visited = new Set();
+    const groups = [];
+    for (let i = 0; i < items.length; i++) {
+      if (visited.has(i)) continue;
+      const group = [items[i]];
+      visited.add(i);
+      for (let j = i + 1; j < items.length; j++) {
+        if (visited.has(j)) continue;
+        const closeToGroup = group.some(member => {
+          const dx = member.screenPos.x - items[j].screenPos.x;
+          const dy = member.screenPos.y - items[j].screenPos.y;
+          return Math.sqrt(dx * dx + dy * dy) < threshold;
+        });
+        if (closeToGroup) {
+          group.push(items[j]);
+          visited.add(j);
+        }
+      }
+      if (group.length > 1) groups.push(group);
+    }
+    return groups;
+  }
+
+  function detectOverlapGroups() {
+    // Find all overlap groups (don't expand — just detect)
+    const scene = viewer.scene;
+    const screenPositions = [];
+
+    entities.forEach((entry, id) => {
+      if (!entry.visible) return;
+      const pos = entry.data.position;
+      if (!pos) return;
+      const cartesian = Cesium.Cartesian3.fromDegrees(
+        pos.longitude, pos.latitude, pos.altitude_m || 0
+      );
+      const sp = Cesium.SceneTransforms.worldToWindowCoordinates(scene, cartesian);
+      if (sp) screenPositions.push({ id, screenPos: sp, entry });
+    });
+
+    const spreadRadius = getEffectiveSpreadRadius();
+    if (spreadRadius < 2) {
+      overlapGroups = [];
+      return;
+    }
+
+    const threshold = OVERLAP_THRESHOLD_PX * (spreadRadius / SPREAD_RADIUS_PX_MAX);
+    const rawGroups = findOverlapGroups(screenPositions, threshold);
+
+    overlapGroups = rawGroups.map(group => {
+      // Calculate group center
+      let cx = 0, cy = 0;
+      group.forEach(item => { cx += item.screenPos.x; cy += item.screenPos.y; });
+      cx /= group.length;
+      cy /= group.length;
+      return { center: { x: cx, y: cy }, items: group };
+    });
+  }
+
+  function collapseExpanded() {
+    if (expandedGroupIdx < 0) return;
     declutterOffsets.forEach((_, id) => {
       const entry = entities.get(id);
       if (entry && entry.cesiumEntity.billboard) {
@@ -472,103 +561,51 @@ export function initEntityManager(viewer, config) {
     });
     declutterOffsets.clear();
     declutteredIds.clear();
-    drawConnectors(); // Clear connector lines
+    expandedGroupIdx = -1;
   }
 
-  function resetEntry(id) {
-    const entry = entities.get(id);
-    if (entry && entry.cesiumEntity.billboard) {
-      entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(0, 0);
-      entry.cesiumEntity.billboard.scale = globalIconScale;
-    }
-    declutterOffsets.delete(id);
-    declutteredIds.delete(id);
-  }
+  function expandGroup(groupIdx) {
+    if (groupIdx === expandedGroupIdx) return; // Already expanded
+    collapseExpanded();
 
-  function declutterEntities() {
-    // Disable declutter when Cesium clustering is active
-    if (clusteringEnabled) {
-      if (declutterOffsets.size > 0) resetAllDeclutter();
-      return;
-    }
+    const group = overlapGroups[groupIdx];
+    if (!group) return;
 
+    expandedGroupIdx = groupIdx;
+    const n = group.items.length;
     const spreadRadius = getEffectiveSpreadRadius();
 
-    // At high altitude, disable declutter entirely — show all at true positions
-    if (spreadRadius < 2) {
-      if (declutterOffsets.size > 0) resetAllDeclutter();
-      return;
+    for (let i = 0; i < n; i++) {
+      // Spiral layout: inner ring of 6, then expand outward
+      let ring, posInRing, ringSize, radius, angle;
+      if (n <= 8) {
+        // Simple circle for small groups
+        angle = (2 * Math.PI * i) / n - Math.PI / 2;
+        radius = Math.max(EXPAND_BASE_RADIUS, spreadRadius);
+      } else {
+        // Archimedean spiral for large groups
+        const a = EXPAND_BASE_RADIUS;
+        const b = EXPAND_SPIRAL_STEP / (2 * Math.PI);
+        const t = (2 * Math.PI * i) / 6; // ~6 items per revolution
+        radius = a + b * t;
+        angle = t - Math.PI / 2;
+      }
+
+      const offsetX = Math.cos(angle) * radius;
+      const offsetY = Math.sin(angle) * radius;
+
+      const item = group.items[i];
+      const entry = entities.get(item.id);
+      if (entry && entry.cesiumEntity.billboard) {
+        entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(offsetX, offsetY);
+        entry.cesiumEntity.billboard.scale = globalIconScale * (n >= SCALE_DOWN_THRESHOLD ? 0.8 : 1.0);
+        declutterOffsets.set(item.id, { x: offsetX, y: offsetY });
+        declutteredIds.add(item.id);
+      }
     }
-
-    const scene = viewer.scene;
-    const screenPositions = [];
-
-    // Step 1: Project all entities to screen space
-    entities.forEach((entry, id) => {
-      if (!entry.visible) return;
-
-      // Skip moving entities — they'll separate naturally
-      const speed = entry.data.speed_knots || 0;
-      if (speed > MIN_SPEED_TO_SKIP) {
-        if (declutterOffsets.has(id)) resetEntry(id);
-        return;
-      }
-
-      const pos = entry.data.position;
-      if (!pos) return;
-
-      const cartesian = Cesium.Cartesian3.fromDegrees(
-        pos.longitude, pos.latitude, pos.altitude_m || 0
-      );
-      const screenPos = Cesium.SceneTransforms.worldToWindowCoordinates(scene, cartesian);
-
-      if (screenPos) {
-        screenPositions.push({ id, screenPos, entry });
-      }
-    });
-
-    // Scale overlap threshold with spread radius
-    const effectiveThreshold = OVERLAP_THRESHOLD_PX * (spreadRadius / SPREAD_RADIUS_PX_MAX);
-
-    // Step 2: Find overlapping groups
-    const groups = findOverlapGroups(screenPositions, effectiveThreshold);
-
-    // Step 3: Reset offsets for ungrouped entities
-    const groupedIds = new Set();
-    groups.forEach(group => group.forEach(item => groupedIds.add(item.id)));
-
-    declutterOffsets.forEach((_, id) => {
-      if (!groupedIds.has(id)) resetEntry(id);
-    });
-
-    // Step 4: Apply ring offsets to grouped entities
-    groups.forEach(group => {
-      if (group.length <= 1) return;
-
-      const n = group.length;
-      const scaleMultiplier = n >= SCALE_DOWN_THRESHOLD ? 0.8 : 1.0;
-
-      for (let i = 0; i < n; i++) {
-        const angle = (2 * Math.PI * i) / n - Math.PI / 2; // Start from top
-        const offsetX = Math.cos(angle) * spreadRadius;
-        const offsetY = Math.sin(angle) * spreadRadius;
-
-        const item = group[i];
-        const entry = entities.get(item.id);
-        if (entry && entry.cesiumEntity.billboard) {
-          entry.cesiumEntity.billboard.pixelOffset = new Cesium.Cartesian2(offsetX, offsetY);
-          entry.cesiumEntity.billboard.scale = globalIconScale * scaleMultiplier;
-          declutterOffsets.set(item.id, { x: offsetX, y: offsetY });
-          declutteredIds.add(item.id);
-        }
-      }
-    });
-
-    drawConnectors();
   }
 
   function drawConnectors() {
-    // Resize canvas to match viewer
     const cw = viewer.canvas.clientWidth;
     const ch = viewer.canvas.clientHeight;
     if (connectorCanvas.width !== cw || connectorCanvas.height !== ch) {
@@ -599,64 +636,96 @@ export function initEntityManager(viewer, config) {
       const iconX = trueX + offset.x;
       const iconY = trueY + offset.y;
 
-      // Draw connector line
+      // Identity-coloured connector line
+      const colour = getIdentityColour(entry.data);
       connectorCtx.beginPath();
       connectorCtx.moveTo(trueX, trueY);
       connectorCtx.lineTo(iconX, iconY);
-      connectorCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      connectorCtx.lineWidth = 1;
+      connectorCtx.strokeStyle = colour;
+      connectorCtx.lineWidth = 1.5;
       connectorCtx.stroke();
 
-      // Draw dot at true position
+      // Dot at true position
       connectorCtx.beginPath();
       connectorCtx.arc(trueX, trueY, 3, 0, Math.PI * 2);
-      connectorCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      connectorCtx.fillStyle = colour;
       connectorCtx.fill();
     });
+
+    // Draw overlap group indicators (small circle where groups are)
+    if (expandedGroupIdx < 0) {
+      overlapGroups.forEach(group => {
+        const first = group.items[0];
+        const entry = entities.get(first.id);
+        if (!entry || !entry.visible) return;
+        const pos = entry.data.position;
+        if (!pos) return;
+        const cartesian = Cesium.Cartesian3.fromDegrees(pos.longitude, pos.latitude, 0);
+        const sp = Cesium.SceneTransforms.worldToWindowCoordinates(scene, cartesian);
+        if (!sp) return;
+
+        // Small count badge
+        connectorCtx.beginPath();
+        connectorCtx.arc(sp.x + 15, sp.y - 15, 8, 0, Math.PI * 2);
+        connectorCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        connectorCtx.fill();
+        connectorCtx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        connectorCtx.font = '10px sans-serif';
+        connectorCtx.textAlign = 'center';
+        connectorCtx.textBaseline = 'middle';
+        connectorCtx.fillText(group.items.length.toString(), sp.x + 15, sp.y - 15);
+      });
+    }
   }
 
-  function findOverlapGroups(items, threshold) {
-    const visited = new Set();
-    const groups = [];
+  // Mouse handler for hover-to-expand
+  viewer.canvas.addEventListener('mousemove', (e) => {
+    const mx = e.offsetX;
+    const my = e.offsetY;
 
-    for (let i = 0; i < items.length; i++) {
-      if (visited.has(i)) continue;
+    // Check if mouse is near any overlap group center
+    let nearGroupIdx = -1;
+    for (let i = 0; i < overlapGroups.length; i++) {
+      const group = overlapGroups[i];
+      // Check against all items in group (their screen positions)
+      for (const item of group.items) {
+        const entry = entities.get(item.id);
+        if (!entry || !entry.visible) continue;
+        const pos = entry.data.position;
+        if (!pos) continue;
+        const cartesian = Cesium.Cartesian3.fromDegrees(pos.longitude, pos.latitude, 0);
+        const sp = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, cartesian);
+        if (!sp) continue;
 
-      const group = [items[i]];
-      visited.add(i);
+        // Check distance to true position OR offset position
+        const offset = declutterOffsets.get(item.id);
+        const iconX = sp.x + (offset ? offset.x : 0);
+        const iconY = sp.y + (offset ? offset.y : 0);
+        const distTrue = Math.sqrt(Math.pow(mx - sp.x, 2) + Math.pow(my - sp.y, 2));
+        const distIcon = Math.sqrt(Math.pow(mx - iconX, 2) + Math.pow(my - iconY, 2));
 
-      for (let j = i + 1; j < items.length; j++) {
-        if (visited.has(j)) continue;
-
-        // Check distance to ANY member of the group
-        const closeToGroup = group.some(member => {
-          const dx = member.screenPos.x - items[j].screenPos.x;
-          const dy = member.screenPos.y - items[j].screenPos.y;
-          return Math.sqrt(dx * dx + dy * dy) < threshold;
-        });
-
-        if (closeToGroup) {
-          group.push(items[j]);
-          visited.add(j);
+        if (distTrue < HOVER_DETECT_RADIUS || distIcon < HOVER_DETECT_RADIUS) {
+          nearGroupIdx = i;
+          break;
         }
       }
-
-      if (group.length > 1) {
-        groups.push(group);
-      }
+      if (nearGroupIdx >= 0) break;
     }
 
-    return groups;
-  }
+    if (nearGroupIdx >= 0) {
+      expandGroup(nearGroupIdx);
+    } else if (expandedGroupIdx >= 0) {
+      collapseExpanded();
+    }
+  });
 
-  // Run declutter periodically
-  setInterval(declutterEntities, DECLUTTER_INTERVAL_MS);
-
-  // Also run on camera move end
-  viewer.camera.moveEnd.addEventListener(declutterEntities);
-
-  // Initial declutter after entities load
-  setTimeout(declutterEntities, 2000);
+  // Periodically detect overlap groups (but don't expand)
+  setInterval(detectOverlapGroups, DECLUTTER_INTERVAL_MS);
+  viewer.camera.moveEnd.addEventListener(() => {
+    collapseExpanded();
+    detectOverlapGroups();
+  });
+  setTimeout(detectOverlapGroups, 2000);
 
   // === CLICK EVENTS ===
   function fireClick(entityData) {
@@ -677,7 +746,9 @@ export function initEntityManager(viewer, config) {
       entityTrailOverrides.clear();
       snapshotGeneration++;
       entityList.forEach(e => addOrUpdateEntity(e));
-      setTimeout(declutterEntities, 500);
+      collapseExpanded();
+      overlapGroups = [];
+      setTimeout(detectOverlapGroups, 500);
     },
     loadTrailHistory(trailData) {
       if (!trailData) return;
