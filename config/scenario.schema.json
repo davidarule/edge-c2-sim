@@ -59,6 +59,16 @@
           },
           "additionalProperties": false
         },
+        "include_entities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "LEGACY — use background.include instead"
+        },
+        "background_entities": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "LEGACY — use background.entities instead"
+        },
         "scenario_entities": {
           "type": "array",
           "items": { "$ref": "#/$defs/Entity" },
