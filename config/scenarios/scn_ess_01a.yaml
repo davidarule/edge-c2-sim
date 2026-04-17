@@ -1,10 +1,13 @@
 # SCN-ESS-01A: IUU Fishing Fleet Intercept — Sulu Sea
-# Version: 2.0
+# Version: 2.1
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
 # Author: BrumbieSoft
 #
 # Changelog:
+#   v2.1 (2026-04-17) — Redirect KD Keris from IFF-004 (already covered
+#     by G2000 Alpha) to intercept IFF-002 fleeing west. All 5 trawlers
+#     + mothership now have dedicated interceptors with stop events.
 #   v2.0 (2026-04-17) — Complete rewrite to action-based reactive chains.
 #     Zero waypoints. Fleet scatter with multiple escape bearings.
 #     ESSCOM coordination. Boarding and detention actions.
@@ -330,20 +333,60 @@ scenario:
       bearing_deg: 60
       speed: 10
 
-    - id: keris_block
+    # KD Keris intercepts Trawler 2 fleeing west — Keris is south of
+    # the fleet on patrol, well positioned for the westbound cutoff
+    - id: keris_intercept
       after: {event: fleet_scatters, phase: initiate, offset: "00:03:00"}
       type: ORDER
-      description: KD Keris blocks eastern escape.
+      description: KD Keris diverted to intercept Trawler 2 fleeing west.
       on_initiate: >
-        KD Keris diverted to block eastern escape near boundary.
+        KD Keris diverted to intercept Trawler 2 fleeing west —
+        cutting off westbound escape route.
       target: RMN-PV-101
       action: intercept
-      intercept_target: IFF-004
+      intercept_target: IFF-002
       alert_agencies: [MIL]
+      on_complete: >
+        KD Keris intercepts Trawler 2. Vessel stopped.
 
     # ========================================
-    # PHASE 4: BOARDING & PROCESSING
+    # PHASE 4: INTERCEPT STOPS & BOARDING
     # ========================================
+
+    - id: trawler1_stopped
+      after: {event: sangitan_intercept, phase: complete}
+      type: INTERCEPT
+      description: Trawler 1 stopped by KM Sangitan.
+      target: IFF-001
+      action: hold_station
+
+    - id: trawler2_stopped
+      after: {event: keris_intercept, phase: complete}
+      type: INTERCEPT
+      description: Trawler 2 stopped by KD Keris.
+      target: IFF-002
+      action: hold_station
+
+    - id: trawler3_stopped
+      after: {event: fi_launch, phase: complete}
+      type: INTERCEPT
+      description: Trawler 3 stopped by MMEA fast intercept.
+      target: IFF-003
+      action: hold_station
+
+    - id: trawler4_stopped
+      after: {event: rmn_scramble, phase: complete}
+      type: INTERCEPT
+      description: Trawler 4 stopped by G2000 Alpha.
+      target: IFF-004
+      action: hold_station
+
+    - id: mothership_stopped
+      after: {event: semporna_divert, phase: complete}
+      type: INTERCEPT
+      description: Mothership stopped by KM Semporna.
+      target: IFF-005
+      action: hold_station
 
     - id: trawler1_boarded
       after: {event: sangitan_intercept, phase: complete, offset: "00:05:00"}
@@ -352,6 +395,10 @@ scenario:
       on_initiate: >
         RMP boards Trawler 1 — 15 Vietnamese nationals detained.
         Illegal catch documented.
+
+    # ========================================
+    # PHASE 5: ESCORT & PROCESSING
+    # ========================================
 
     - id: escort_order
       after: {event: semporna_divert, phase: complete, offset: "00:04:00"}
@@ -373,34 +420,6 @@ scenario:
         Customs & Immigration activated at Sandakan for crew processing.
       targets: [CI-TEAM-101, CI-IMMI-101]
       alert_agencies: [CI]
-
-    - id: sangitan_intercept_stopped
-      after: {event: sangitan_intercept, phase: complete}
-      type: INTERCEPT
-      description: Trawler 1 stopped by KM Sangitan.
-      target: IFF-001
-      action: hold_station
-
-    - id: rmn_scramble_stopped
-      after: {event: rmn_scramble, phase: complete}
-      type: INTERCEPT
-      description: Trawler 4 stopped by G2000 Alpha.
-      target: IFF-004
-      action: hold_station
-
-    - id: semporna_divert_stopped
-      after: {event: semporna_divert, phase: complete}
-      type: INTERCEPT
-      description: Mothership stopped by KM Semporna.
-      target: IFF-005
-      action: hold_station
-
-    - id: fi_launch_stopped
-      after: {event: fi_launch, phase: complete}
-      type: INTERCEPT
-      description: Trawler 3 stopped by MMEA fast intercept.
-      target: IFF-003
-      action: hold_station
 
     - id: endstate
       after: {event: ci_activated, phase: initiate, offset: "00:04:00"}
