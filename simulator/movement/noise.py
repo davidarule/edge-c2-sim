@@ -44,6 +44,10 @@ class PositionNoise:
 
     def apply(self, state: MovementState) -> MovementState:
         """Apply noise to a MovementState. Returns a new MovementState."""
+        # Skip noise for stationary entities — prevents trail flicker
+        if state.speed_knots < 0.1:
+            return state
+
         # Random walk with decay — smooth correlated drift
         self._noise_north_m += self._rng.gauss(0, self._step_size)
         self._noise_east_m += self._rng.gauss(0, self._step_size)
