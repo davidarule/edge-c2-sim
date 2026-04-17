@@ -68,6 +68,7 @@ async def simulation_loop(
             await asyncio.sleep(0.1)
             continue
 
+        tick_start = asyncio.get_event_loop().time()
         sim_time = clock.get_sim_time()
 
         # Read current scenario_state and event_engine from shared context
@@ -212,8 +213,10 @@ async def simulation_loop(
                 logger.info("Scenario complete — all events fired and movements finished")
                 break
 
-        # Wait for next tick
-        await asyncio.sleep(tick_interval_s)
+        # Wait for next tick — subtract processing time to maintain consistent rate
+        processing_time = asyncio.get_event_loop().time() - tick_start
+        sleep_time = max(0, tick_interval_s - processing_time)
+        await asyncio.sleep(sleep_time)
 
 
 async def run(
@@ -687,10 +690,9 @@ async def run(
     health.entity_count = store.count
     await health.start()
 
-    # Start clock
-    clock.start()
-    print(f"\nSimulation starting at {start_time.isoformat()} (speed: {speed}x)")
-    print("Press Ctrl+C to stop\n")
+    # Clock starts paused — user presses PLAY in COP to begin
+    print(f"\nSimulation loaded at {start_time.isoformat()} (speed: {speed}x)")
+    print("Paused — press PLAY in COP to start\n")
 
     # Setup stop signal
     stop = asyncio.Event()
@@ -739,7 +741,7 @@ async def run(
 @click.option("--speed", default=1.0, help="Simulation speed multiplier (1, 2, 5, 10, 60)")
 @click.option("--port", default=8765, help="WebSocket server port")
 @click.option("--tick-rate", default=1.0, help="Ticks per second (real-time)")
-@click.option("--transport", default="ws,console", help="Comma-separated transports (ws,console)")
+@click.option("--transport", default="ws", help="Comma-separated transports (ws,console)")
 def main(scenario: str | None, speed: float, port: int, tick_rate: float, transport: str) -> None:
     """Edge C2 Simulator — Multi-domain C2 simulation engine."""
     asyncio.run(run(scenario, speed, port, tick_rate, transport))

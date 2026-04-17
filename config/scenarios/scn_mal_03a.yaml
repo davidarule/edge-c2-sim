@@ -1,0 +1,346 @@
+scenario:
+  name: "SCN-MAL-03A: MALSINDO Trilateral Coordinated Patrol — Reactive Chain"
+  description: >
+    Routine MALSINDO three-nation patrol day. Malaysia (MMEA), Indonesia
+    (Bakamla), and Singapore (RSN/PCG) share a Common Operating Picture.
+
+    Incident 1: Indonesian fishing vessel detected in Malaysian EEZ without
+    licence. MMEA and Bakamla conduct joint boarding. Custody transferred
+    to Indonesia under MALSINDO Protocol 4.
+
+    Incident 2: Unlit small craft detected near Horsburgh Lighthouse.
+    Singapore RSN investigates — disabled pleasure craft, 3 persons rescued.
+
+    Demonstrates: MALSINDO trilateral coordination, concurrent multi-incident
+    management, cross-border custody handoff, joint boarding protocols.
+  duration_minutes: 65
+  center: {lat: 2.50, lon: 102.00}
+  zoom: 8
+  background:
+    include:
+      - ais_background_malacca.yaml
+      - ais_background_singapore.yaml
+
+  scenario_entities:
+
+    # KM Perantau — MMEA Malaysia, central strait patrol
+    - id: MMEA-PV-001
+      type: MMEA_PATROL
+      callsign: KM Perantau
+      agency: MMEA
+      initial_position:
+        lat: 3.100
+        lon: 101.000
+        speed_kn: 12
+        heading_deg: 120
+      metadata:
+        vessel_type: Langkawi-class Offshore Patrol Vessel
+        callsign_radio: MMEA PERANTAU
+        flag: MYS
+
+    # KN Pulau Nipah — Bakamla Indonesia, southern patrol
+    - id: IDN-BAK-001
+      type: MMEA_PATROL
+      callsign: KN Pulau Nipah
+      agency: IDN
+      initial_position:
+        lat: 2.900
+        lon: 101.000
+        speed_kn: 10
+        heading_deg: 60
+      metadata:
+        vessel_type: Bakamla 110m Offshore Patrol Vessel
+        callsign_radio: KN PULAU NIPAH
+        flag: IDN
+        notes: Bakamla — Indonesian Maritime Security Agency
+
+    # RSS Sovereignty — RSN Singapore, eastern strait patrol
+    - id: SGP-PCG-001
+      type: MMEA_PATROL
+      callsign: RSS Sovereignty
+      agency: SGP
+      initial_position:
+        lat: 1.320
+        lon: 104.250
+        speed_kn: 15
+        heading_deg: 80
+      metadata:
+        vessel_type: Independence-class Littoral Mission Vessel
+        hull_number: "21"
+        callsign_radio: RSS SOVEREIGNTY
+        flag: SGP
+
+    # KM Bintang Laut — Indonesian fishing vessel in Malaysian EEZ
+    - id: SUSPECT-001
+      type: CIVILIAN_FISHING
+      callsign: KM Bintang Laut
+      initial_position:
+        lat: 3.040
+        lon: 101.100
+        speed_kn: 3
+        heading_deg: 95
+      metadata:
+        ais_active: true
+        mmsi: "510123456"
+        flag: IDN
+        vessel_type: Traditional fishing vessel — wooden hull ~18m
+        estimated_crew: 8
+
+    # Unknown small craft — drifting near Horsburgh Lighthouse
+    - id: SUSPECT-002
+      type: SUSPECT_VESSEL
+      callsign: Unknown Small Craft
+      sidc: "10013000001400000000"
+      initial_position:
+        lat: 1.375
+        lon: 104.420
+        speed_kn: 1
+        heading_deg: 350
+      metadata:
+        ais_active: false
+        vessel_type: Small pleasure craft ~8m fibreglass
+        estimated_crew: 3
+
+  events:
+
+    # ========================================
+    # PHASE 1: ROUTINE PATROL
+    # ========================================
+
+    - id: patrol_start
+      time: "00:00"
+      type: DETECTION
+      description: MALSINDO patrol day begins — three nations on station.
+      on_initiate: >
+        MALSINDO Coordinated Patrol — Day 47. KM Perantau (MMEA)
+        central strait. KN Pulau Nipah (Bakamla) south. RSS Sovereignty
+        (RSN) eastern Singapore Strait. All sharing common COP.
+      alert_agencies: [MMEA, IDN, SGP]
+
+    # ========================================
+    # INCIDENT 1: IUU FISHING VESSEL
+    # ========================================
+
+    - id: fishing_detected
+      time: "00:06"
+      type: DETECTION
+      description: Fishing vessel detected in Malaysian EEZ without licence.
+      on_initiate: >
+        MMEA Lumut: AIS contact KM Bintang Laut (MMSI 510123456) —
+        Indonesian-flag fishing vessel in Malaysian EEZ at 3.04°N
+        101.10°E. Speed 3 knots. No Malaysian fishing licence on record.
+        Possible IUU fishing.
+      position: {lat: 3.040, lon: 101.100}
+      alert_agencies: [MMEA]
+      severity: WARNING
+
+    - id: malsindo_notify
+      after: {event: fishing_detected, phase: initiate, offset: "00:01:00"}
+      type: ALERT
+      description: MMEA notifies Bakamla — MALSINDO Protocol 4 invoked.
+      on_initiate: >
+        MALSINDO Net — MMEA notifies Bakamla of unlicensed Indonesian
+        fishing vessel. Protocol 4 invoked: joint boarding required for
+        Indonesian nationals in Malaysian waters.
+      alert_agencies: [MMEA, IDN]
+      severity: WARNING
+
+    - id: incident1_declared
+      after: {event: malsindo_notify, phase: initiate, offset: "00:01:00"}
+      type: ORDER
+      description: Incident 1 — both MMEA and Bakamla divert to fishing vessel.
+      on_initiate: >
+        Incident 1 declared. KM Perantau and KN Pulau Nipah converging
+        on KM Bintang Laut. MMEA leads approach, Bakamla for joint
+        boarding and custody.
+      targets: [MMEA-PV-001, IDN-BAK-001]
+      action: intercept
+      intercept_target: SUSPECT-001
+      alert_agencies: [MMEA, IDN]
+
+    - id: perantau_alongside
+      after: {event: incident1_declared, phase: initiate}
+      type: ORDER
+      description: KM Perantau approaches fishing vessel.
+      target: MMEA-PV-001
+      action: approach
+      approach_target: SUSPECT-001
+      final_speed: 2
+      on_complete: >
+        KM Perantau alongside KM Bintang Laut. Vessel hove to —
+        crew cooperative. 8 crew, all Indonesian nationals.
+      on_complete_action: hold_station
+      hold_target: SUSPECT-001
+
+    - id: fishing_stops
+      after: {event: perantau_alongside, phase: complete}
+      type: INTERCEPT
+      description: Fishing vessel complies — stops for inspection.
+      on_initiate: >
+        KM Bintang Laut hove to. MMEA officer boards for initial
+        inspection. Indonesian fishing permit only — no Malaysian
+        licence. 2 tonnes reef fish in hold.
+      target: SUSPECT-001
+      action: hold_station
+      alert_agencies: [MMEA]
+
+    - id: bakamla_arrives
+      after: {event: incident1_declared, phase: initiate}
+      type: ORDER
+      description: Bakamla vessel approaches for joint boarding.
+      target: IDN-BAK-001
+      action: approach
+      approach_target: SUSPECT-001
+      final_speed: 2
+      on_complete: >
+        KN Pulau Nipah alongside. Bakamla and MMEA officers conduct
+        joint boarding under MALSINDO Protocol 4.
+      on_complete_action: hold_station
+      hold_target: SUSPECT-001
+
+    - id: joint_boarding
+      after: {event: bakamla_arrives, phase: complete, offset: "00:04:00"}
+      type: BOARDING
+      description: Joint boarding — Bakamla takes formal custody.
+      on_initiate: >
+        Joint boarding complete. Master confirms fishing in Malaysian
+        waters ~6 hours. Catch documented. Bakamla taking formal
+        custody — Indonesian crew transferred under MALSINDO Protocol 4.
+      target: IDN-BAK-001
+      boarding_target: SUSPECT-001
+      alert_agencies: [MMEA, IDN]
+
+    - id: handoff_complete
+      after: {event: joint_boarding, phase: initiate, offset: "00:04:00"}
+      type: ALERT
+      description: Custody handoff complete — Malaysia releases vessel to Indonesia.
+      on_initiate: >
+        HANDOFF COMPLETE. KM Bintang Laut transferred to Bakamla
+        custody. KN Pulau Nipah will escort to Indonesian port.
+        MALSINDO Protocol 4 successful — no bilateral friction.
+      alert_agencies: [MMEA, IDN]
+
+    - id: perantau_resumes
+      after: {event: handoff_complete, phase: initiate, offset: "00:02:00"}
+      type: ORDER
+      description: KM Perantau releases vessel and resumes patrol.
+      target: MMEA-PV-001
+      action: transit
+      destination: {lat: 3.090, lon: 101.060}
+      speed: 12
+
+    - id: bakamla_departs
+      after: {event: handoff_complete, phase: initiate, offset: "00:02:00"}
+      type: ORDER
+      description: Bakamla departs with fishing vessel toward Indonesian port.
+      on_initiate: >
+        KN Pulau Nipah departing Malaysian waters with KM Bintang Laut.
+        Heading SSW toward Indonesian port.
+      target: IDN-BAK-001
+      action: transit
+      destination: {lat: 2.900, lon: 101.020}
+      speed: 8
+      alert_agencies: [MMEA, IDN]
+
+    - id: fishing_towed
+      after: {event: handoff_complete, phase: initiate, offset: "00:02:00"}
+      type: ORDER
+      description: Fishing vessel under escort toward Indonesia.
+      target: SUSPECT-001
+      action: transit
+      destination: {lat: 2.900, lon: 101.020}
+      speed: 5
+
+    # ========================================
+    # INCIDENT 2: HORSBURGH DARK CONTACT
+    # (runs concurrently with Incident 1)
+    # ========================================
+
+    - id: horsburgh_detection
+      time: "00:18"
+      type: DETECTION
+      description: Singapore VTS detects unlit craft near Horsburgh.
+      on_initiate: >
+        Singapore VTS Changi: radar contact near Horsburgh Lighthouse.
+        No AIS. No navigation lights. Drifting slowly. VHF hails —
+        no response. Potential hazard to TSS traffic.
+      position: {lat: 1.375, lon: 104.420}
+      alert_agencies: [SGP, MMEA]
+      severity: WARNING
+
+    - id: incident2_declared
+      after: {event: horsburgh_detection, phase: initiate, offset: "00:02:00"}
+      type: ALERT
+      description: Incident 2 declared — Singapore diverts RSS Sovereignty.
+      on_initiate: >
+        Incident 2 declared. RSS Sovereignty diverted to investigate
+        unknown contact near Horsburgh. MALSINDO Net notified —
+        Singapore advises Malaysia and Indonesia.
+      target: SGP-PCG-001
+      action: approach
+      approach_target: SUSPECT-002
+      final_speed: 5
+      alert_agencies: [SGP, MMEA, IDN]
+      severity: WARNING
+      on_complete: >
+        RSS Sovereignty on scene at Horsburgh. Contact identified:
+        small pleasure craft ~8m, disabled, 3 persons waving for
+        assistance. Malaysian-registered, engine seized.
+      on_complete_action: hold_station
+      hold_target: SUSPECT-002
+
+    - id: concurrent_status
+      after: {event: incident2_declared, phase: initiate, offset: "00:08:00"}
+      type: ALERT
+      description: COP status — two concurrent incidents across the strait.
+      on_initiate: >
+        COP STATUS — TWO CONCURRENT INCIDENTS. Incident 1 (central
+        strait): joint boarding in progress. Incident 2 (Singapore
+        Strait): RSS Sovereignty en route to Horsburgh.
+      alert_agencies: [MMEA, IDN, SGP]
+
+    - id: craft_identified
+      after: {event: incident2_declared, phase: complete, offset: "00:02:00"}
+      type: DETECTION
+      description: Contact identified as disabled pleasure craft — no threat.
+      on_initiate: >
+        RSS Sovereignty confirms: disabled Malaysian pleasure craft.
+        Engine failure, adrift since 1830 local. 3 persons safe.
+        MPA Singapore MRSC notified. Deploying tow line.
+      target: SUSPECT-002
+      action: hold_station
+      source: SGP-PCG-001
+      alert_agencies: [SGP, MMEA]
+      # Reclassify from suspect to civilian
+      reclassify:
+        targets: [SUSPECT-002]
+        new_type: CIVILIAN_FISHING
+
+    - id: tow_underway
+      after: {event: craft_identified, phase: initiate, offset: "00:04:00"}
+      type: ALERT
+      description: RSS Sovereignty towing disabled craft toward Singapore.
+      on_initiate: >
+        RSS Sovereignty with Malaysian pleasure craft under tow.
+        Heading for Singapore Johor Strait crossing point. Malaysia
+        Marine Department Johor notified.
+      target: SGP-PCG-001
+      action: transit
+      destination: {lat: 1.330, lon: 104.300}
+      speed: 8
+      alert_agencies: [SGP, MMEA]
+
+    # ========================================
+    # ENDSTATE
+    # ========================================
+
+    - id: endstate
+      after: {event: tow_underway, phase: initiate, offset: "00:05:00"}
+      type: RESOLUTION
+      description: Patrol day complete — both incidents resolved.
+      on_initiate: >
+        ENDSTATE — MALSINDO Patrol Day 47. Incident 1: IUU fishing
+        vessel detained, custody transferred to Bakamla. Incident 2:
+        Disabled craft rescued by Singapore RSN. Two incidents resolved
+        through trilateral coordination across 350nm.
+      alert_agencies: [MMEA, IDN, SGP]
