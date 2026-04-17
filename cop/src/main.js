@@ -138,7 +138,10 @@ async function main() {
         }
       }
     },
-    onEntityUpdate: (entity) => entityManager.updateEntity(entity),
+    onEntityUpdate: (entity) => {
+      entityManager.updateEntity(entity);
+      detail.updateLiveData(entity);
+    },
     onEntityRemove: (id) => entityManager.removeEntity(id),
     onEvent: (event) => {
       if (timeline) timeline.addEvent(event);

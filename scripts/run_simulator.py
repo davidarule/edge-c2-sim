@@ -74,6 +74,18 @@ async def simulation_loop(
         scenario_state = sim_context["scenario_state"]
         event_engine = sim_context["event_engine"]
 
+        # Spawn deferred entities whose spawn_at time has been reached
+        pending = sim_context.get("pending_spawns", {})
+        elapsed = clock.get_elapsed()
+        spawned = []
+        for eid, (entity, spawn_at) in pending.items():
+            if elapsed >= spawn_at:
+                entity_store.add_entity(entity)
+                spawned.append(eid)
+                logger.info(f"Spawned deferred entity: {eid} at +{elapsed}")
+        for eid in spawned:
+            del pending[eid]
+
         # Update all entity positions via movement strategies
         for entity_id, movement in list(scenario_state.movements.items()):
             entity = entity_store.get_entity(entity_id)
@@ -206,7 +218,7 @@ async def run(
 
     # Shared mutable context — simulation_loop and command handlers both
     # read from this dict, so reset/restart updates are immediately visible
-    sim_context: dict = {"scenario_state": None, "event_engine": None}
+    sim_context: dict = {"scenario_state": None, "event_engine": None, "pending_spawns": {}}
 
     if scenario:
         print(f"Loading scenario: {scenario}")
@@ -231,10 +243,15 @@ async def run(
     clock = SimulationClock(start_time=start_time, speed=speed)
     store = EntityStore()
 
-    # Populate entity store from scenario
+    # Populate entity store from scenario (defer entities with spawn_at)
+    pending_spawns: dict[str, tuple] = {}  # entity_id -> (entity, timedelta)
     if scenario_state:
         for entity in scenario_state.entities.values():
-            store.add_entity(entity)
+            if entity.spawn_at is not None:
+                pending_spawns[entity.entity_id] = (entity, entity.spawn_at)
+                logger.info(f"Deferred spawn: {entity.entity_id} at +{entity.spawn_at}")
+            else:
+                store.add_entity(entity)
 
         sim_context["event_engine"] = EventEngine(
             events=scenario_state.events,
@@ -242,6 +259,7 @@ async def run(
             movements=scenario_state.movements,
             scenario_start=scenario_state.start_time,
         )
+        sim_context["pending_spawns"] = pending_spawns
 
     # Initialize domain simulators
     maritime_sim = MaritimeSimulator(store)
@@ -381,8 +399,13 @@ async def run(
                 sim_context["scenario_state"] = fresh
                 with store._lock:
                     store._entities.clear()
+                new_pending = {}
                 for entity in fresh.entities.values():
-                    store.upsert_entity(entity)
+                    if entity.spawn_at is not None:
+                        new_pending[entity.entity_id] = (entity, entity.spawn_at)
+                    else:
+                        store.upsert_entity(entity)
+                sim_context["pending_spawns"] = new_pending
                 sim_context["event_engine"] = EventEngine(
                     events=fresh.events,
                     entity_store=store,

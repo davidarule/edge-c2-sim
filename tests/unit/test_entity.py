@@ -1,6 +1,6 @@
 """Tests for the Entity data model."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from simulator.core.entity import (
     Agency,
@@ -178,3 +178,35 @@ class TestEntity:
         assert entity.status == EntityStatus.ACTIVE
         assert entity.sidc == ""
         assert entity.metadata == {}
+
+
+class TestSpawnAt:
+    def test_default_none(self):
+        entity = _make_entity()
+        assert entity.spawn_at is None
+
+    def test_spawn_at_set(self):
+        entity = _make_entity(spawn_at=timedelta(hours=1, minutes=11))
+        assert entity.spawn_at == timedelta(hours=1, minutes=11)
+        assert entity.spawn_at.total_seconds() == 4260
+
+    def test_spawn_at_from_scenario(self):
+        """spawn_at parsed correctly from SCN-MAL-02 YAML."""
+        from simulator.scenario.loader import ScenarioLoader
+        state = ScenarioLoader().load("config/scenarios/scn_mal_02.yaml")
+        utk = state.entities.get("RMP-UTK-001")
+        assert utk is not None
+        assert utk.spawn_at == timedelta(hours=1, minutes=11)
+
+    def test_deferred_entity_not_in_store_at_start(self):
+        """Entities with spawn_at should not be in the store at scenario start."""
+        from simulator.scenario.loader import ScenarioLoader
+        from simulator.core.entity_store import EntityStore
+        state = ScenarioLoader().load("config/scenarios/scn_mal_02.yaml")
+        store = EntityStore()
+        for entity in state.entities.values():
+            if entity.spawn_at is None:
+                store.add_entity(entity)
+        assert store.get_entity("RMP-UTK-001") is None
+        # Other entities should be present
+        assert store.count > 0

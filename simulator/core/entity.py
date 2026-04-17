@@ -6,7 +6,7 @@ base model. Domain-specific data lives in the metadata dict.
 """
 
 from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -85,6 +85,7 @@ class Entity:
     sidc: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
     initial_position: Position | None = None
+    spawn_at: timedelta | None = None
 
     def update_position(
         self,

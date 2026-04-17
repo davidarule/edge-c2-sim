@@ -406,6 +406,7 @@ scenario:
     type: RMP_TACTICAL_TEAM
     callsign: UTK Team Alpha
     agency: RMP
+    spawn_at: "01:11"
     initial_position:
       lat: 3.555
       lon: 100.86

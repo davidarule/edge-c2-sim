@@ -502,6 +502,11 @@ class ScenarioLoader:
         metadata = dict(entry.get("metadata", {}))
         metadata["entity_type_name"] = entity_type
 
+        # Deferred spawn: entity hidden until sim clock reaches this offset
+        spawn_at = None
+        if "spawn_at" in entry:
+            spawn_at = _parse_time_offset(entry["spawn_at"])
+
         entity = Entity(
             entity_id=entity_id,
             entity_type=entity_type,
@@ -517,6 +522,7 @@ class ScenarioLoader:
                 longitude=pos.get("lon", 0.0),
                 altitude_m=pos.get("alt_m", 0.0),
             ),
+            spawn_at=spawn_at,
         )
 
         # Create movement strategy

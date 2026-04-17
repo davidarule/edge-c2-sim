@@ -226,7 +226,47 @@ export function initEntityPanel(containerId, entityManager, viewer) {
     if (e.key === 'Escape') hide();
   });
 
-  return { show, hide, getCurrentEntityId: () => currentEntityId, setWs: (ws) => { wsRef = ws; } };
+  function updateLiveData(entity) {
+    if (!currentEntityId || entity.entity_id !== currentEntityId) return;
+
+    const pos = entity.position || {};
+    const lat = (pos.latitude || 0).toFixed(4);
+    const lon = (pos.longitude || 0).toFixed(4);
+    const alt = (pos.altitude_m || 0).toFixed(1);
+
+    // Update dynamic fields by key label — more robust than positional index
+    container.querySelectorAll('.detail-row').forEach(row => {
+      const key = row.querySelector('.detail-key');
+      const val = row.querySelector('.detail-value');
+      if (!key || !val) return;
+      switch (key.textContent) {
+        case 'LAT': val.textContent = `${lat}\u00b0 ${(pos.latitude || 0) >= 0 ? 'N' : 'S'}`; break;
+        case 'LON': val.textContent = `${lon}\u00b0 ${(pos.longitude || 0) >= 0 ? 'E' : 'W'}`; break;
+        case 'ALT': val.textContent = `${alt} m`; break;
+        case 'SPEED': val.textContent = `${(entity.speed_knots || 0).toFixed(1)} kts`; break;
+        case 'HDG': val.textContent = `${(entity.heading_deg || 0).toFixed(0)}\u00b0`; break;
+        case 'CRS': val.textContent = `${(entity.course_deg || 0).toFixed(0)}\u00b0`; break;
+        case 'Updated':
+          if (entity.timestamp) val.textContent = new Date(entity.timestamp).toISOString().substring(11, 19);
+          break;
+      }
+      // Domain-specific metadata keys
+      const meta = entity.metadata || {};
+      const keyText = key.textContent.toLowerCase().replace(/ /g, '_');
+      if (keyText in meta && typeof meta[keyText] !== 'object') {
+        val.textContent = formatMetadataValue(keyText, meta[keyText]);
+      }
+    });
+
+    // Status badge
+    const statusEl = container.querySelector('.entity-detail-status');
+    if (statusEl) {
+      statusEl.textContent = entity.status || 'UNKNOWN';
+      statusEl.style.color = getStatusColor(entity.status);
+    }
+  }
+
+  return { show, hide, getCurrentEntityId: () => currentEntityId, setWs: (ws) => { wsRef = ws; }, updateLiveData };
 }
 
 // === SIDC DECODER / EDITOR ===
