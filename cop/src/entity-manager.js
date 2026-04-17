@@ -316,6 +316,13 @@ export function initEntityManager(viewer, config) {
     // trail artifacts from old->new position jumps, regardless of sim speed
     const suppressTrail = entry.createdAtGeneration === snapshotGeneration && count < TRAIL_UPDATE_INTERVAL * 3;
     const isStationary = (entityData.speed_knots || 0) < 0.1;
+    // Debug: track stationary trail state
+    if (isStationary && count % 30 === 0) {
+      const trail = trailPositions.get(id);
+      if (trail && trail.length > 0) {
+        console.debug(`[trail] ${id} stationary, points=${trail.length}, show=${entry.cesiumTrail.show}, visible=${entry.visible}`);
+      }
+    }
     if (!suppressTrail && !isStationary && count % TRAIL_UPDATE_INTERVAL === 0) {
       const trail = trailPositions.get(id) || [];
       // Use clean track position (pre-noise) if available, else noisy position
