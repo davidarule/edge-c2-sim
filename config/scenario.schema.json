@@ -449,7 +449,17 @@
       "properties": {
         "id":                { "type": "string", "description": "Event identifier for cross-referencing and dependency chains" },
         "time":              { "$ref": "#/$defs/TimeOffset", "description": "Absolute scenario time to fire" },
-        "after":             { "type": "string", "pattern": "^[a-zA-Z0-9_]+(:(complete|initiate))?(\\s*[+-]\\s*[0-9]{2}:[0-9]{2}(:[0-9]{2})?)?$", "description": "Dependency: fire after another event. Syntax: event_id[:phase][ +/- HH:MM]" },
+        "after": {
+          "type": "object",
+          "required": ["event"],
+          "properties": {
+            "event": { "type": "string", "description": "Event ID to depend on" },
+            "phase": { "type": "string", "enum": ["initiate", "complete"], "default": "initiate", "description": "Fire after event initiates or completes" },
+            "offset": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}:[0-9]{2}$", "description": "Time offset in HH:MM:SS format" }
+          },
+          "additionalProperties": false,
+          "description": "Dependency trigger — fire after another event"
+        },
         "type":              { "$ref": "#/$defs/EventType" },
         "description":       { "type": "string", "description": "Author's intent — not displayed in timeline" },
         "on_initiate":       { "type": "string", "description": "Timeline message when event fires" },

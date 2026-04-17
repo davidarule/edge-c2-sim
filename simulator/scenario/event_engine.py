@@ -13,7 +13,6 @@ with automatic completion detection and on_complete message generation.
 import json
 import logging
 import os
-import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
@@ -79,31 +78,32 @@ class EventDependency:
     offset: timedelta
 
 
-_AFTER_RE = re.compile(
-    r'^(?P<event_id>[a-zA-Z0-9_]+)'
-    r'(?::(?P<phase>complete|initiate))?'
-    r'(?:\s*(?P<sign>[+-])\s*(?P<offset>\d{1,2}:\d{2}(?::\d{2})?))?$'
-)
+def parse_after(after) -> EventDependency:
+    """Parse an 'after' dependency (object with event, phase, offset)."""
+    if isinstance(after, str):
+        # Legacy string format: "event_id" or "event_id:phase"
+        return EventDependency(event_id=after, phase="initiate", offset=timedelta(0))
 
+    if not isinstance(after, dict):
+        raise ValueError(f"Invalid after: expected object, got {type(after)}")
 
-def parse_after(after_str: str) -> EventDependency:
-    """Parse an 'after' dependency string."""
-    m = _AFTER_RE.match(after_str.strip())
-    if not m:
-        raise ValueError(f"Invalid after syntax: {after_str!r}")
-    event_id = m.group("event_id")
-    phase = m.group("phase") or "initiate"
+    event_id = after.get("event")
+    if not event_id:
+        raise ValueError("after.event is required")
+
+    phase = after.get("phase", "initiate")
     offset = timedelta(0)
-    if m.group("offset"):
-        parts = m.group("offset").split(":")
+
+    offset_str = after.get("offset")
+    if offset_str:
+        parts = str(offset_str).split(":")
         if len(parts) == 2:
             offset = timedelta(hours=int(parts[0]), minutes=int(parts[1]))
         elif len(parts) == 3:
             offset = timedelta(
                 hours=int(parts[0]), minutes=int(parts[1]), seconds=int(parts[2]),
             )
-        if m.group("sign") == "-":
-            offset = -offset
+
     return EventDependency(event_id=event_id, phase=phase, offset=offset)
 
 

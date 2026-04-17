@@ -10,10 +10,6 @@ scenario:
   background:
     include:
       - ais_background_malacca.yaml
-  # Legacy loader support
-  include_entities:
-    - ais_background_malacca.yaml
-  background_entities: []
 
   scenario_entities:
 
@@ -123,6 +119,10 @@ scenario:
     # PHASE 1: DETECTION & ALERT
     # ========================================
 
+    # ========================================
+    # PHASE 1: DETECTION & BOARDING
+    # ========================================
+
     - id: tanker_tracking
       time: "00:00"
       type: DETECTION
@@ -136,22 +136,22 @@ scenario:
     - id: ssas_alert
       time: "00:05"
       type: DISTRESS
-      description: Covert SSAS distress — pirates boarding.
+      description: Master spots two fast boats approaching and covertly activates SSAS.
       on_initiate: >
-        SSAS COVERT ALERT — MT Labuan Palm. Ship Security Alert System
-        activated. Two fast boats approaching from Indonesian side.
+        SSAS COVERT ALERT — MT Labuan Palm. Master has activated Ship
+        Security Alert System. Two fast boats approaching at high speed
+        from the Indonesian side. No boarding yet.
       target: TANKER-001
       alert_agencies: [MMEA, MIL, RMP]
       severity: CRITICAL
 
-    # Pirates sprint to tanker on SSAS
     - id: pirate1_sprint
-      after: "ssas_alert"
+      after: {event: ssas_alert}
       type: DETECTION
-      description: Pirate 1 sprints to tanker.
+      description: Pirate 1 sprints to intercept tanker.
       target: PIRATE-001
-      action: transit
-      destination: {lat: 3.416, lon: 100.490}
+      action: intercept
+      intercept_target: TANKER-001
       speed: 25
       sidc_override: "10053000001400000000"
       callsign_override: Suspect Boat 1
@@ -159,36 +159,54 @@ scenario:
       hold_target: TANKER-001
 
     - id: pirate2_sprint
-      after: "ssas_alert"
+      after: {event: ssas_alert}
       type: DETECTION
-      description: Pirate 2 sprints to tanker area.
+      description: Pirate 2 sprints to intercept tanker.
       target: PIRATE-002
-      action: transit
-      destination: {lat: 3.416, lon: 100.493}
+      action: intercept
+      intercept_target: TANKER-001
       speed: 25
       sidc_override: "10053000001400000000"
       callsign_override: Suspect Boat 2
+      on_complete_action: orbit
+      orbit_center: TANKER-001
+      orbit_radius_nm: 0.18
+      orbit_speed: 4
+
+    - id: pirates_aboard
+      after: {event: pirate1_sprint, phase: complete, offset: "00:00:30"}
+      type: DISTRESS
+      description: Pirates aboard — second SSAS pulse. Tanker forced to stop.
+      on_initiate: >
+        SSAS SECONDARY PULSE — MT Labuan Palm. Pirates aboard. Armed
+        perpetrators on bridge — master forced to stop engines. Crew
+        of 28 — hostage situation confirmed.
+      target: TANKER-001
+      action: hold_station
+      alert_agencies: [MMEA, MIL, RMP]
+      severity: CRITICAL
 
     # ========================================
-    # PHASE 2: RESPONSE ORDERS
+    # PHASE 2: MULTI-AGENCY RESPONSE
+    # (All triggered by confirmed boarding)
     # ========================================
 
     - id: aras_protocol
-      after: "ssas_alert + 00:02"
+      after: {event: pirates_aboard}
       type: ALERT
-      description: MMEA activates ARAS response protocol.
+      description: Confirmed boarding — MMEA activates full ARAS response.
       on_initiate: >
-        MMEA ARAS response protocol activated. All agencies notified.
-        Radio silence imposed — no open VHF.
+        MMEA ARAS response protocol activated. Confirmed armed boarding
+        in progress. All agencies notified. Radio silence imposed.
       alert_agencies: [MMEA, MIL, RMP]
 
     - id: heli_scramble
-      after: "ssas_alert + 00:03"
+      after: {event: pirates_aboard, phase: initiate, offset: "00:02:00"}
       type: ORDER
-      description: Scramble helicopter for FLIR overwatch.
+      description: Scramble helicopter — confirmed hostage situation.
       on_initiate: >
-        TUDM Caracal 1 scrambled from RMAF Subang. FLIR and night
-        observation priority — covert overwatch.
+        TUDM Caracal 1 scrambled from RMAF Subang. Confirmed armed
+        boarding — FLIR and night observation priority.
       target: RMAF-HELI-001
       action: transit
       destination: {lat: 3.416, lon: 100.490}
@@ -196,24 +214,28 @@ scenario:
       altitude_m: 150
       alert_agencies: [MMEA, MIL, RMP]
       on_complete: >
-        TUDM Caracal 1 on scene. FLIR confirms MT Labuan Palm
-        stationary. Two fast boats alongside. 10-12 armed persons.
+        TUDM Caracal 1 on scene. FLIR confirms tanker stationary.
+        Two fast boats — one alongside, one circling. 10-12 armed
+        persons visible.
       on_complete_action: orbit
       orbit_center: TANKER-001
       orbit_radius_nm: 1.0
       orbit_speed: 40
 
     - id: perantau_order
-      after: "ssas_alert + 00:05"
+      after: {event: pirates_aboard, phase: initiate, offset: "00:03:00"}
       type: ORDER
-      description: KM Perantau ordered to tanker with UTK embarked.
+      description: KM Perantau ordered to tanker with UTK boarding team.
       on_initiate: >
         KM Perantau ordered to proceed at best speed. UTK Team Alpha
-        (12 operators) embarked — boarding team activated.
+        (12 operators) embarked — counter-terrorism boarding team
+        activated.
       target: MMEA-PV-001
-      action: transit
-      destination: {lat: 3.416, lon: 100.490}
+      action: approach
+      approach_target: TANKER-001
       speed: 22
+      final_speed: 2
+      approach_distance_nm: 1.5
       alert_agencies: [MMEA, MIL, RMP]
       on_complete: >
         KM Perantau alongside MT Labuan Palm. UTK preparing RHIB.
@@ -221,12 +243,12 @@ scenario:
       hold_target: TANKER-001
 
     - id: perak_order
-      after: "ssas_alert + 00:07"
+      after: {event: pirates_aboard, phase: initiate, offset: "00:05:00"}
       type: ORDER
       description: KD Perak ordered to blocking position SW.
       on_initiate: >
         KD Perak ordered to blocking position 3.35N 100.45E. Cut off
-        pirate escape toward Indonesian EEZ and Riau Islands.
+        pirate escape toward Indonesian EEZ.
       target: RMN-OPV-001
       action: transit
       destination: {lat: 3.350, lon: 100.450}
@@ -236,37 +258,13 @@ scenario:
         KD Perak in blocking position. All SW escape routes covered.
       on_complete_action: hold_station
 
-    # Tanker stops
-    - id: tanker_stop
-      after: "ssas_alert + 00:10"
-      type: ALERT
-      description: Tanker dead in water — hostage situation.
-      on_initiate: >
-        MT Labuan Palm dead in water at 3.416N 100.490E. Hostage
-        situation assessed HIGH RISK. Crew of 28.
-      target: TANKER-001
-      action: hold_station
-      alert_agencies: [MMEA, MIL, RMP]
-      severity: CRITICAL
-
-    # Pirate 2 begins lookout orbit when it arrives at tanker
-    - id: pirate2_orbit
-      after: "pirate2_sprint:complete"
-      type: DETECTION
-      description: Pirate lookout boat begins sentry orbit.
-      target: PIRATE-002
-      action: orbit
-      orbit_center: TANKER-001
-      orbit_radius_nm: 0.18
-      orbit_speed: 4
-
     # ========================================
-    # PHASE 3: ON SCENE
-    # (Helicopter arrival auto-generated via on_complete)
+    # PHASE 3: HELICOPTER ON SCENE
+    # (Arrival auto-generated via heli_scramble on_complete)
     # ========================================
 
     - id: flir_update
-      after: "heli_scramble:complete + 00:05"
+      after: {event: heli_scramble, phase: complete, offset: "00:05:00"}
       type: ALERT
       description: FLIR intelligence update from helicopter.
       on_initiate: >
@@ -277,7 +275,7 @@ scenario:
       severity: WARNING
 
     - id: utk_briefing
-      after: "heli_scramble:complete + 00:10"
+      after: {event: heli_scramble, phase: complete, offset: "00:10:00"}
       type: ALERT
       description: UTK briefed on FLIR intelligence.
       on_initiate: >
@@ -286,7 +284,7 @@ scenario:
       alert_agencies: [MMEA, RMP]
 
     - id: illuminate
-      after: "heli_scramble:complete + 00:13"
+      after: {event: heli_scramble, phase: complete, offset: "00:13:00"}
       type: ALERT
       description: Helicopter illuminates tanker, demands surrender.
       on_initiate: >
@@ -300,7 +298,7 @@ scenario:
     # ========================================
 
     - id: pirates_fire_flares
-      after: "illuminate + 00:05"
+      after: {event: illuminate, phase: initiate, offset: "00:05:00"}
       type: ALERT
       description: Pirates fire flares — no weapons discharge.
       on_initiate: >
@@ -310,7 +308,7 @@ scenario:
       severity: WARNING
 
     - id: pirate2_escape
-      after: "pirates_fire_flares + 00:01"
+      after: {event: pirates_fire_flares, phase: initiate, offset: "00:01:00"}
       type: ALERT
       description: Fast Boat 2 breaks away heading SSW.
       on_initiate: >
@@ -326,7 +324,7 @@ scenario:
       severity: CRITICAL
 
     - id: pirate1_escape
-      after: "pirate2_escape + 00:02"
+      after: {event: pirate2_escape, phase: initiate, offset: "00:02:00"}
       type: ALERT
       description: Fast Boat 1 breaks away heading SSW.
       on_initiate: >
@@ -342,7 +340,7 @@ scenario:
       severity: CRITICAL
 
     - id: heli_pursue
-      after: "pirate1_escape + 00:01"
+      after: {event: pirate1_escape, phase: initiate, offset: "00:01:00"}
       type: ORDER
       description: Helicopter pursues fleeing pirates.
       on_initiate: >
@@ -357,7 +355,7 @@ scenario:
     # ========================================
 
     - id: utk_board
-      after: "perantau_order:complete + 00:05"
+      after: {event: perantau_order, phase: complete, offset: "00:05:00"}
       type: BOARDING
       description: UTK boards tanker via RHIB insertion.
       on_initiate: >
@@ -370,7 +368,7 @@ scenario:
       severity: CRITICAL
 
     - id: bridge_secure
-      after: "utk_board + 00:02"
+      after: {event: utk_board, phase: initiate, offset: "00:02:00"}
       type: ALERT
       description: Bridge secure — perpetrators detained.
       on_initiate: >
@@ -379,7 +377,7 @@ scenario:
       alert_agencies: [MMEA, MIL, RMP]
 
     - id: perak_intercept
-      after: "pirate1_escape + 00:08"
+      after: {event: pirate1_escape, phase: initiate, offset: "00:08:00"}
       type: ORDER
       description: KD Perak intercepts fleeing fast boats.
       on_initiate: >
@@ -394,7 +392,7 @@ scenario:
       on_complete_action: hold_station
 
     - id: endstate
-      after: "bridge_secure + 00:10"
+      after: {event: bridge_secure, phase: initiate, offset: "00:10:00"}
       type: RESOLUTION
       description: Scenario complete.
       on_initiate: >
