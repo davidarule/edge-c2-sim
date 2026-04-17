@@ -523,6 +523,20 @@ scenario:
         Centres — further cross-border activity possible.
       alert_agencies: [MIL, MMEA]
 
+    - id: g2000b_pursue_stopped
+      after: {event: g2000b_pursue, phase: complete}
+      type: INTERCEPT
+      description: Speedboat 2 stopped by G2000 Bravo.
+      target: HOSTILE-002
+      action: hold_station
+
+    - id: g2000c_intercept_stopped
+      after: {event: g2000c_intercept, phase: complete}
+      type: INTERCEPT
+      description: Speedboat 1 stopped by G2000 Charlie.
+      target: HOSTILE-001
+      action: hold_station
+
     - id: endstate
       after: {event: trilateral_notify, phase: initiate, offset: "00:05:00"}
       type: RESOLUTION

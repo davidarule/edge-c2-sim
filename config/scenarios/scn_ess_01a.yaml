@@ -374,6 +374,34 @@ scenario:
       targets: [CI-TEAM-101, CI-IMMI-101]
       alert_agencies: [CI]
 
+    - id: sangitan_intercept_stopped
+      after: {event: sangitan_intercept, phase: complete}
+      type: INTERCEPT
+      description: Trawler 1 stopped by KM Sangitan.
+      target: IFF-001
+      action: hold_station
+
+    - id: rmn_scramble_stopped
+      after: {event: rmn_scramble, phase: complete}
+      type: INTERCEPT
+      description: Trawler 4 stopped by G2000 Alpha.
+      target: IFF-004
+      action: hold_station
+
+    - id: semporna_divert_stopped
+      after: {event: semporna_divert, phase: complete}
+      type: INTERCEPT
+      description: Mothership stopped by KM Semporna.
+      target: IFF-005
+      action: hold_station
+
+    - id: fi_launch_stopped
+      after: {event: fi_launch, phase: complete}
+      type: INTERCEPT
+      description: Trawler 3 stopped by MMEA fast intercept.
+      target: IFF-003
+      action: hold_station
+
     - id: endstate
       after: {event: ci_activated, phase: initiate, offset: "00:04:00"}
       type: RESOLUTION
