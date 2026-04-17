@@ -247,14 +247,13 @@ export function initEntityManager(viewer, config) {
       id: `trail-${id}`,
       polyline: {
         positions: new Cesium.CallbackProperty(() => {
-          const entry = entities.get(id);
-          if (!entry || !entry.visible) return [];
+          // Don't check entry.visible here — trail.show handles visibility.
+          // Checking visible causes flicker when Cesium clustering toggles entities.
           const points = trailPositions.get(id) || [];
-          const valid = points.filter(p =>
-            p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon)
-          );
-          if (valid.length < 2) return [];
-          return valid.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
+          if (points.length < 2) return [];
+          return points
+            .filter(p => p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon))
+            .map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0));
         }, false),
         width: TRAIL_WIDTH,
         show: globalTrailsVisible,
@@ -316,13 +315,6 @@ export function initEntityManager(viewer, config) {
     // trail artifacts from old->new position jumps, regardless of sim speed
     const suppressTrail = entry.createdAtGeneration === snapshotGeneration && count < TRAIL_UPDATE_INTERVAL * 3;
     const isStationary = (entityData.speed_knots || 0) < 0.1;
-    // Debug: track stationary trail state
-    if (isStationary && count % 30 === 0) {
-      const trail = trailPositions.get(id);
-      if (trail && trail.length > 0) {
-        console.debug(`[trail] ${id} stationary, points=${trail.length}, show=${entry.cesiumTrail.show}, visible=${entry.visible}`);
-      }
-    }
     if (!suppressTrail && !isStationary && count % TRAIL_UPDATE_INTERVAL === 0) {
       const trail = trailPositions.get(id) || [];
       // Use clean track position (pre-noise) if available, else noisy position
