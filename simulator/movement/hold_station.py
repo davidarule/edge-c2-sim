@@ -29,6 +29,15 @@ class HoldStationMovement:
         self._heading = heading_deg
         self._target_id = target_entity_id
         self._entity_store = entity_store
+        # Lock in the entity's offset from the target at hold-station start
+        # so the entity rides alongside instead of teleporting onto the target.
+        self._offset_lat = 0.0
+        self._offset_lon = 0.0
+        if target_entity_id and entity_store is not None:
+            target = entity_store.get_entity(target_entity_id)
+            if target:
+                self._offset_lat = lat - target.position.latitude
+                self._offset_lon = lon - target.position.longitude
 
     def get_state(self, sim_time: datetime) -> MovementState:
         lat = self._lat
@@ -36,12 +45,12 @@ class HoldStationMovement:
         alt = self._alt
         heading = self._heading
 
-        # Track target entity position if set
+        # Track target entity position if set, preserving the initial offset
         if self._target_id and self._entity_store:
             target = self._entity_store.get_entity(self._target_id)
             if target:
-                lat = target.position.latitude
-                lon = target.position.longitude
+                lat = target.position.latitude + self._offset_lat
+                lon = target.position.longitude + self._offset_lon
                 alt = target.position.altitude_m
                 heading = target.heading_deg
 

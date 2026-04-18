@@ -170,6 +170,7 @@ scenario:
       orbit_center: TANKER-001
       orbit_radius_nm: 0.18
       orbit_speed: 4
+      orbit_direction: CCW
 
     # Captain sees fast boats and activates SSAS 30 seconds later
     - id: ssas_alert
