@@ -176,20 +176,32 @@ Actions replace the actionee's movement strategy. Each action is dispatched in
 | `transit`          | Swaps to `TransitMovement` from current position → `destination`. Speed from `metadata.speed` or entity-type default. status=RESPONDING. Requires `destination`. |
 | `orbit`            | Swaps to `OrbitMovement` around `orbit_center` entity (dynamic tracking) or fixed `orbit_center_lat/lon`. Radius from `orbit_radius_nm` (default 1.0nm). Speed from `orbit_speed`. Direction CW default. `initial_heading` computed from current bearing to centre so the entity stays where it is. status=ACTIVE. |
 | `hold_station`     | Swaps to `HoldStationMovement` at current position. If `hold_target` is set, the entity rides alongside the target with a frozen initial offset. speed=0, status=ACTIVE. |
+| `alongside`        | **Maritime only.** Equivalent to `hold_station` with a `hold_target` — `HoldStationMovement` locked to the target entity's position with the geographic offset at handoff preserved. `target` names the target; `hold_target` in metadata is an alternative. Use this when a vessel comes alongside another vessel (e.g. pirate skiff rafting up). For personnel transfer between vessels, use `disembark` with `onto:`. |
 | `escape`           | Swaps to `EscapeMovement` dead-reckoning from current position along `bearing_deg` at `speed` (or entity max) for `duration_min` (or indefinitely). Requires `bearing_deg`. status=ACTIVE. |
 | `approach`         | Swaps to `ApproachMovement`. Destination = `approach_target` entity position, or `destination`. Speed interpolates from `speed` → `final_speed` (default 2) over `approach_distance_nm` (default 1.0). status=RESPONDING. ⚠ On arrival the movement stops where it is (old code teleported to exact destination — fixed 2026-04-19). |
 | `rtb`              | Swaps to `TransitMovement` back to `metadata.home_base{lat,lon}` or `entity.initial_position`. Speed = entity-type transit default. status=RTB. |
-| `disembark`        | **Teleports** actionee to the `metadata.embarked_on` carrier's position and sets heading to carrier's. status=ACTIVE. ⚠ No movement is assigned — the entity then stays at that point unless a later event gives it movement. |
-| `intercept`        | Swaps to `InterceptMovement` toward `target` entity. Speed from `metadata.speed` or entity-type default. status=INTERCEPTING. If `on_complete_action: orbit` is set with an `orbit_radius_nm`, the intercept radius is synced to the orbit radius so the two movements hand off without a radial snap. Preserves an existing `WaypointMovement` with >2 waypoints instead of replacing it. Requires `target`. |
+| `disembark`        | **Personnel only.** Teleports the actionee to the `embarked_on` carrier's position and sets heading to carrier's. If optional `onto:` metadata is set, teleports the actionee to *that* entity's position instead and assigns a `HoldStationMovement` with `hold_target: <onto>` so the actionee tracks the onto-entity. status=ACTIVE. |
+| `intercept`        | Swaps to `InterceptMovement` toward `target` entity. Speed from `metadata.speed` or entity-type default. status=INTERCEPTING. Intercept radius resolution: (1) `intercept_radius_nm` metadata wins; (2) else, if `on_complete_action: orbit` with `orbit_radius_nm`, sync to that; (3) else 500 m default. Preserves an existing `WaypointMovement` with >2 waypoints instead of replacing it. Requires `target`. |
 | `pursue`           | **Alias for `intercept`** — identical code path, kept for legacy scenarios. |
 | `deploy`, `respond`| Same as `transit` but preserves an existing `WaypointMovement` with >2 waypoints. status=RESPONDING. |
-| `search_area`, `patrol` | ⚠ **Almost a no-op.** Sets status=ACTIVE. No movement is assigned. |
 | `lockdown`, `secure`| Sets status=ACTIVE, speed=0. Deletes any existing movement — entity freezes in place. |
 | `activate`         | ⚠ **No-op.** Sets status=ACTIVE. |
 | `escort_to_port`   | Swaps to `TransitMovement` to **Sandakan (5.84, 118.105)** at half max speed. ⚠ Destination is hard-coded — only meaningful for ESSZONE scenarios. |
 | `reclassify`       | Changes `entity.entity_type` and `entity.sidc` to `metadata.new_type`'s values. Skips the normal upsert. |
-| `boarding`         | ⚠ **No-op.** Sets status=ACTIVE. Does not move the boarder onto the target, merge entities, or produce any visual effect. |
+| `search_area`, `patrol` | ⚠ **DEPRECATED + excluded from all domain whitelists.** Historically a near-no-op (only flipped status to ACTIVE). Use `behavior: patrol` at entity definition time for real patrol behaviour. The validator now rejects these as event actions. |
+| `boarding`         | ⚠ **DEPRECATED + excluded from all domain whitelists.** Historically a no-op; would fail the new per-domain validator. Use `alongside` for vessels or `disembark onto: <target>` for personnel transfer. The action handler logs a warning and does nothing. |
 | *(unknown)*        | Logs a debug message; sets status=ACTIVE. |
+
+### Per-domain action whitelist
+
+The validator rejects any event whose `action` or `on_complete_action` is not in the whitelist for the actionee entity's domain. Source: `DOMAIN_ACTIONS` in `simulator/scenario/loader.py`.
+
+| Domain | Allowed actions |
+|--------|-----------------|
+| `MARITIME`       | transit, orbit, hold_station, escape, approach, alongside, intercept, pursue, deploy, respond, escort_to_port, reclassify, lockdown, secure, activate |
+| `AIR`            | transit, orbit, hold_station, escape, approach, intercept, pursue, rtb, deploy, respond, reclassify, activate |
+| `PERSONNEL`      | transit, embark, disembark, hold_station, approach, escape, reclassify, activate, lockdown, secure |
+| `GROUND_VEHICLE` | transit, hold_station, escape, approach, rtb, deploy, respond, reclassify, activate |
 
 ### on_complete_action
 
@@ -231,15 +243,14 @@ on actions; never authored in scenarios.
 These are documented here because code behaviour matches them today. We have
 not changed them; flag them for separate discussion if they need fixing:
 
-1. **`boarding` action is a no-op.** Intent ("put boarders on target") is not
-   implemented. Piracy scenarios currently use `intercept` → `hold_station` to
-   park the boat alongside, which produces the expected visual without actually
-   merging the boarding party onto the target vessel.
-2. **`search_area` / `patrol` actions do nothing but flip status to ACTIVE.**
-   No search pattern is generated at runtime. The entity-level `behavior:
-   patrol` (at entity definition time) does run `PatrolMovement`, but once a
-   scenario fires an `action: patrol` event on that entity, no new search
-   pattern is produced.
+1. **`boarding` action is DEPRECATED + no-op.** Retained in the enum for legacy
+   compatibility but rejected by the per-domain validator. Use `alongside` for
+   vessel-to-vessel rafting; use `disembark onto: <target>` for moving
+   personnel onto a target entity.
+2. **`search_area` / `patrol` actions are DEPRECATED + no-ops.** Rejected by
+   the validator. The entity-level `behavior: patrol` (at entity definition
+   time) runs `PatrolMovement` — that's the right way to get a patrol
+   behaviour.
 3. **`escort_to_port` destination is hard-coded to Sandakan (5.84 N, 118.105 E).**
    Inherited from the ESSZONE scenarios; unsuitable for Malacca operations.
 4. **`disembark` produces no follow-on movement.** Disembarked entities are

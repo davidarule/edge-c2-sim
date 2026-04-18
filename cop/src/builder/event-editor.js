@@ -30,10 +30,9 @@ const TIME_RE = /^\d{2,}:\d{2}$/;
 // Map action types to the extra parameter fields they require.
 const ACTION_PARAMS = {
   intercept:   ['target'],
+  alongside:   ['target'],
   move_to:     ['destination'],
-  search:      ['search_area'],
   broadcast:   ['message'],
-  patrol:      ['patrol_area'],
   rtb:         [],
   hold:        [],
   ais_dark:    [],

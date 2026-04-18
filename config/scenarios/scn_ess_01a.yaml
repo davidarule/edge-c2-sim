@@ -197,6 +197,8 @@ scenario:
       alert_agencies: [MMEA]
       on_complete: >
         KM Sangitan alongside Trawler 1. Vietnamese flag, no permits.
+      on_complete_action: hold_station
+      hold_target: IFF-001
 
     - id: mpa_dispatch
       after: {event: intel_correlate, phase: initiate, offset: "00:04:00"}
@@ -228,6 +230,8 @@ scenario:
       alert_agencies: [MIL]
       on_complete: >
         G2000 Alpha intercepts Trawler 4 before international waters.
+      on_complete_action: hold_station
+      hold_target: IFF-004
 
     - id: semporna_divert
       after: {event: intel_correlate, phase: initiate, offset: "00:08:00"}
@@ -241,6 +245,8 @@ scenario:
       alert_agencies: [MMEA]
       on_complete: >
         KM Semporna stops Mothership — large illegal catch in hold.
+      on_complete_action: hold_station
+      hold_target: IFF-005
 
     - id: fi_launch
       after: {event: intel_correlate, phase: initiate, offset: "00:14:00"}
@@ -254,6 +260,8 @@ scenario:
       alert_agencies: [MMEA]
       on_complete: >
         Fast intercept stops Trawler 3 near Semporna sector.
+      on_complete_action: hold_station
+      hold_target: IFF-003
 
     - id: rmp_deploy
       after: {event: intel_correlate, phase: initiate, offset: "00:16:00"}
@@ -349,6 +357,8 @@ scenario:
       alert_agencies: [MIL]
       on_complete: >
         KD Keris intercepts Trawler 2. Vessel stopped.
+      on_complete_action: hold_station
+      hold_target: IFF-002
 
     # ========================================
     # PHASE 4: INTERCEPT STOPS & BOARDING

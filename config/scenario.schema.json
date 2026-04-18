@@ -190,25 +190,29 @@
 
     "Action": {
       "type": "string",
+      "description": "Event action dispatched to the actionee entity. Note: DEPRECATED values (boarding, patrol, search_area) are retained for v1_archive compatibility only — new scenarios must not use them; they are excluded from every domain's action whitelist. Use `alongside` for vessel-to-vessel approach and `disembark` (with optional onto:) for personnel transfer.",
       "enum": [
         "transit",
         "orbit",
         "hold_station",
+        "alongside",
         "intercept",
+        "pursue",
         "escape",
         "approach",
         "rtb",
+        "embark",
+        "disembark",
         "deploy",
         "respond",
-        "search_area",
-        "patrol",
         "lockdown",
         "secure",
         "activate",
         "escort_to_port",
         "reclassify",
         "boarding",
-        "disembark"
+        "search_area",
+        "patrol"
       ]
     },
 
@@ -216,12 +220,13 @@
       "type": "string",
       "enum": [
         "hold_station",
+        "alongside",
         "orbit",
         "rtb",
         "barrier",
         "escort"
       ],
-      "description": "Follow-on behavior after action completes"
+      "description": "Follow-on behavior after action completes. alongside is maritime-only — locks the entity's current geographic offset to the target."
     },
 
     "OrbitDirection": {
@@ -440,7 +445,9 @@
         "destination":       { "$ref": "#/$defs/Position", "description": "Target location (transit/deploy)" },
         "speed":             { "type": "number", "minimum": 0, "description": "Speed in knots" },
         "altitude_m":        { "type": "number", "minimum": 0, "description": "Altitude for air entities" },
-        "intercept_target":  { "type": "string", "description": "Entity ID to intercept" },
+        "intercept_target":  { "type": "string", "description": "DEPRECATED — use top-level `target`. Entity ID to intercept." },
+        "intercept_radius_nm": { "type": "number", "minimum": 0.01, "maximum": 10, "description": "Distance at which intercept completes. When both intercept_radius_nm and on_complete_action=orbit with orbit_radius_nm are set, intercept_radius_nm wins." },
+        "onto":              { "type": "string", "description": "disembark only: teleport disembarked entity to this entity's position (instead of carrier) and assign HoldStationMovement tracking it." },
         "orbit_center":      { "type": "string", "description": "Entity ID to orbit around" },
         "orbit_center_lat":  { "type": "number", "minimum": -90, "maximum": 90 },
         "orbit_center_lon":  { "type": "number", "minimum": -180, "maximum": 180 },
@@ -455,7 +462,7 @@
         "approach_distance_nm": { "type": "number", "minimum": 0, "default": 1.0 },
         "sidc_override":     { "type": "string", "minLength": 10, "maxLength": 20 },
         "callsign_override": { "type": "string" },
-        "boarding_target":   { "type": "string", "description": "Vessel being boarded" },
+        "boarding_target":   { "type": "string", "description": "DEPRECATED — boarding action is a no-op; use alongside for vessels or disembark (with onto:) for personnel." },
         "area":              { "type": "string", "description": "GeoJSON zone reference" }
       },
 

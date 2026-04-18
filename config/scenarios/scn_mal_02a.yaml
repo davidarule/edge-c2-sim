@@ -74,6 +74,19 @@ scenario:
         armed: true
         estimated_crew: 5
 
+    # Boarding party riding PIRATE-001. Hidden until `pirate_crew1_board`
+    # fires — then they appear on the tanker with a HOSTILE_PERSONNEL symbol.
+    - id: PIRATE-CREW-001
+      type: HOSTILE_PERSONNEL
+      callsign: Pirate Boarding Party
+      embarked_on: PIRATE-001
+      initial_position:
+        lat: 3.389
+        lon: 100.491
+      metadata:
+        personnel_count: 4
+        weapons: small_arms
+
     - id: MMEA-PV-001
       type: MMEA_PATROL
       callsign: KM Perantau
@@ -156,8 +169,7 @@ scenario:
       action: intercept
       target: TANKER-001
       speed: 25
-      on_complete_action: hold_station
-      hold_target: TANKER-001
+      on_complete_action: alongside
 
     - id: pirate2_sprint
       time: "00:05"
@@ -243,6 +255,23 @@ scenario:
       sidc_override: "10063000001400000000"
       callsign_override: Hostile Boat 2
 
+    # Boarding party disembarks from pirate skiff onto the tanker. The
+    # HOSTILE_PERSONNEL entity has been riding PIRATE-001 (hidden). After
+    # PIRATE-001 is alongside, the crew moves to the tanker and thereafter
+    # rides it — a hostile-personnel symbol appears on MT Labuan Palm.
+    - id: pirate_crew1_board
+      after: {event: pirates_aboard}
+      type: BOARDING
+      description: Pirate boarding party now on the tanker.
+      on_initiate: >
+        Pirate boarding party disembarks from Hostile Boat 1 onto
+        MT Labuan Palm. Four armed perpetrators on deck.
+      actionee: PIRATE-CREW-001
+      action: disembark
+      onto: TANKER-001
+      alert_agencies: [MMEA, MIL, RMP]
+      severity: CRITICAL
+
     # ========================================
     # PHASE 2: MULTI-AGENCY RESPONSE
     # (All triggered by confirmed boarding)
@@ -265,10 +294,11 @@ scenario:
         TUDM Caracal 1 scrambled from RMAF Subang. Confirmed armed
         boarding — FLIR and night observation priority.
       actionee: RMAF-HELI-001
-      action: transit
-      destination: {lat: 3.416, lon: 100.490}
+      action: intercept
+      target: TANKER-001
       speed: 150
       altitude_m: 150
+      intercept_radius_nm: 1.0       # closes to orbit radius, then hands off
       alert_agencies: [MMEA, MIL, RMP]
       on_complete: >
         TUDM Caracal 1 on scene. FLIR confirms tanker stationary.

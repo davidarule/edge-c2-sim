@@ -319,8 +319,19 @@ class EventEngine:
         source_event: ScenarioEvent, sim_time: datetime,
     ) -> None:
         """Apply a follow-on action after movement completion."""
-        if action == "hold_station":
-            hold_target = source_event.metadata.get("hold_target")
+        # The follow-on now drives the entity; nothing comes after it.
+        entity.current_action = action
+        entity.next_action = None
+
+        if action == "hold_station" or action == "alongside":
+            # alongside == hold_station with a hold_target; same movement class.
+            # For on_complete_action, hold_target may be the source event's target
+            # (intercept-complete → stay alongside that target) or an explicit
+            # hold_target override in metadata.
+            hold_target = (
+                source_event.metadata.get("hold_target")
+                or (source_event.target if action == "alongside" else None)
+            )
             self._movements[entity_id] = HoldStationMovement(
                 lat=entity.position.latitude,
                 lon=entity.position.longitude,
@@ -455,6 +466,10 @@ class EventEngine:
     ) -> None:
         """Apply an event action to a specific entity."""
         action = event.action
+        # Record the action chain for the detail-panel display. The status
+        # enum is still set by each branch below.
+        entity.current_action = action
+        entity.next_action = event.on_complete_action
 
         # === NEW V2 ACTIONS ===
 
@@ -611,8 +626,13 @@ class EventEngine:
             entity.speed_knots = cruise
 
         elif action == "disembark":
-            # Entity disembarks from carrier — update position to carrier's current location
-            carrier_id = entity.metadata.get("embarked_on")
+            # Personnel-only. Default: disembark back onto the carrier named
+            # in metadata.embarked_on (teleport to its position; no movement).
+            # If event.metadata.onto names a different entity, teleport to
+            # THAT entity and assign a HoldStationMovement tracking it so the
+            # disembarked personnel ride the onto-entity as it moves.
+            onto_id = event.metadata.get("onto")
+            carrier_id = onto_id or entity.metadata.get("embarked_on")
             if carrier_id:
                 carrier = self._entity_store.get_entity(carrier_id)
                 if carrier:
@@ -622,6 +642,18 @@ class EventEngine:
                         altitude_m=carrier.position.altitude_m,
                     )
                     entity.heading_deg = carrier.heading_deg
+                    if onto_id:
+                        # Ride the onto-entity — offset is effectively zero
+                        # at this instant, so personnel stay at target's pos.
+                        self._movements[target_id] = HoldStationMovement(
+                            lat=entity.position.latitude,
+                            lon=entity.position.longitude,
+                            alt_m=entity.position.altitude_m,
+                            heading_deg=entity.heading_deg,
+                            target_entity_id=onto_id,
+                            entity_store=self._entity_store,
+                        )
+                        entity.metadata["embarked_on"] = onto_id
             entity.status = EntityStatus.ACTIVE
 
         # === LEGACY ACTIONS (backward compatible) ===
@@ -640,10 +672,16 @@ class EventEngine:
                     "speed",
                     _get_action_speed(entity.entity_type, "intercept") or _get_max_speed(entity.entity_type),
                 )
-                # Sync intercept radius to the handoff orbit radius so the
-                # entity doesn't snap radially when the two movements swap.
+                # Resolve intercept radius. Explicit intercept_radius_nm on
+                # the event wins; otherwise, if on_complete_action is an
+                # orbit with orbit_radius_nm set, sync to that to avoid a
+                # radial snap at handoff.
                 intercept_kwargs = {}
-                if (event.on_complete_action == "orbit"
+                if event.metadata.get("intercept_radius_nm") is not None:
+                    intercept_kwargs["intercept_radius_m"] = (
+                        event.metadata["intercept_radius_nm"] * 1852
+                    )
+                elif (event.on_complete_action == "orbit"
                         and event.metadata.get("orbit_radius_nm") is not None):
                     orbit_radius_m = event.metadata["orbit_radius_nm"] * 1852
                     intercept_kwargs["intercept_radius_m"] = orbit_radius_m
@@ -729,7 +767,28 @@ class EventEngine:
                 self._apply_reclassify({"targets": [target_id], "new_type": new_type})
             return
 
+        elif action == "alongside":
+            # Maritime-only: come alongside target, locking in the current
+            # geographic offset so the entity rides the target as it moves.
+            hold_target = event.target or event.metadata.get("hold_target")
+            self._movements[target_id] = HoldStationMovement(
+                lat=entity.position.latitude,
+                lon=entity.position.longitude,
+                alt_m=entity.position.altitude_m,
+                heading_deg=entity.heading_deg,
+                target_entity_id=hold_target,
+                entity_store=self._entity_store,
+            )
+            entity.speed_knots = 0
+            entity.status = EntityStatus.ACTIVE
+
         elif action == "boarding":
+            # DEPRECATED — use `alongside` for vessel-to-vessel approach, or
+            # `disembark` (with optional `onto:`) for personnel transfer.
+            logger.warning(
+                f"Event action 'boarding' is deprecated (entity {target_id}). "
+                f"Use 'alongside' for vessels or 'disembark onto' for personnel."
+            )
             entity.status = EntityStatus.ACTIVE
 
         else:

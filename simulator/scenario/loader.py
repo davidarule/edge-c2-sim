@@ -27,6 +27,33 @@ logger = logging.getLogger(__name__)
 # Default scenario start time (DSA 2026 demo)
 DEFAULT_START = datetime(2026, 4, 15, 8, 0, 0, tzinfo=timezone.utc)
 
+
+# Per-domain action whitelist.
+# An action/on_complete_action on an event whose actionee is in a given domain
+# must be in this set; otherwise the validator emits an error. The `boarding`,
+# `patrol`, and `search_area` actions are intentionally absent — see
+# docs/scenario-schema.md (they're DEPRECATED and are no-ops at runtime).
+DOMAIN_ACTIONS: dict[Any, frozenset[str]] = {
+    "MARITIME": frozenset({
+        "transit", "orbit", "hold_station", "escape", "approach",
+        "alongside", "intercept", "pursue", "deploy", "respond",
+        "escort_to_port", "reclassify", "lockdown", "secure", "activate",
+    }),
+    "AIR": frozenset({
+        "transit", "orbit", "hold_station", "escape", "approach",
+        "intercept", "pursue", "rtb", "deploy", "respond", "reclassify",
+        "activate",
+    }),
+    "PERSONNEL": frozenset({
+        "transit", "embark", "disembark", "hold_station", "approach",
+        "escape", "reclassify", "activate", "lockdown", "secure",
+    }),
+    "GROUND_VEHICLE": frozenset({
+        "transit", "hold_station", "escape", "approach", "rtb",
+        "deploy", "respond", "reclassify", "activate",
+    }),
+}
+
 # Entity type definitions: type_name -> (domain, default_agency, speed_range, sidc_prefix)
 ENTITY_TYPES: dict[str, dict[str, Any]] = {
     "SUSPECT_VESSEL": {

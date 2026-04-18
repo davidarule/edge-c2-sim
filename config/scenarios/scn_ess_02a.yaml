@@ -452,6 +452,8 @@ scenario:
       on_complete: >
         G2000 Bravo intercepts Speedboat 2 — militants surrender
         after warning shots. 4 hostages recovered alive.
+      on_complete_action: hold_station
+      hold_target: HOSTILE-002
 
     - id: g2000c_intercept
       after: {event: hostile1_escape, phase: initiate, offset: "00:10:00"}
@@ -466,6 +468,8 @@ scenario:
       on_complete: >
         G2000 Charlie intercepts Speedboat 1 near boundary. Militants
         cornered by G2000 + EC725 overhead. Hostages released.
+      on_complete_action: hold_station
+      hold_target: HOSTILE-001
 
     # ========================================
     # PHASE 5: SECURING & RESOLUTION

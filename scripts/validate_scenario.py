@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-from simulator.scenario.loader import ENTITY_TYPES, ScenarioLoader
+from simulator.scenario.loader import DOMAIN_ACTIONS, ENTITY_TYPES, ScenarioLoader
 
 
 def validate(scenario_path: str) -> bool:
@@ -58,6 +58,7 @@ def validate(scenario_path: str) -> bool:
     # Scenario entities
     scenario_entities = scenario.get("scenario_entities", [])
     entity_ids = set()
+    entity_types: dict[str, str] = {}
     type_errors = []
     coord_errors = []
 
@@ -66,8 +67,10 @@ def validate(scenario_path: str) -> bool:
         entity_ids.add(eid)
 
         etype = entry.get("type")
-        if etype and etype not in ENTITY_TYPES:
-            type_errors.append(f"Unknown type '{etype}' for {eid}")
+        if etype:
+            entity_types[eid] = etype
+            if etype not in ENTITY_TYPES:
+                type_errors.append(f"Unknown type '{etype}' for {eid}")
 
         for j, wp in enumerate(entry.get("waypoints", [])):
             lat = wp.get("lat", 0)
@@ -118,17 +121,18 @@ def validate(scenario_path: str) -> bool:
     # Events
     events = scenario.get("events", [])
     event_errors = []
-    prev_time = "00:00"
+    action_errors = []
     for i, evt in enumerate(events):
-        time_str = evt.get("time", "")
+        time_str = evt.get("time") or (evt.get("after") and f"after:{evt['after'].get('event') if isinstance(evt['after'], dict) else evt['after']}") or f"event#{i}"
 
-        # Check entity references
-        target = evt.get("target")
-        if target and target not in entity_ids:
-            event_errors.append(
-                f"Event at {time_str} references entity '{target}' "
-                f"which is not in scenario_entities"
-            )
+        # Check entity references (both actionee and intercept-target)
+        for field_name in ("actionee", "target"):
+            ref = evt.get(field_name)
+            if ref and ref not in entity_ids:
+                event_errors.append(
+                    f"Event at {time_str} references entity '{ref}' "
+                    f"(via {field_name}) which is not in scenario_entities"
+                )
         for t_id in evt.get("targets", []):
             if t_id not in entity_ids:
                 event_errors.append(
@@ -136,11 +140,37 @@ def validate(scenario_path: str) -> bool:
                     f"which is not in scenario_entities"
                 )
 
+        # Domain-whitelist check for actions
+        actionee = evt.get("actionee")
+        if not actionee:
+            targets_list = evt.get("targets") or []
+            if targets_list:
+                actionee = targets_list[0]
+        if actionee and actionee in entity_types:
+            etype = entity_types[actionee]
+            type_def = ENTITY_TYPES.get(etype, {})
+            domain = type_def.get("domain")
+            domain_key = domain.value if domain is not None else None
+            allowed = DOMAIN_ACTIONS.get(domain_key, frozenset())
+            for field_name in ("action", "on_complete_action"):
+                val = evt.get(field_name)
+                if val and val not in allowed:
+                    action_errors.append(
+                        f"Event at {time_str}: {field_name} '{val}' is not "
+                        f"permitted for entity type {etype} (domain {domain_key}). "
+                        f"Allowed: {sorted(allowed)}"
+                    )
+
     if not event_errors:
         print(f"  \u2713 {len(events)} events in chronological order")
         print(f"  \u2713 All entity references in events exist")
     else:
         for err in event_errors:
+            print(f"  \u2717 {err}")
+    if not action_errors:
+        print(f"  \u2713 All actions permitted for their actionee domain")
+    else:
+        for err in action_errors:
             print(f"  \u2717 {err}")
 
     # GeoJSON references
@@ -166,7 +196,7 @@ def validate(scenario_path: str) -> bool:
             print(f"  \u2717 {err}")
 
     # Summary
-    all_errors = missing + type_errors + event_errors + coord_errors
+    all_errors = missing + type_errors + event_errors + coord_errors + action_errors
     # Route warnings don't count as errors
     critical_bg = [e for e in bg_errors if "warning" not in e.lower()]
     all_errors.extend(critical_bg)

@@ -86,6 +86,11 @@ class Entity:
     metadata: dict[str, Any] = field(default_factory=dict)
     initial_position: Position | None = None
     spawn_at: timedelta | None = None
+    # Descriptive action labels shown in the COP detail panel alongside
+    # `status`. `current_action` is the action currently driving movement;
+    # `next_action` is the on_complete_action queued to fire after it.
+    current_action: str | None = None
+    next_action: str | None = None
 
     def update_position(
         self,
@@ -122,6 +127,8 @@ class Entity:
             "status": self.status.value,
             "sidc": self.sidc,
             "metadata": self.metadata,
+            "current_action": self.current_action,
+            "next_action": self.next_action,
             **({"initial_position": self.initial_position.to_dict()} if self.initial_position else {}),
         }
 
@@ -143,4 +150,6 @@ class Entity:
             sidc=d.get("sidc", ""),
             metadata=d.get("metadata", {}),
             initial_position=Position.from_dict(d["initial_position"]) if d.get("initial_position") else None,
+            current_action=d.get("current_action"),
+            next_action=d.get("next_action"),
         )

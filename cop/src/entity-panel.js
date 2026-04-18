@@ -40,6 +40,10 @@ export function initEntityPanel(containerId, entityManager, viewer) {
         <div class="entity-detail-status" style="color: ${statusColor}">
           ${entity.status || 'UNKNOWN'}
         </div>
+        ${entity.current_action ? `
+        <div class="entity-detail-action">
+          ${entity.current_action}${entity.next_action ? ` → ${entity.next_action}` : ''}
+        </div>` : ''}
 
         <div class="detail-section">
           <div class="detail-section-title">Position</div>
@@ -263,6 +267,24 @@ export function initEntityPanel(containerId, entityManager, viewer) {
     if (statusEl) {
       statusEl.textContent = entity.status || 'UNKNOWN';
       statusEl.style.color = getStatusColor(entity.status);
+    }
+
+    // Action-chain line (current_action → next_action)
+    let actionEl = container.querySelector('.entity-detail-action');
+    if (entity.current_action) {
+      const label = entity.next_action
+        ? `${entity.current_action} → ${entity.next_action}`
+        : entity.current_action;
+      if (actionEl) {
+        actionEl.textContent = label;
+      } else if (statusEl) {
+        actionEl = document.createElement('div');
+        actionEl.className = 'entity-detail-action';
+        actionEl.textContent = label;
+        statusEl.insertAdjacentElement('afterend', actionEl);
+      }
+    } else if (actionEl) {
+      actionEl.remove();
     }
   }
 
