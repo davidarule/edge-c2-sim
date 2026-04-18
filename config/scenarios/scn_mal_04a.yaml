@@ -33,7 +33,7 @@ scenario:
   scenario_entities:
 
     # TUDM Peregrine 2 — MPA on patrol, detects contact
-    - id: RMN-MPA-001
+    - id: RMAF-MPA-001
       type: RMAF_MPA
       callsign: TUDM Peregrine 2
       agency: RMAF
@@ -49,7 +49,7 @@ scenario:
         sensors: [MAD_boom, sonobuoys, APS-143_radar, FLIR]
 
     # TUDM Peregrine 3 — second MPA, standby at Subang
-    - id: RMN-MPA-002
+    - id: RMAF-MPA-002
       type: RMAF_MPA
       callsign: TUDM Peregrine 3
       agency: RMAF
@@ -133,12 +133,12 @@ scenario:
         TUDM Peregrine 2: MAD ALERT — Magnetic Anomaly Detection
         triggered. Bearing 235°, range 2nm. Signature consistent with
         large ferrous mass at shallow depth. Executing contact protocol.
-      source: RMN-MPA-001
+      source: RMAF-MPA-001
       position: {lat: 5.220, lon: 99.890}
       alert_agencies: [RMAF, MIL]
       severity: WARNING
       # MPA begins prosecution — orbit the contact
-      target: RMN-MPA-001
+      target: RMAF-MPA-001
       action: orbit
       orbit_center: CONTACT-001
       orbit_radius_nm: 2.0
@@ -154,7 +154,7 @@ scenario:
         Contact moving SE at 8-9 knots. Datum established 5.21°N
         99.91°E. No submarine transit notification on file. Classify
         UNKNOWN SUBMARINE CONTACT ALPHA.
-      source: RMN-MPA-001
+      source: RMAF-MPA-001
       position: {lat: 5.210, lon: 99.912}
       alert_agencies: [RMAF, MIL]
       severity: CRITICAL
@@ -200,7 +200,7 @@ scenario:
       on_initiate: >
         TUDM Peregrine 3 scrambled from RMAF Subang. Fresh sonobuoys
         and full fuel. ETA ~40 minutes.
-      target: RMN-MPA-002
+      target: RMAF-MPA-002
       action: transit
       destination: {lat: 5.145, lon: 99.825}
       speed: 220
@@ -242,7 +242,7 @@ scenario:
         Peregrine 2 LOFAR: narrowband propulsion signature suggests
         Type 209 or similar. Regional operators: Indonesia (Nagapasa),
         Singapore (Archer), Myanmar. Indonesia most probable.
-      source: RMN-MPA-001
+      source: RMAF-MPA-001
       alert_agencies: [MIL]
       severity: WARNING
 
@@ -254,7 +254,7 @@ scenario:
         Contact tracked by sonobuoy pattern. Speed 8kn, heading
         095-105° SE. Depth 40-55m — periscope depth regime. Contact
         likely unaware of prosecution.
-      source: RMN-MPA-001
+      source: RMAF-MPA-001
       position: {lat: 5.168, lon: 99.975}
       alert_agencies: [MIL]
 
