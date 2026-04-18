@@ -226,7 +226,15 @@ class InterceptMovement:
         # Lead pursuit: project target position forward
         aim_lat, aim_lon = t_lat, t_lon
         if self._lead_pursuit and target.speed_knots > 0:
-            closing_speed_knots = max(self._speed - target.speed_knots * 0.5, 1.0)
+            # Geometric closing speed: pursuer_speed minus target's velocity
+            # component along the pursuer→target axis. If target is fleeing
+            # along that axis, component is positive (subtracts). If target is
+            # closing on the pursuer, component is negative (adds).
+            bearing_pt = _initial_bearing(p_lat, p_lon, t_lat, t_lon)
+            angle_diff_rad = math.radians(target.course_deg - bearing_pt)
+            target_axis_component = target.speed_knots * math.cos(angle_diff_rad)
+            closing_speed_knots = max(self._speed - target_axis_component, 1.0)
+
             dist_nm = dist_m / 1852.0
             time_to_intercept_h = dist_nm / closing_speed_knots
             time_to_intercept_s = time_to_intercept_h * 3600
