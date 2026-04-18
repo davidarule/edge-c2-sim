@@ -15,6 +15,7 @@ from datetime import datetime
 from geopy.distance import geodesic
 
 from simulator.core.entity_store import EntityStore
+from simulator.movement.orbit import tangent_orbit_params
 from simulator.movement.waypoint import MovementState, _initial_bearing
 
 # Lazy-loaded terrain validation for coastal avoidance
@@ -73,6 +74,7 @@ class InterceptMovement:
         self._orbit_center_lat: float | None = None
         self._orbit_center_lon: float | None = None
         self._orbit_heading: float = 0.0
+        self._orbit_initialized: bool = False
 
     def _is_maritime(self) -> bool:
         """Check if pursuer is a maritime entity (needs coastal avoidance)."""
@@ -95,6 +97,16 @@ class InterceptMovement:
             dt_s = (sim_time - self._last_sim_time).total_seconds()
         else:
             dt_s = 0.0
+
+        # Seed orbit heading from pursuer's current bearing to the centre so the
+        # first orbit target lies in the aircraft's existing direction instead of
+        # due north of the centre.
+        if not self._orbit_initialized:
+            dy = p_lat - center_lat
+            dx = (p_lon - center_lon) * math.cos(math.radians(center_lat))
+            if dx != 0 or dy != 0:
+                self._orbit_heading = math.degrees(math.atan2(dx, dy)) % 360.0
+            self._orbit_initialized = True
 
         # Advance orbit heading (clockwise)
         self._orbit_heading = (self._orbit_heading + _ORBIT_RATE_DEG_S * dt_s) % 360.0
@@ -157,11 +169,18 @@ class InterceptMovement:
         if target is None:
             # Target removed
             if self._min_speed > 0:
-                # Fixed-wing: orbit last known position
+                # Fixed-wing: orbit tangent to current heading so the aircraft
+                # continues in its current direction instead of teleporting to
+                # a point on a circle centred on itself.
                 if self._orbit_center_lat is None:
-                    self._orbit_center_lat = p_lat
-                    self._orbit_center_lon = p_lon
-                    self._orbit_heading = self._last_heading
+                    c_lat, c_lon, init_angle = tangent_orbit_params(
+                        p_lat, p_lon, self._last_heading,
+                        _ORBIT_RADIUS_M, direction="CW",
+                    )
+                    self._orbit_center_lat = c_lat
+                    self._orbit_center_lon = c_lon
+                    self._orbit_heading = init_angle
+                    self._orbit_initialized = True
                 return self._orbit_state(
                     p_lat, p_lon, p_alt,
                     self._orbit_center_lat, self._orbit_center_lon,

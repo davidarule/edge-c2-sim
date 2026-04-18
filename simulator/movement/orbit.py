@@ -13,6 +13,38 @@ from datetime import datetime
 from simulator.movement.waypoint import MovementState
 
 
+def tangent_orbit_params(
+    entity_lat: float,
+    entity_lon: float,
+    heading_deg: float,
+    radius_m: float,
+    direction: str = "CW",
+) -> tuple[float, float, float]:
+    """Compute orbit centre and initial angle so the entity begins on the circle
+    with its current heading tangent to it.
+
+    Prevents the teleport when a moving entity transitions into an orbit —
+    instead of jumping radius-metres to an arbitrary arc, the entity stays
+    where it is and the circle passes through its position with the correct
+    tangent direction.
+
+    Returns (centre_lat, centre_lon, initial_heading_deg).
+    """
+    if direction == "CW":
+        bearing_to_centre = (heading_deg + 90.0) % 360.0
+        position_angle = (heading_deg - 90.0) % 360.0
+    else:  # CCW
+        bearing_to_centre = (heading_deg - 90.0) % 360.0
+        position_angle = (heading_deg + 90.0) % 360.0
+
+    b_rad = math.radians(bearing_to_centre)
+    d_lat = (radius_m * math.cos(b_rad)) / 111_111.0
+    d_lon = (radius_m * math.sin(b_rad)) / (
+        111_111.0 * max(math.cos(math.radians(entity_lat)), 0.01)
+    )
+    return entity_lat + d_lat, entity_lon + d_lon, position_angle
+
+
 class OrbitMovement:
     """Fly/sail a circular orbit pattern."""
 

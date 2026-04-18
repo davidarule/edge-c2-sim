@@ -62,13 +62,14 @@ class ApproachMovement:
             (self._lat, self._lon), (dest_lat, dest_lon)
         ).nautical
 
-        # Check arrival
+        # Check arrival — hold at current position, don't snap to destination
         if dist_nm <= self._ARRIVAL_THRESHOLD_NM:
             self._arrived = True
+            heading = _initial_bearing(self._lat, self._lon, dest_lat, dest_lon)
             return MovementState(
-                lat=dest_lat, lon=dest_lon, alt_m=self._alt,
-                heading_deg=_initial_bearing(self._lat, self._lon, dest_lat, dest_lon),
-                speed_knots=self._final_speed, course_deg=0.0,
+                lat=self._lat, lon=self._lon, alt_m=self._alt,
+                heading_deg=heading,
+                speed_knots=self._final_speed, course_deg=heading,
             )
 
         # Interpolate speed: linear from initial at approach_dist to final at 0
