@@ -640,12 +640,20 @@ class EventEngine:
                     "speed",
                     _get_action_speed(entity.entity_type, "intercept") or _get_max_speed(entity.entity_type),
                 )
+                # Sync intercept radius to the handoff orbit radius so the
+                # entity doesn't snap radially when the two movements swap.
+                intercept_kwargs = {}
+                if (event.on_complete_action == "orbit"
+                        and event.metadata.get("orbit_radius_nm") is not None):
+                    orbit_radius_m = event.metadata["orbit_radius_nm"] * 1852
+                    intercept_kwargs["intercept_radius_m"] = orbit_radius_m
                 self._movements[target_id] = InterceptMovement(
                     entity_speed_knots=speed,
                     target_entity_id=event.intercept_target,
                     entity_store=self._entity_store,
                     pursuer_entity_id=target_id,
                     min_speed_knots=0,
+                    **intercept_kwargs,
                 )
                 entity.speed_knots = speed
 
