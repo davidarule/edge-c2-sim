@@ -55,8 +55,8 @@ class TestInterceptOrbitHandoff:
             id="pirate2_sprint",
             time_offset=timedelta(0),
             event_type="DETECTION", description="pirate sprint",
-            target="PIRATE", action="intercept",
-            intercept_target="TANKER",
+            actionee="PIRATE", action="intercept",
+            target="TANKER",
             on_complete_action="orbit",
             metadata={
                 "orbit_center": "TANKER",
@@ -111,8 +111,8 @@ class TestInterceptOrbitHandoff:
             id="pirate2_sprint",
             time_offset=timedelta(0),
             event_type="DETECTION", description="pirate sprint",
-            target="PIRATE", action="intercept",
-            intercept_target="TANKER",
+            actionee="PIRATE", action="intercept",
+            target="TANKER",
             on_complete_action="orbit",
             metadata={
                 "orbit_center": "TANKER",

@@ -89,9 +89,9 @@ class TestEventEngine:
                 time_offset=timedelta(minutes=5),
                 event_type="ORDER",
                 description="Intercept",
-                target="MMEA-1",
+                actionee="MMEA-1",
                 action="intercept",
-                intercept_target="TARGET-1",
+                target="TARGET-1",
             ),
         ]
         engine = EventEngine(events, store, movements, start_time)
@@ -116,7 +116,7 @@ class TestEventEngine:
                 time_offset=timedelta(minutes=5),
                 event_type="ORDER",
                 description="Deploy",
-                target="UNIT-1",
+                actionee="UNIT-1",
                 action="deploy",
                 destination={"lat": 5.5, "lon": 118.5},
             ),
@@ -246,9 +246,9 @@ class TestEventEngine:
                 time_offset=timedelta(minutes=5),
                 event_type="ORDER",
                 description="Pursue",
-                target="HELI-1",
+                actionee="HELI-1",
                 action="pursue",
-                intercept_target="BAD-1",
+                target="BAD-1",
             ),
         ]
         engine = EventEngine(events, store, movements, start_time)

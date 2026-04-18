@@ -1,4 +1,5 @@
 # SCN-MAL-01A: AIS Dark Target Intercept
+# Schema reference: docs/scenario-schema.md
 # Version: 2.0
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
@@ -147,7 +148,7 @@ scenario:
       on_initiate: >
         AIS LOSS — MV Hai Long 7. Last known position 2.70°N 102.36°E.
         No distress signal. Vessel went deliberately dark.
-      target: SUSPECT-001
+      actionee: SUSPECT-001
       alert_agencies: [MMEA]
       severity: WARNING
 
@@ -190,7 +191,7 @@ scenario:
         and KM Marlin converge on dark contact at best speed.
       targets: [MMEA-FI-001, MMEA-PV-001]
       action: intercept
-      intercept_target: SUSPECT-001
+      target: SUSPECT-001
       alert_agencies: [MMEA]
 
     - id: mpa_scramble
@@ -200,7 +201,7 @@ scenario:
       on_initiate: >
         RMAF maritime patrol support requested. TUDM Peregrine 1
         scrambled from Subang — ETA on scene ~19 minutes.
-      target: RMAF-MPA-001
+      actionee: RMAF-MPA-001
       action: transit
       destination: {lat: 2.58, lon: 102.10}
       speed: 220
@@ -220,7 +221,7 @@ scenario:
       on_initiate: >
         MMEA notifies RMN. KD Keris directed to establish southern
         blocking position — cut off retreat toward Riau Islands.
-      target: RMN-PV-001
+      actionee: RMN-PV-001
       action: transit
       destination: {lat: 2.30, lon: 102.00}
       speed: 25
@@ -236,7 +237,7 @@ scenario:
       on_initiate: >
         RMP Marine Police boarding team deployed from Port Klang.
         PDRM Marine Klang 01 underway with eight-man boarding party.
-      target: RMP-MP-001
+      actionee: RMP-MP-001
       action: transit
       destination: {lat: 2.55, lon: 102.08}
       speed: 35
@@ -255,7 +256,7 @@ scenario:
       on_initiate: >
         MMEA radar: dark contact speed increased to ~15 knots —
         evasion profile. Heading unchanged NW.
-      target: SUSPECT-001
+      actionee: SUSPECT-001
       action: escape
       bearing_deg: 315
       speed: 15
@@ -295,7 +296,7 @@ scenario:
       alert_agencies: [MMEA, RMP]
       severity: WARNING
       # Suspect forced to slow down
-      target: SUSPECT-001
+      actionee: SUSPECT-001
       action: approach
       approach_target: MMEA-FI-001
       final_speed: 2
@@ -313,7 +314,7 @@ scenario:
         KM Penggalang alongside MV Hai Long 7. Vessel hove to.
         Master on bridge wing. MMEA officers conducting initial
         inspection.
-      target: SUSPECT-001
+      actionee: SUSPECT-001
       action: hold_station
       alert_agencies: [MMEA]
 
@@ -324,7 +325,7 @@ scenario:
       on_initiate: >
         KM Marlin on scene. RMP Marine Police boarding team
         transferring via RHIB. KD Keris holding southern position.
-      target: MMEA-PV-001
+      actionee: MMEA-PV-001
       action: hold_station
       hold_target: SUSPECT-001
       alert_agencies: [MMEA, MIL, RMP]
@@ -337,7 +338,7 @@ scenario:
         PDRM Marine Klang 01 alongside. Eight-man RMP boarding team
         cross-decks via RHIB. Master and crew mustered on deck.
         Vessel documents and cargo manifests demanded.
-      target: RMP-MP-001
+      actionee: RMP-MP-001
       action: hold_station
       hold_target: SUSPECT-001
       alert_agencies: [MMEA, RMP]

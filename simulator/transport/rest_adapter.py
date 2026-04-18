@@ -343,8 +343,10 @@ class RESTAdapter(TransportAdapter):
         }
         if "position" in event:
             payload["position"] = event["position"]
-        if "target" in event:
-            payload["target_entity_id"] = event["target"]
+        # "actionee" = entity performing/experiencing the event; external API
+        # historically calls this target_entity_id.
+        if "actionee" in event:
+            payload["target_entity_id"] = event["actionee"]
         if "alert_agencies" in event:
             payload["agencies_involved"] = event["alert_agencies"]
         return payload

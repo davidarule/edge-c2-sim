@@ -301,10 +301,10 @@ function eventToYAML(evt) {
     // Severity
     if (evt.severity) out.severity = evt.severity;
 
-    // Target(s)
+    // Actionee(s): primary entity the event pertains to
     if (evt.targets && evt.targets.length > 0) {
         if (evt.targets.length === 1) {
-            out.target = evt.targets[0];
+            out.actionee = evt.targets[0];
         } else {
             out.targets = [...evt.targets];
         }
@@ -314,7 +314,7 @@ function eventToYAML(evt) {
     if (evt.actions && evt.actions.length > 0) {
         const primary = evt.actions[0];
         if (primary.action) out.action = primary.action;
-        if (primary.intercept_target) out.intercept_target = primary.intercept_target;
+        if (primary.target) out.target = primary.target;
         if (primary.destination) {
             out.destination = {
                 lat: cleanNumber(primary.destination.latitude != null ? primary.destination.latitude : primary.destination.lat),
@@ -326,7 +326,7 @@ function eventToYAML(evt) {
     } else if (evt.action) {
         // Direct action field (already flat)
         out.action = evt.action;
-        if (evt.intercept_target) out.intercept_target = evt.intercept_target;
+        if (evt.target) out.target = evt.target;
         if (evt.destination) out.destination = evt.destination;
         if (evt.area) out.area = evt.area;
         if (evt.escort) out.escort = evt.escort;
@@ -367,11 +367,14 @@ function eventFromYAML(yamlEvt) {
         source: yamlEvt.source || null,
     };
 
-    // Targets — normalize single target to array
-    if (yamlEvt.targets && Array.isArray(yamlEvt.targets)) {
+    // Actionees — builder state stores primary entity IDs in an array.
+    // Prefer the new `actionee:` key; fall back to `targets:` list or
+    // (for forward-compat reading) `target:` if only an intercept-target
+    // appears without an explicit actionee.
+    if (yamlEvt.actionee) {
+        evt.targets = [yamlEvt.actionee];
+    } else if (yamlEvt.targets && Array.isArray(yamlEvt.targets)) {
         evt.targets = [...yamlEvt.targets];
-    } else if (yamlEvt.target) {
-        evt.targets = [yamlEvt.target];
     }
 
     // Position
@@ -385,7 +388,7 @@ function eventFromYAML(yamlEvt) {
     // Actions — reconstruct structured action from flat YAML fields
     if (yamlEvt.action) {
         const action = { action: yamlEvt.action };
-        if (yamlEvt.intercept_target) action.intercept_target = yamlEvt.intercept_target;
+        if (yamlEvt.target) action.target = yamlEvt.target;
         if (yamlEvt.destination) {
             action.destination = {
                 latitude: yamlEvt.destination.lat,

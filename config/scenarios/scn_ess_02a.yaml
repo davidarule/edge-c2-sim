@@ -1,4 +1,5 @@
 # SCN-ESS-02A: Kidnapping-for-Ransom Response — Semporna
+# Schema reference: docs/scenario-schema.md
 # Version: 2.0
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
@@ -222,7 +223,7 @@ scenario:
         contacts.
       targets: [RMP-MP-201, RMP-MP-202, RMP-MP-203]
       action: intercept
-      intercept_target: HOSTILE-001
+      target: HOSTILE-001
       alert_agencies: [RMP]
 
     - id: rmn_scramble
@@ -231,9 +232,9 @@ scenario:
       description: RMN fast interceptor scrambled from Semporna.
       on_initiate: >
         RMN G2000 Bravo scrambled from Semporna naval detachment.
-      target: RMN-FIC-201
+      actionee: RMN-FIC-201
       action: intercept
-      intercept_target: HOSTILE-001
+      target: HOSTILE-001
       alert_agencies: [MIL]
 
     # ========================================
@@ -284,7 +285,7 @@ scenario:
       description: GOF Team Bravo deploys from Semporna.
       on_initiate: >
         GOF Team Bravo scrambled from Semporna to Pulau Bum Bum.
-      target: RMP-GOF-202
+      actionee: RMP-GOF-202
       action: transit
       destination: {lat: 4.47, lon: 118.66}
       speed: 25
@@ -297,7 +298,7 @@ scenario:
       on_initiate: >
         RMAF EC725 Hunter dispatched from Lahad Datu for armed
         aerial surveillance over Semporna.
-      target: RMAF-HELI-201
+      actionee: RMAF-HELI-201
       action: transit
       destination: {lat: 4.47, lon: 118.66}
       speed: 120
@@ -316,7 +317,7 @@ scenario:
       on_initiate: >
         RMAF Blackhawk dispatched to airlift GOF Team Alpha from
         Sandakan to Semporna staging area.
-      target: RMAF-HELI-202
+      actionee: RMAF-HELI-202
       action: transit
       destination: {lat: 5.84, lon: 118.07}
       speed: 120
@@ -340,7 +341,7 @@ scenario:
       description: KD Jerong blocks northern escape.
       on_initiate: >
         KD Jerong diverted to block northern escape route.
-      target: RMN-PV-201
+      actionee: RMN-PV-201
       action: transit
       destination: {lat: 4.60, lon: 118.80}
       speed: 22
@@ -353,7 +354,7 @@ scenario:
       description: G2000 Charlie from Sandakan heading south.
       on_initiate: >
         G2000 Charlie from MAWILLA 2 Sandakan — full speed south.
-      target: RMN-FIC-202
+      actionee: RMN-FIC-202
       action: transit
       destination: {lat: 4.60, lon: 118.80}
       speed: 35
@@ -376,7 +377,7 @@ scenario:
       on_initiate: >
         RMAF MPA Eagle launched from Labuan for wide-area maritime
         surveillance of Sulu Sea approaches.
-      target: RMAF-MPA-201
+      actionee: RMAF-MPA-201
       action: transit
       destination: {lat: 4.70, lon: 118.90}
       speed: 220
@@ -406,7 +407,7 @@ scenario:
       on_initiate: >
         Speedboat 1 heading NE at 28 knots toward international
         boundary. Hostages aboard.
-      target: HOSTILE-001
+      actionee: HOSTILE-001
       action: escape
       bearing_deg: 45
       speed: 28
@@ -420,7 +421,7 @@ scenario:
       on_initiate: >
         Speedboat 2 departing — heading NE at 25 knots. Second
         group of hostages.
-      target: HOSTILE-002
+      actionee: HOSTILE-002
       action: escape
       bearing_deg: 50
       speed: 25
@@ -433,9 +434,9 @@ scenario:
       description: EC725 breaks orbit to pursue fleeing boats.
       on_initiate: >
         EC725 Hunter breaking orbit — pursuing fleeing speedboats.
-      target: RMAF-HELI-201
+      actionee: RMAF-HELI-201
       action: intercept
-      intercept_target: HOSTILE-001
+      target: HOSTILE-001
       alert_agencies: [RMAF]
 
     - id: g2000b_pursue
@@ -444,9 +445,9 @@ scenario:
       description: G2000 Bravo pursues Speedboat 2.
       on_initiate: >
         G2000 Bravo in pursuit of Speedboat 2.
-      target: RMN-FIC-201
+      actionee: RMN-FIC-201
       action: intercept
-      intercept_target: HOSTILE-002
+      target: HOSTILE-002
       alert_agencies: [MIL]
       on_complete: >
         G2000 Bravo intercepts Speedboat 2 — militants surrender
@@ -458,9 +459,9 @@ scenario:
       description: G2000 Charlie intercepts Speedboat 1 near boundary.
       on_initiate: >
         G2000 Charlie on high-speed intercept — closing from north.
-      target: RMN-FIC-202
+      actionee: RMN-FIC-202
       action: intercept
-      intercept_target: HOSTILE-001
+      target: HOSTILE-001
       alert_agencies: [MIL]
       on_complete: >
         G2000 Charlie intercepts Speedboat 1 near boundary. Militants
@@ -477,7 +478,7 @@ scenario:
       on_initiate: >
         GOF Team Alpha arrives at Semporna staging — secures
         detained militants from Speedboat 2.
-      target: RMAF-HELI-202
+      actionee: RMAF-HELI-202
       action: transit
       destination: {lat: 4.48, lon: 118.61}
       speed: 120
@@ -487,7 +488,7 @@ scenario:
       after: {event: gof_alpha_arrives, phase: complete}
       type: ORDER
       description: GOF Alpha deployed at Semporna.
-      target: RMP-GOF-201
+      actionee: RMP-GOF-201
       action: disembark
       alert_agencies: [RMP]
 
@@ -498,7 +499,7 @@ scenario:
       on_initiate: >
         Malay Regiment squad deployed from Tawau by fast boat to
         secure Pulau Bum Bum village.
-      target: MIL-INF-201
+      actionee: MIL-INF-201
       action: transit
       destination: {lat: 4.47, lon: 118.66}
       speed: 20
@@ -527,14 +528,14 @@ scenario:
       after: {event: g2000b_pursue, phase: complete}
       type: INTERCEPT
       description: Speedboat 2 stopped by G2000 Bravo.
-      target: HOSTILE-002
+      actionee: HOSTILE-002
       action: hold_station
 
     - id: g2000c_intercept_stopped
       after: {event: g2000c_intercept, phase: complete}
       type: INTERCEPT
       description: Speedboat 1 stopped by G2000 Charlie.
-      target: HOSTILE-001
+      actionee: HOSTILE-001
       action: hold_station
 
     - id: endstate

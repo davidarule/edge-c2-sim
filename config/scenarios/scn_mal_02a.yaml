@@ -1,4 +1,5 @@
 # SCN-MAL-02A: Tanker Armed Robbery — Reactive Chain
+# Schema reference: docs/scenario-schema.md
 # Version: 2.0
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
@@ -151,9 +152,9 @@ scenario:
       on_initiate: >
         Unknown fast boat accelerating on intercept course toward
         MT Labuan Palm. Speed 25 knots, closing rapidly.
-      target: PIRATE-001
+      actionee: PIRATE-001
       action: intercept
-      intercept_target: TANKER-001
+      target: TANKER-001
       speed: 25
       on_complete_action: hold_station
       hold_target: TANKER-001
@@ -162,9 +163,9 @@ scenario:
       time: "00:05"
       type: DETECTION
       description: Unknown boat 2 accelerates toward tanker.
-      target: PIRATE-002
+      actionee: PIRATE-002
       action: intercept
-      intercept_target: TANKER-001
+      target: TANKER-001
       speed: 25
       on_complete_action: orbit
       orbit_center: TANKER-001
@@ -181,7 +182,7 @@ scenario:
         SSAS COVERT ALERT — MT Labuan Palm. Master has activated Ship
         Security Alert System. Two fast boats approaching at high speed
         from the Indonesian side. No boarding yet.
-      target: TANKER-001
+      actionee: TANKER-001
       alert_agencies: [MMEA, MIL, RMP]
       severity: CRITICAL
 
@@ -193,7 +194,7 @@ scenario:
       on_initiate: >
         MMEA assessment: two fast boats on intercept course classified
         SUSPECT. Speed and bearing consistent with piracy approach.
-      target: PIRATE-001
+      actionee: PIRATE-001
       sidc_override: "10053000001400000000"
       callsign_override: Suspect Boat 1
       alert_agencies: [MMEA]
@@ -203,7 +204,7 @@ scenario:
       after: {event: ssas_alert, phase: initiate, offset: "00:00:30"}
       type: ALERT
       description: Second boat also classified Suspect.
-      target: PIRATE-002
+      actionee: PIRATE-002
       sidc_override: "10053000001400000000"
       callsign_override: Suspect Boat 2
 
@@ -215,7 +216,7 @@ scenario:
         SSAS SECONDARY PULSE — MT Labuan Palm. Pirates aboard. Armed
         perpetrators on bridge — master forced to stop engines. Crew
         of 28 — hostage situation confirmed.
-      target: TANKER-001
+      actionee: TANKER-001
       action: hold_station
       alert_agencies: [MMEA, MIL, RMP]
       severity: CRITICAL
@@ -228,7 +229,7 @@ scenario:
       on_initiate: >
         Intelligence assessment: armed perpetrators classified HOSTILE.
         Weapons confirmed. Rules of engagement updated.
-      target: PIRATE-001
+      actionee: PIRATE-001
       sidc_override: "10063000001400000000"
       callsign_override: Hostile Boat 1
       alert_agencies: [MMEA, MIL, RMP]
@@ -238,7 +239,7 @@ scenario:
       after: {event: pirates_aboard}
       type: ALERT
       description: Pirate 2 escalated to hostile.
-      target: PIRATE-002
+      actionee: PIRATE-002
       sidc_override: "10063000001400000000"
       callsign_override: Hostile Boat 2
 
@@ -263,7 +264,7 @@ scenario:
       on_initiate: >
         TUDM Caracal 1 scrambled from RMAF Subang. Confirmed armed
         boarding — FLIR and night observation priority.
-      target: RMAF-HELI-001
+      actionee: RMAF-HELI-001
       action: transit
       destination: {lat: 3.416, lon: 100.490}
       speed: 150
@@ -286,7 +287,7 @@ scenario:
         KM Perantau ordered to proceed at best speed. UTK Team Alpha
         (12 operators) embarked — counter-terrorism boarding team
         activated.
-      target: MMEA-PV-001
+      actionee: MMEA-PV-001
       action: approach
       approach_target: TANKER-001
       speed: 22
@@ -305,7 +306,7 @@ scenario:
       on_initiate: >
         KD Perak ordered to blocking position 3.35N 100.45E. Cut off
         pirate escape toward Indonesian EEZ.
-      target: RMN-OPV-001
+      actionee: RMN-OPV-001
       action: transit
       destination: {lat: 3.350, lon: 100.450}
       speed: 22
@@ -370,7 +371,7 @@ scenario:
       on_initiate: >
         Fast Boat 2 breaking away — heading 215 at 28 knots toward
         Indonesian waters.
-      target: PIRATE-002
+      actionee: PIRATE-002
       action: escape
       bearing_deg: 215
       speed: 28
@@ -384,7 +385,7 @@ scenario:
       on_initiate: >
         Fast Boat 1 breaking away — heading 210 at 28 knots. Both
         vessels fleeing toward Indonesian EEZ.
-      target: PIRATE-001
+      actionee: PIRATE-001
       action: escape
       bearing_deg: 210
       speed: 28
@@ -397,9 +398,9 @@ scenario:
       description: Helicopter pursues fleeing pirates.
       on_initiate: >
         TUDM Caracal 1 breaking orbit — pursuing fleeing fast boats.
-      target: RMAF-HELI-001
+      actionee: RMAF-HELI-001
       action: intercept
-      intercept_target: PIRATE-001
+      target: PIRATE-001
       alert_agencies: [MMEA, MIL]
 
     # ========================================
@@ -413,7 +414,7 @@ scenario:
       on_initiate: >
         UTK Team Alpha RHIB alongside MT Labuan Palm. Fast-rope ascent
         — two teams, port and starboard. Breaching bridge.
-      target: RMP-UTK-001
+      actionee: RMP-UTK-001
       action: disembark
       boarding_target: TANKER-001
       alert_agencies: [MMEA, MIL, RMP]
@@ -434,9 +435,9 @@ scenario:
       description: KD Perak intercepts fleeing fast boats.
       on_initiate: >
         KD Perak intercepting. TUDM Caracal 1 overhead illuminating.
-      target: RMN-OPV-001
+      actionee: RMN-OPV-001
       action: intercept
-      intercept_target: PIRATE-002
+      target: PIRATE-002
       alert_agencies: [MMEA, MIL]
       on_complete: >
         KD Perak alongside both fast boats. 11 perpetrators detained.
@@ -448,14 +449,14 @@ scenario:
       after: {event: perak_intercept, phase: complete}
       type: ALERT
       description: Pirate 1 stopped and detained by KD Perak.
-      target: PIRATE-001
+      actionee: PIRATE-001
       action: hold_station
 
     - id: pirate2_detained
       after: {event: perak_intercept, phase: complete}
       type: ALERT
       description: Pirate 2 stopped and detained by KD Perak.
-      target: PIRATE-002
+      actionee: PIRATE-002
       action: hold_station
 
     - id: endstate

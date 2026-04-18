@@ -1,4 +1,5 @@
 # SCN-MAL-04A: Unknown Submarine Contact — ASW Response
+# Schema reference: docs/scenario-schema.md
 # Version: 2.0
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
@@ -138,7 +139,7 @@ scenario:
       alert_agencies: [RMAF, MIL]
       severity: WARNING
       # MPA begins prosecution — orbit the contact
-      target: RMAF-MPA-001
+      actionee: RMAF-MPA-001
       action: orbit
       orbit_center: CONTACT-001
       orbit_radius_nm: 2.0
@@ -180,9 +181,9 @@ scenario:
       on_initiate: >
         KD Lekiu proceeding to datum at 28 knots. Hull-mounted sonar
         and towed array standing by.
-      target: RMN-FF-001
+      actionee: RMN-FF-001
       action: intercept
-      intercept_target: CONTACT-001
+      target: CONTACT-001
       speed: 28
       alert_agencies: [MIL]
       on_complete: >
@@ -200,7 +201,7 @@ scenario:
       on_initiate: >
         TUDM Peregrine 3 scrambled from RMAF Subang. Fresh sonobuoys
         and full fuel. ETA ~40 minutes.
-      target: RMAF-MPA-002
+      actionee: RMAF-MPA-002
       action: transit
       destination: {lat: 5.145, lon: 99.825}
       speed: 220
@@ -220,7 +221,7 @@ scenario:
       on_initiate: >
         KD Kedah ordered north to barrier position — cut off Andaman
         Sea exit route. Prevent contact transiting unidentified.
-      target: RMN-OPV-001
+      actionee: RMN-OPV-001
       action: transit
       destination: {lat: 5.482, lon: 99.698}
       speed: 22
@@ -275,7 +276,7 @@ scenario:
       after: {event: lekiu_intercept, phase: complete, offset: "00:04:00"}
       type: DETECTION
       description: Contact alters course — possible awareness of prosecution.
-      target: CONTACT-001
+      actionee: CONTACT-001
       action: escape
       bearing_deg: 105
       speed: 7
@@ -315,7 +316,7 @@ scenario:
         Contact identified as KRI Nagapasa — friendly TNI-AL sub.
         Surface demand renewed via diplomatic channel. KD Lekiu
         maintaining safe standoff. MPAs passive monitoring only.
-      target: CONTACT-001
+      actionee: CONTACT-001
       action: escape
       bearing_deg: 100
       speed: 3
@@ -329,7 +330,7 @@ scenario:
         KRI Nagapasa surfacing. KD Lekiu visual: Indonesian Navy
         submarine, pennant 403. VHF contact established. Indonesian
         flag hoisted. Incident professional — no hostile action.
-      target: CONTACT-001
+      actionee: CONTACT-001
       action: hold_station
       source: RMN-FF-001
       position: {lat: 5.115, lon: 100.028}

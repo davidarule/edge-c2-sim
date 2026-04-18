@@ -103,7 +103,7 @@ class TestEventEngineOrbitStart:
         event = ScenarioEvent(
             time_offset=timedelta(minutes=1),
             event_type="ORDER", description="Orbit tanker",
-            target="PIRATE", action="orbit",
+            actionee="PIRATE", action="orbit",
             metadata={
                 "orbit_center": "TANKER",
                 "orbit_radius_nm": 0.18,

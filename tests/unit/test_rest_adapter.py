@@ -97,7 +97,7 @@ class TestPayloadGeneration:
             "description": "Radar contact detected",
             "time": "2026-04-15T08:00:00Z",
             "severity": "WARNING",
-            "target": "IFF-001",
+            "actionee": "IFF-001",
             "alert_agencies": ["MMEA", "MIL"],
             "position": {"latitude": 5.8, "longitude": 118.88},
         }

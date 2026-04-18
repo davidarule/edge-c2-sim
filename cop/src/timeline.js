@@ -173,7 +173,7 @@ export function initTimeline(containerId, viewer, config, entityManager) {
     // Click to fly to event position (explicit or derived from target entity)
     const evtLon = event.position?.lon ?? event.position?.longitude;
     const evtLat = event.position?.lat ?? event.position?.latitude;
-    const targetId = event.target || (event.targets && event.targets[0]);
+    const targetId = event.actionee || event.target || (event.targets && event.targets[0]);
     const hasExplicitPos = evtLon !== undefined && evtLat !== undefined;
     const canLookup = targetId && entityManager;
 

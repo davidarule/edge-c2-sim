@@ -1,4 +1,5 @@
 # SCN-ESS-01A: IUU Fishing Fleet Intercept — Sulu Sea
+# Schema reference: docs/scenario-schema.md
 # Version: 2.1
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
@@ -190,9 +191,9 @@ scenario:
       description: Nearest patrol vessel investigates.
       on_initiate: >
         ESSCOM directs KM Sangitan to investigate contacts.
-      target: MMEA-PV-102
+      actionee: MMEA-PV-102
       action: intercept
-      intercept_target: IFF-001
+      target: IFF-001
       alert_agencies: [MMEA]
       on_complete: >
         KM Sangitan alongside Trawler 1. Vietnamese flag, no permits.
@@ -203,7 +204,7 @@ scenario:
       description: MPA dispatched for aerial surveillance.
       on_initiate: >
         RMAF MPA dispatched from Labuan.
-      target: RMAF-MPA-101
+      actionee: RMAF-MPA-101
       action: transit
       destination: {lat: 5.75, lon: 118.85}
       speed: 220
@@ -221,9 +222,9 @@ scenario:
       description: RMN fast interceptor from Sandakan.
       on_initiate: >
         RMN G2000 Alpha scrambled from MAWILLA 2 Sandakan.
-      target: RMN-FIC-101
+      actionee: RMN-FIC-101
       action: intercept
-      intercept_target: IFF-004
+      target: IFF-004
       alert_agencies: [MIL]
       on_complete: >
         G2000 Alpha intercepts Trawler 4 before international waters.
@@ -234,9 +235,9 @@ scenario:
       description: KM Semporna diverted to mothership.
       on_initiate: >
         KM Semporna diverted to intercept mothership.
-      target: MMEA-PV-101
+      actionee: MMEA-PV-101
       action: intercept
-      intercept_target: IFF-005
+      target: IFF-005
       alert_agencies: [MMEA]
       on_complete: >
         KM Semporna stops Mothership — large illegal catch in hold.
@@ -247,9 +248,9 @@ scenario:
       description: MMEA fast intercept from Semporna.
       on_initiate: >
         MMEA fast intercept launched from Semporna — southern cutoff.
-      target: MMEA-FI-101
+      actionee: MMEA-FI-101
       action: intercept
-      intercept_target: IFF-003
+      target: IFF-003
       alert_agencies: [MMEA]
       on_complete: >
         Fast intercept stops Trawler 3 near Semporna sector.
@@ -272,7 +273,7 @@ scenario:
       description: Helicopter for close air support.
       on_initiate: >
         EC725 dispatched from Lahad Datu FOB.
-      target: RMAF-HELI-101
+      actionee: RMAF-HELI-101
       action: transit
       destination: {lat: 5.70, lon: 118.85}
       speed: 120
@@ -299,7 +300,7 @@ scenario:
       after: {event: fleet_scatters}
       type: ALERT
       description: Fleet leader bolts for boundary.
-      target: IFF-004
+      actionee: IFF-004
       action: escape
       bearing_deg: 45
       speed: 12
@@ -310,7 +311,7 @@ scenario:
       after: {event: fleet_scatters}
       type: ALERT
       description: Trawler 2 flees west.
-      target: IFF-002
+      actionee: IFF-002
       action: escape
       bearing_deg: 250
       speed: 9
@@ -319,7 +320,7 @@ scenario:
       after: {event: fleet_scatters}
       type: ALERT
       description: Trawler 3 flees south.
-      target: IFF-003
+      actionee: IFF-003
       action: escape
       bearing_deg: 180
       speed: 8
@@ -328,7 +329,7 @@ scenario:
       after: {event: fleet_scatters}
       type: ALERT
       description: Mothership flees toward open Sulu Sea.
-      target: IFF-005
+      actionee: IFF-005
       action: escape
       bearing_deg: 60
       speed: 10
@@ -342,9 +343,9 @@ scenario:
       on_initiate: >
         KD Keris diverted to intercept Trawler 2 fleeing west —
         cutting off westbound escape route.
-      target: RMN-PV-101
+      actionee: RMN-PV-101
       action: intercept
-      intercept_target: IFF-002
+      target: IFF-002
       alert_agencies: [MIL]
       on_complete: >
         KD Keris intercepts Trawler 2. Vessel stopped.
@@ -357,35 +358,35 @@ scenario:
       after: {event: sangitan_intercept, phase: complete}
       type: INTERCEPT
       description: Trawler 1 stopped by KM Sangitan.
-      target: IFF-001
+      actionee: IFF-001
       action: hold_station
 
     - id: trawler2_stopped
       after: {event: keris_intercept, phase: complete}
       type: INTERCEPT
       description: Trawler 2 stopped by KD Keris.
-      target: IFF-002
+      actionee: IFF-002
       action: hold_station
 
     - id: trawler3_stopped
       after: {event: fi_launch, phase: complete}
       type: INTERCEPT
       description: Trawler 3 stopped by MMEA fast intercept.
-      target: IFF-003
+      actionee: IFF-003
       action: hold_station
 
     - id: trawler4_stopped
       after: {event: rmn_scramble, phase: complete}
       type: INTERCEPT
       description: Trawler 4 stopped by G2000 Alpha.
-      target: IFF-004
+      actionee: IFF-004
       action: hold_station
 
     - id: mothership_stopped
       after: {event: semporna_divert, phase: complete}
       type: INTERCEPT
       description: Mothership stopped by KM Semporna.
-      target: IFF-005
+      actionee: IFF-005
       action: hold_station
 
     - id: trawler1_boarded

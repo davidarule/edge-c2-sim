@@ -123,8 +123,8 @@ class HttpForwardAdapter(TransportAdapter):
             "timestamp": event.get("time", ""),
             "severity": event.get("severity", "INFO"),
             "source_agency": source_agency,
-            "source_entity_id": event.get("source") or event.get("target"),
-            "target_entity_id": event.get("target"),
+            "source_entity_id": event.get("source") or event.get("actionee"),
+            "target_entity_id": event.get("target") or event.get("actionee"),
             "recipient_agencies": recipients,
             "agencies_involved": alert_agencies or [source_agency],
             "position": event.get("position"),
@@ -133,10 +133,9 @@ class HttpForwardAdapter(TransportAdapter):
                 k: v for k, v in event.items()
                 if k not in (
                     "type", "event_type", "description", "time",
-                    "severity", "source", "target", "targets",
+                    "severity", "source", "actionee", "targets", "target",
                     "alert_agencies", "position", "action",
-                    "time_offset_s", "intercept_target", "destination",
-                    "area",
+                    "time_offset_s", "destination", "area",
                 )
                 and v is not None
             },

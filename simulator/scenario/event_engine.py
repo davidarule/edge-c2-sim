@@ -242,8 +242,8 @@ class EventEngine:
     def _register_completion(self, event: ScenarioEvent) -> None:
         """Register an event for completion tracking."""
         target_ids = []
-        if event.target:
-            target_ids.append(event.target)
+        if event.actionee:
+            target_ids.append(event.actionee)
         if event.targets:
             target_ids.extend(event.targets)
         # Track the first target — for multi-target events, the primary
@@ -406,8 +406,8 @@ class EventEngine:
         callsign_override = event.metadata.get("callsign_override")
         if sidc_override or callsign_override:
             target_ids = []
-            if event.target:
-                target_ids.append(event.target)
+            if event.actionee:
+                target_ids.append(event.actionee)
             if event.targets:
                 target_ids.extend(event.targets)
             for tid in target_ids:
@@ -420,8 +420,8 @@ class EventEngine:
                     self._entity_store.upsert_entity(e)
 
         # Handle AIS_LOSS
-        if event.event_type == "AIS_LOSS" and event.target:
-            entity = self._entity_store.get_entity(event.target)
+        if event.event_type == "AIS_LOSS" and event.actionee:
+            entity = self._entity_store.get_entity(event.actionee)
             if entity:
                 entity.metadata["ais_active"] = False
                 self._entity_store.upsert_entity(entity)
@@ -431,8 +431,8 @@ class EventEngine:
 
         # Collect target IDs
         target_ids = []
-        if event.target:
-            target_ids.append(event.target)
+        if event.actionee:
+            target_ids.append(event.actionee)
         if event.targets:
             target_ids.extend(event.targets)
 
@@ -445,7 +445,7 @@ class EventEngine:
                     self._entity_store.add_entity(entity)
                     logger.info(f"Spawned pending entity: {target_id}")
                 else:
-                    logger.warning(f"Event target '{target_id}' not found in store")
+                    logger.warning(f"Event actionee '{target_id}' not found in store")
                     continue
             self._apply_action(event, entity, target_id, sim_time)
 
@@ -627,8 +627,8 @@ class EventEngine:
         # === LEGACY ACTIONS (backward compatible) ===
 
         elif action == "intercept":
-            if not event.intercept_target:
-                logger.warning(f"Intercept event for {target_id} missing intercept_target")
+            if not event.target:
+                logger.warning(f"Intercept event for {target_id} missing target")
                 return
             entity.status = EntityStatus.INTERCEPTING
 
@@ -649,7 +649,7 @@ class EventEngine:
                     intercept_kwargs["intercept_radius_m"] = orbit_radius_m
                 self._movements[target_id] = InterceptMovement(
                     entity_speed_knots=speed,
-                    target_entity_id=event.intercept_target,
+                    target_entity_id=event.target,
                     entity_store=self._entity_store,
                     pursuer_entity_id=target_id,
                     min_speed_knots=0,
@@ -662,14 +662,14 @@ class EventEngine:
             event_copy = event
             event_copy_action = "intercept"
             entity.status = EntityStatus.INTERCEPTING
-            if event.intercept_target:
+            if event.target:
                 speed = event.metadata.get(
                     "speed",
                     _get_action_speed(entity.entity_type, "intercept") or _get_max_speed(entity.entity_type),
                 )
                 self._movements[target_id] = InterceptMovement(
                     entity_speed_knots=speed,
-                    target_entity_id=event.intercept_target,
+                    target_entity_id=event.target,
                     entity_store=self._entity_store,
                     pursuer_entity_id=target_id,
                     min_speed_knots=0,

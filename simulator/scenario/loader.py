@@ -209,17 +209,24 @@ def _parse_time_offset(time_str: str) -> timedelta:
 
 @dataclass
 class ScenarioEvent:
-    """A timed or dependency-triggered event in the scenario timeline."""
+    """A timed or dependency-triggered event in the scenario timeline.
+
+    Schema fields:
+    - ``actionee``: the entity performing / experiencing the event.
+    - ``target``:   the entity the action operates on (only set for
+                    actions that have a target, e.g. intercept, approach).
+    See ``docs/scenario-schema.md`` for the full reference.
+    """
     time_offset: timedelta | None
     event_type: str
     description: str
     id: str | None = None
     after: str | dict | None = None
     severity: str = "INFO"
-    target: str | None = None
+    actionee: str | None = None
     targets: list[str] | None = None
     action: str | None = None
-    intercept_target: str | None = None
+    target: str | None = None
     destination: dict | None = None
     area: str | None = None
     position: dict | None = None
@@ -236,10 +243,10 @@ class ScenarioEvent:
             "event_type": self.event_type,
             "description": self.on_initiate or self.description,
             "severity": self.severity,
-            "target": self.target,
+            "actionee": self.actionee,
             "targets": self.targets,
             "action": self.action,
-            "intercept_target": self.intercept_target,
+            "target": self.target,
             "destination": self.destination,
             "area": self.area,
             "position": self.position,
@@ -759,10 +766,10 @@ class ScenarioLoader:
                 id=entry.get("id"),
                 after=entry.get("after"),
                 severity=entry.get("severity", "INFO"),
-                target=entry.get("target"),
+                actionee=entry.get("actionee"),
                 targets=entry.get("targets"),
                 action=entry.get("action"),
-                intercept_target=entry.get("intercept_target"),
+                target=entry.get("target"),
                 destination=entry.get("destination"),
                 area=entry.get("area"),
                 position=entry.get("position"),
@@ -774,8 +781,8 @@ class ScenarioLoader:
                 metadata={
                     k: v for k, v in entry.items()
                     if k not in {
-                        "time", "type", "description", "severity", "target",
-                        "targets", "action", "intercept_target", "destination",
+                        "time", "type", "description", "severity", "actionee",
+                        "targets", "action", "target", "destination",
                         "area", "position", "alert_agencies", "source",
                         "on_initiate", "on_complete", "on_complete_action",
                         "id", "after",
@@ -874,12 +881,13 @@ class ScenarioLoader:
             prev_time = t
 
             # Check entity references
-            target = evt.get("target")
-            if target and target not in entity_ids:
-                errors.append(
-                    f"Event at {evt['time']} references entity '{target}' "
-                    f"which is not in scenario_entities"
-                )
+            for field_name in ("actionee", "target"):
+                ref = evt.get(field_name)
+                if ref and ref not in entity_ids:
+                    errors.append(
+                        f"Event at {evt['time']} references entity "
+                        f"'{ref}' (via {field_name}) which is not in scenario_entities"
+                    )
             for t_id in evt.get("targets", []):
                 if t_id not in entity_ids:
                     errors.append(

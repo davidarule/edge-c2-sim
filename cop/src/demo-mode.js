@@ -35,11 +35,14 @@ export function initDemoMode(viewer, entityManager) {
     if (event.position) {
       targetLon = event.position.longitude;
       targetLat = event.position.latitude;
-    } else if (event.target) {
-      const entity = entityManager.getEntity(event.target);
-      if (entity && entity.position) {
-        targetLon = entity.position.longitude;
-        targetLat = entity.position.latitude;
+    } else {
+      const refId = event.actionee || event.target;
+      if (refId) {
+        const entity = entityManager.getEntity(refId);
+        if (entity && entity.position) {
+          targetLon = entity.position.longitude;
+          targetLat = entity.position.latitude;
+        }
       }
     }
 

@@ -29,7 +29,7 @@ const TIME_RE = /^\d{2,}:\d{2}$/;
 
 // Map action types to the extra parameter fields they require.
 const ACTION_PARAMS = {
-  intercept:   ['intercept_target'],
+  intercept:   ['target'],
   move_to:     ['destination'],
   search:      ['search_area'],
   broadcast:   ['message'],
@@ -512,12 +512,12 @@ export function openEventEditor(event, scenarioEntities, onSave, onCancel) {
   }
 
   function renderActionParam(param, action, actionIdx) {
-    if (param === 'intercept_target') {
+    if (param === 'target') {
       return `
         <div class="evt-action-card-header">
           <label>Target</label>
-          <select class="evt-action-param" data-action-idx="${actionIdx}" data-param="intercept_target">
-            ${entityOptions(entities, action.intercept_target || '')}
+          <select class="evt-action-param" data-action-idx="${actionIdx}" data-param="target">
+            ${entityOptions(entities, action.target || '')}
           </select>
         </div>
       `;
@@ -742,8 +742,8 @@ export function openEventEditor(event, scenarioEntities, onSave, onCancel) {
     const action = state.actions[actionIdx];
     if (!action) return;
 
-    if (param === 'intercept_target') {
-      action.intercept_target = value || undefined;
+    if (param === 'target') {
+      action.target = value || undefined;
     } else if (param === 'dest_lat' || param === 'dest_lon') {
       if (!action.destination) {
         action.destination = { latitude: null, longitude: null };

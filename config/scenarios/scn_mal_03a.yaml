@@ -1,4 +1,5 @@
 # SCN-MAL-03A: MALSINDO Trilateral Coordinated Patrol
+# Schema reference: docs/scenario-schema.md
 # Version: 2.0
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
@@ -168,14 +169,14 @@ scenario:
         boarding and custody.
       targets: [MMEA-PV-001, IDN-BAK-001]
       action: intercept
-      intercept_target: SUSPECT-001
+      target: SUSPECT-001
       alert_agencies: [MMEA, IDN]
 
     - id: perantau_alongside
       after: {event: incident1_declared, phase: initiate}
       type: ORDER
       description: KM Perantau approaches fishing vessel.
-      target: MMEA-PV-001
+      actionee: MMEA-PV-001
       action: approach
       approach_target: SUSPECT-001
       final_speed: 2
@@ -193,7 +194,7 @@ scenario:
         KM Bintang Laut hove to. MMEA officer boards for initial
         inspection. Indonesian fishing permit only — no Malaysian
         licence. 2 tonnes reef fish in hold.
-      target: SUSPECT-001
+      actionee: SUSPECT-001
       action: hold_station
       alert_agencies: [MMEA]
 
@@ -201,7 +202,7 @@ scenario:
       after: {event: incident1_declared, phase: initiate}
       type: ORDER
       description: Bakamla vessel approaches for joint boarding.
-      target: IDN-BAK-001
+      actionee: IDN-BAK-001
       action: approach
       approach_target: SUSPECT-001
       final_speed: 2
@@ -219,7 +220,7 @@ scenario:
         Joint boarding complete. Master confirms fishing in Malaysian
         waters ~6 hours. Catch documented. Bakamla taking formal
         custody — Indonesian crew transferred under MALSINDO Protocol 4.
-      target: IDN-BAK-001
+      actionee: IDN-BAK-001
       boarding_target: SUSPECT-001
       alert_agencies: [MMEA, IDN]
 
@@ -237,7 +238,7 @@ scenario:
       after: {event: handoff_complete, phase: initiate, offset: "00:02:00"}
       type: ORDER
       description: KM Perantau releases vessel and resumes patrol.
-      target: MMEA-PV-001
+      actionee: MMEA-PV-001
       action: transit
       destination: {lat: 3.090, lon: 101.060}
       speed: 12
@@ -249,7 +250,7 @@ scenario:
       on_initiate: >
         KN Pulau Nipah departing Malaysian waters with KM Bintang Laut.
         Heading SSW toward Indonesian port.
-      target: IDN-BAK-001
+      actionee: IDN-BAK-001
       action: transit
       destination: {lat: 2.900, lon: 101.020}
       speed: 8
@@ -259,7 +260,7 @@ scenario:
       after: {event: handoff_complete, phase: initiate, offset: "00:02:00"}
       type: ORDER
       description: Fishing vessel under escort toward Indonesia.
-      target: SUSPECT-001
+      actionee: SUSPECT-001
       action: transit
       destination: {lat: 2.900, lon: 101.020}
       speed: 5
@@ -289,7 +290,7 @@ scenario:
         Incident 2 declared. RSS Sovereignty diverted to investigate
         unknown contact near Horsburgh. MALSINDO Net notified —
         Singapore advises Malaysia and Indonesia.
-      target: SGP-PCG-001
+      actionee: SGP-PCG-001
       action: approach
       approach_target: SUSPECT-002
       final_speed: 5
@@ -320,7 +321,7 @@ scenario:
         RSS Sovereignty confirms: disabled Malaysian pleasure craft.
         Engine failure, adrift since 1830 local. 3 persons safe.
         MPA Singapore MRSC notified. Deploying tow line.
-      target: SUSPECT-002
+      actionee: SUSPECT-002
       action: hold_station
       source: SGP-PCG-001
       alert_agencies: [SGP, MMEA]
@@ -337,7 +338,7 @@ scenario:
         RSS Sovereignty with Malaysian pleasure craft under tow.
         Heading for Singapore Johor Strait crossing point. Malaysia
         Marine Department Johor notified.
-      target: SGP-PCG-001
+      actionee: SGP-PCG-001
       action: transit
       destination: {lat: 1.330, lon: 104.300}
       speed: 8
