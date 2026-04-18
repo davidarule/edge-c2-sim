@@ -12,6 +12,7 @@ with automatic completion detection and on_complete message generation.
 
 import json
 import logging
+import math
 import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -68,6 +69,19 @@ def _get_max_speed(entity_type: str) -> float:
     # Legacy fallback
     legacy = ENTITY_TYPES.get(entity_type, {})
     return legacy.get("speed_range", (10, 20))[1]
+
+
+def _bearing_from_center(c_lat: float, c_lon: float, p_lat: float, p_lon: float) -> float:
+    """Bearing in degrees (0=N, 90=E) from (c_lat, c_lon) to (p_lat, p_lon).
+
+    Matches OrbitMovement's angle convention so the orbit begins at the
+    entity's current angular position around the centre, not at due north.
+    """
+    dy = p_lat - c_lat
+    dx = (p_lon - c_lon) * math.cos(math.radians(c_lat))
+    if dx == 0 and dy == 0:
+        return 0.0
+    return math.degrees(math.atan2(dx, dy)) % 360.0
 
 
 @dataclass
@@ -332,12 +346,25 @@ class EventEngine:
                 "altitude_m",
                 _get_action_altitude(entity.entity_type, "orbit") or entity.position.altitude_m,
             )
+            # Resolve orbit centre (dynamic tracking target overrides entity self-centre)
+            orbit_center_lat = entity.position.latitude
+            orbit_center_lon = entity.position.longitude
+            if orbit_center:
+                center_entity = self._entity_store.get_entity(orbit_center)
+                if center_entity:
+                    orbit_center_lat = center_entity.position.latitude
+                    orbit_center_lon = center_entity.position.longitude
+            initial_heading = _bearing_from_center(
+                orbit_center_lat, orbit_center_lon,
+                entity.position.latitude, entity.position.longitude,
+            )
             self._movements[entity_id] = OrbitMovement(
-                center_lat=entity.position.latitude,
-                center_lon=entity.position.longitude,
+                center_lat=orbit_center_lat,
+                center_lon=orbit_center_lon,
                 altitude_m=altitude,
                 speed_knots=orbit_speed,
                 orbit_radius_m=radius_nm * 1852,
+                initial_heading=initial_heading,
                 direction=direction,
                 target_entity_id=orbit_center,
                 entity_store=self._entity_store,
@@ -478,10 +505,15 @@ class EventEngine:
                 "altitude_m",
                 _get_action_altitude(entity.entity_type, "orbit") or entity.position.altitude_m,
             )
+            initial_heading = _bearing_from_center(
+                center_lat, center_lon,
+                entity.position.latitude, entity.position.longitude,
+            )
             self._movements[target_id] = OrbitMovement(
                 center_lat=center_lat, center_lon=center_lon,
                 altitude_m=altitude, speed_knots=orbit_speed,
                 orbit_radius_m=radius_nm * 1852,
+                initial_heading=initial_heading,
                 direction=direction,
                 target_entity_id=orbit_center_id,
                 entity_store=self._entity_store,
