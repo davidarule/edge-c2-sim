@@ -748,6 +748,7 @@ export function initEntityManager(viewer, config) {
       trailPositions.clear();
       updateCounters.clear();
       entityTrailOverrides.clear();
+      entitySidcOverrides.clear();
       snapshotGeneration++;
       entityList.forEach(e => addOrUpdateEntity(e));
       collapseExpanded();
