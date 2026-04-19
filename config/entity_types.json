@@ -510,8 +510,8 @@
       "surface": "air",
       "can_embark": false,
       "can_carry": false,
-      "description": "Maritime patrol aircraft (B200T)",
-      "default_sidc": "10030100001101000300",
+      "description": "Maritime patrol aircraft (Leonardo ATR 72-600 MPA / P-72M; torpedo-capable)",
+      "default_sidc": "10030100001101000200",
       "max_altitude_m": 8000,
       "max_speed_kn": 280,
       "action_speeds_kn": {

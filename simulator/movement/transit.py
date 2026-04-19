@@ -51,8 +51,12 @@ class TransitMovement:
                 speed_knots=speed_knots, time_offset=timedelta(0),
             ),
             Waypoint(
+                # Keep terminal speed equal to the transit speed so aircraft
+                # (and ships) don't decelerate into the destination. Callers
+                # that need a full stop should chain `on_complete_action:
+                # hold_station` rather than rely on a 0-speed endpoint.
                 lat=dest_lat, lon=dest_lon, alt_m=dest_alt_m,
-                speed_knots=0, time_offset=self._travel_time,
+                speed_knots=speed_knots, time_offset=self._travel_time,
             ),
         ]
         self._movement = WaypointMovement(waypoints, start_time)

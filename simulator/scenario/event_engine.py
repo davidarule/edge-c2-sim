@@ -20,7 +20,7 @@ from typing import Any
 
 from geopy.distance import geodesic
 
-from simulator.core.entity import EntityStatus, Position
+from simulator.core.entity import Agency, Domain, Entity, EntityStatus, Position
 from simulator.core.entity_store import EntityStore
 from simulator.movement.approach import ApproachMovement
 from simulator.movement.escape import EscapeMovement
@@ -82,6 +82,178 @@ def _bearing_from_center(c_lat: float, c_lon: float, p_lat: float, p_lon: float)
     if dx == 0 and dy == 0:
         return 0.0
     return math.degrees(math.atan2(dx, dy)) % 360.0
+
+
+def _build_search_pattern(
+    metadata: dict, entity: Any, sim_time: datetime, entity_store: Any,
+) -> "WaypointMovement":
+    """Build an ASW expanding-square localisation pattern around a datum.
+
+    Real-world ASW MAD-trap / localisation pattern (NATOPS): after initial
+    overfly and MAD detection, the aircraft spirals outward in right-angle
+    legs of increasing length. Each pair of legs grows by one step, so the
+    spiral naturally re-crosses the datum datum-area from multiple bearings —
+    exactly what a submarine hunter does once it has a fix.
+
+    Metadata keys (all optional):
+        search_center            entity_id OR {lat, lon} — datum centre
+        search_step_nm           leg growth step (default 0.5 nm)
+        search_iterations        number of outward expansions (default 20)
+        search_speed             knots (default from entity type / 140)
+        altitude_m               cruise altitude (default from entity type)
+    """
+    import math as _math
+    from simulator.movement.waypoint import TurnParams, Waypoint, WaypointMovement
+    from simulator.scenario.loader import ENTITY_TYPES
+
+    center = metadata.get("search_center")
+    step_nm = float(metadata.get("search_step_nm", 0.5))
+    iterations = int(metadata.get("search_iterations", 20))
+    speed = float(metadata.get(
+        "search_speed",
+        _get_action_speed(entity.entity_type, "orbit") or 140,
+    ))
+    altitude = float(metadata.get(
+        "altitude_m",
+        _get_action_altitude(entity.entity_type, "orbit")
+        or entity.position.altitude_m,
+    ))
+
+    # Resolve datum centre.
+    datum_lat = entity.position.latitude
+    datum_lon = entity.position.longitude
+    if isinstance(center, str):
+        ce = entity_store.get_entity(center)
+        if ce:
+            datum_lat, datum_lon = ce.position.latitude, ce.position.longitude
+    elif isinstance(center, dict):
+        datum_lat = float(center.get("lat", datum_lat))
+        datum_lon = float(center.get("lon", datum_lon))
+
+    cos_lat = max(_math.cos(_math.radians(datum_lat)), 0.01)
+    step_lat = step_nm / 60.0
+    step_lon = step_nm / (60.0 * cos_lat)
+    speed_mps = max(speed * 0.514444, 0.1)
+
+    # Waypoint 0 — entity's current position.
+    waypoints = [Waypoint(
+        lat=entity.position.latitude, lon=entity.position.longitude,
+        alt_m=altitude, speed_knots=speed,
+        time_offset=timedelta(seconds=0),
+    )]
+    cur_lat, cur_lon = entity.position.latitude, entity.position.longitude
+    cur_t = 0.0
+
+    # Procedure turn entering the search — discretised 270° left arc so
+    # the aircraft rolls smoothly from its current heading back over the
+    # datum on a perpendicular bearing (classic MAD re-attack turn).
+    # Without this the WaypointMovement has no arc at waypoint 0 (no prev
+    # segment) and the aircraft snaps to the datum-bearing instantly.
+    start_heading = float(entity.heading_deg)
+    # R is the ATR's natural turning radius from entity type; fall back to
+    # a sensible ASW circle if the entity has no turn params.
+    turn_tuple_head = ENTITY_TYPES.get(entity.entity_type, {}).get("turn")
+    R_m = (turn_tuple_head[0] * turn_tuple_head[1]) if turn_tuple_head else 1000.0
+    # Lead 500 m straight before starting the arc — gives the arc math
+    # a clean "previous segment" to anchor on.
+    lead_m = 500.0
+    theta_rad = _math.radians(start_heading)
+    lead_dlat = (lead_m / 111320.0) * _math.cos(theta_rad)
+    lead_dlon = (lead_m / (111320.0 * cos_lat)) * _math.sin(theta_rad)
+    lead_lat = cur_lat + lead_dlat
+    lead_lon = cur_lon + lead_dlon
+    cur_t += lead_m / speed_mps
+    waypoints.append(Waypoint(
+        lat=lead_lat, lon=lead_lon, alt_m=altitude, speed_knots=speed,
+        time_offset=timedelta(seconds=cur_t),
+    ))
+    cur_lat, cur_lon = lead_lat, lead_lon
+
+    # 270° left turn discretised as 6 chords of 45°. Centre is 90° left
+    # of the current heading, at distance R.
+    n_arc_chords = 6
+    chord_deg = 270.0 / n_arc_chords
+    # Arc centre (east, north) offsets in metres from the lead waypoint.
+    ctr_bearing = start_heading - 90.0
+    ctr_rad = _math.radians(ctr_bearing)
+    ce_m = R_m * _math.sin(ctr_rad)
+    cn_m = R_m * _math.cos(ctr_rad)
+    # Aircraft's starting angle around the centre, measured CCW from east:
+    # for compass heading θ, math-angle of the aircraft from the centre is
+    # (360° − θ). Worked derivation: heading direction in math coords is
+    # (90°−θ); centre of a LEFT turn is 90° CCW of that; aircraft lies on
+    # the opposite side so its angle from centre is (90°−θ) + 90° + 180°.
+    a0_deg = 360.0 - start_heading
+    for i in range(1, n_arc_chords + 1):
+        a_deg = a0_deg + i * chord_deg   # left turn → angle increases CCW
+        a_rad = _math.radians(a_deg)
+        e_offset = ce_m + R_m * _math.cos(a_rad)
+        n_offset = cn_m + R_m * _math.sin(a_rad)
+        arc_lat = lead_lat + n_offset / 111320.0
+        arc_lon = lead_lon + e_offset / (111320.0 * cos_lat)
+        # Chord length ≈ 2R·sin(chord/2).
+        chord_m = 2 * R_m * _math.sin(_math.radians(chord_deg / 2))
+        cur_t += chord_m / speed_mps
+        waypoints.append(Waypoint(
+            lat=arc_lat, lon=arc_lon, alt_m=altitude, speed_knots=speed,
+            time_offset=timedelta(seconds=cur_t),
+        ))
+        cur_lat, cur_lon = arc_lat, arc_lon
+
+    # After the 270° procedure turn, the aircraft is heading ~perpendicular
+    # to its original track. Fly to the datum from this position — a gentle
+    # crossing rather than a snap reversal.
+    d_lat_m = (datum_lat - cur_lat) * 111320.0
+    d_lon_m = (datum_lon - cur_lon) * 111320.0 * cos_lat
+    seg_m = _math.sqrt(d_lat_m * d_lat_m + d_lon_m * d_lon_m)
+    if seg_m > 50:
+        cur_t += seg_m / speed_mps
+        waypoints.append(Waypoint(
+            lat=datum_lat, lon=datum_lon, alt_m=altitude, speed_knots=speed,
+            time_offset=timedelta(seconds=cur_t),
+        ))
+        cur_lat, cur_lon = datum_lat, datum_lon
+
+    # Expanding square: legs (1,1,2,2,3,3,...,N,N), directions rotating
+    # N→E→S→W. Each pair of legs steps 1 longer; the spiral grows outward.
+    #
+    # Leg k (1-indexed): length_steps = ceil(k/2), direction = (k-1) mod 4
+    dir_dlat = [+1, 0, -1, 0]   # N E S W
+    dir_dlon = [0, +1, 0, -1]
+    total_legs = 2 * iterations
+    for k in range(1, total_legs + 1):
+        length_steps = (k + 1) // 2
+        dir_idx = (k - 1) % 4
+        d_lat = dir_dlat[dir_idx] * length_steps * step_lat
+        d_lon = dir_dlon[dir_idx] * length_steps * step_lon
+        new_lat = cur_lat + d_lat
+        new_lon = cur_lon + d_lon
+        seg_m = _math.sqrt(
+            (d_lat * 111320.0) ** 2 +
+            (d_lon * 111320.0 * cos_lat) ** 2
+        )
+        cur_t += seg_m / speed_mps
+        waypoints.append(Waypoint(
+            lat=new_lat, lon=new_lon, alt_m=altitude, speed_knots=speed,
+            time_offset=timedelta(seconds=cur_t),
+        ))
+        cur_lat, cur_lon = new_lat, new_lon
+
+    # Sentinel waypoint far in the future so is_complete() never fires and
+    # the main-loop auto-orbit does not replace the search pattern.
+    waypoints.append(Waypoint(
+        lat=cur_lat, lon=cur_lon, alt_m=altitude, speed_knots=speed,
+        time_offset=timedelta(hours=24),
+    ))
+
+    # Give fixed-wing aircraft a real turn radius so the expanding square
+    # has rounded corners instead of physics-defying 90° snaps.
+    turn_tuple = ENTITY_TYPES.get(entity.entity_type, {}).get("turn")
+    turn_params = TurnParams(*turn_tuple) if turn_tuple else None
+    return WaypointMovement(
+        waypoints=waypoints, scenario_start=sim_time,
+        turn_params=turn_params,
+    )
 
 
 @dataclass
@@ -402,6 +574,16 @@ class EventEngine:
             )
             entity.speed_knots = cruise
             entity.status = EntityStatus.RTB
+
+        elif action == "search_pattern":
+            self._movements[entity_id] = _build_search_pattern(
+                source_event.metadata, entity, sim_time, self._entity_store,
+            )
+            entity.speed_knots = float(source_event.metadata.get(
+                "search_speed",
+                _get_action_speed(entity.entity_type, "orbit") or 140,
+            ))
+            entity.status = EntityStatus.ACTIVE
 
         self._entity_store.upsert_entity(entity)
 
@@ -749,6 +931,56 @@ class EventEngine:
 
         elif action in ("search_area", "patrol"):
             entity.status = EntityStatus.ACTIVE
+
+        elif action == "search_pattern":
+            self._movements[target_id] = _build_search_pattern(
+                event.metadata, entity, sim_time, self._entity_store,
+            )
+            entity.speed_knots = float(event.metadata.get(
+                "search_speed",
+                _get_action_speed(entity.entity_type, "orbit") or 140,
+            ))
+            entity.status = EntityStatus.ACTIVE
+
+        elif action == "drop_sonobuoy":
+            # Drop a stationary SONOBUOY entity at the actionee's current
+            # position. Auto-incrementing IDs as SONOBUOY-001, 002, ...
+            # Metadata: sonobuoy_id (optional override), channel (sonobuoy
+            # radio channel, optional for display).
+            from simulator.scenario.loader import ENTITY_TYPES
+            sb_id = event.metadata.get("sonobuoy_id")
+            if not sb_id:
+                n = 1 + sum(
+                    1 for e in self._entity_store.get_all_entities()
+                    if e.entity_id.startswith("SONOBUOY-")
+                )
+                sb_id = f"SONOBUOY-{n:03d}"
+            td = ENTITY_TYPES.get("SONOBUOY", {})
+            sb = Entity(
+                entity_id=sb_id,
+                entity_type="SONOBUOY",
+                domain=td.get("domain", Domain.MARITIME),
+                agency=td.get("agency", Agency.RMAF),
+                callsign=event.metadata.get("callsign", sb_id),
+                position=Position(
+                    latitude=entity.position.latitude,
+                    longitude=entity.position.longitude,
+                    altitude_m=0.0,
+                ),
+                heading_deg=0.0,
+                speed_knots=0.0,
+                status=EntityStatus.ACTIVE,
+                sidc=td.get("sidc", "10033500001302000000"),
+                metadata={
+                    "dropped_by": entity.entity_id,
+                    "channel": event.metadata.get("channel"),
+                    "drop_time": sim_time.isoformat(),
+                },
+            )
+            self._entity_store.upsert_entity(sb)
+            logger.info(f"Sonobuoy dropped: {sb_id} at "
+                        f"({sb.position.latitude:.4f}, {sb.position.longitude:.4f}) "
+                        f"by {entity.entity_id}")
 
         elif action in ("lockdown", "secure"):
             entity.status = EntityStatus.ACTIVE

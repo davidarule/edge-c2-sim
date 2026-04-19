@@ -1,11 +1,16 @@
 # SCN-MAL-04A: Unknown Submarine Contact — ASW Response
 # Schema reference: docs/scenario-schema.md
-# Version: 2.0
+# Version: 2.1
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
 # Author: BrumbieSoft
 #
 # Changelog:
+#   v2.1 (2026-04-19) — Corrected aircraft type from Beechcraft Super
+#     King Air B200T to Leonardo ATR 72-600 MPA (P-72M). Updated sensor
+#     fits to match RMAF P-72M configuration: Seaspray 7300E AESA radar,
+#     ULISSES acoustic system, EO/IR turret, ESM/ELINT suite. Adjusted
+#     MPA-002 transit speed to 250kn (ATR 72 cruise speed).
 #   v2.0 (2026-04-17) — Complete rewrite to action-based reactive chains.
 #     Zero waypoints. Submarine prosecution with escape bearing changes.
 #     MPA orbit/search patterns via actions. Frigate sonar prosecution
@@ -42,13 +47,15 @@ scenario:
       initial_position:
         lat: 5.400
         lon: 100.100
-        speed_kn: 180
+        speed_kn: 250       # ATR 72 transit speed
         heading_deg: 220
       metadata:
-        aircraft_type: Beechcraft Super King Air B200T
-        home_base: {lat: 5.300, lon: 100.300}
-        altitude_ft: 1500
-        sensors: [MAD_boom, sonobuoys, APS-143_radar, FLIR]
+        aircraft_type: Leonardo ATR 72-600 MPA (P-72M)
+        home_base: {lat: 3.970, lon: 103.420}  # RMAF Kuantan
+        altitude_ft: 5000   # Search altitude (500 ft only for ID runs)
+        sensors: [ULISSES_acoustic_system, sonobuoys_multistatic, Seaspray_7300E_AESA_radar, EO_IR_turret, ESM_ELINT, AIS]
+        mission_system: Leonardo ATOS (4 operator consoles)
+        endurance_hours: 10
 
     # TUDM Peregrine 3 — second MPA, standby at Subang
     - id: RMAF-MPA-002
@@ -61,10 +68,12 @@ scenario:
         speed_kn: 0
         heading_deg: 0
       metadata:
-        aircraft_type: Beechcraft Super King Air B200T
-        home_base: {lat: 3.131, lon: 101.549}
+        aircraft_type: Leonardo ATR 72-600 MPA (P-72M)
+        home_base: {lat: 3.131, lon: 101.549}  # RMAF Subang (deployed)
         altitude_ft: 300
-        sensors: [MAD_boom, sonobuoys, APS-143_radar, FLIR]
+        sensors: [ULISSES_acoustic_system, sonobuoys_multistatic, Seaspray_7300E_AESA_radar, EO_IR_turret, ESM_ELINT, AIS]
+        mission_system: Leonardo ATOS (4 operator consoles)
+        endurance_hours: 10
 
     # KD Lekiu — primary ASW frigate
     - id: RMN-FF-001
@@ -75,7 +84,7 @@ scenario:
         lat: 5.300
         lon: 100.050
         speed_kn: 15
-        heading_deg: 250
+        heading_deg: 160   # SSE — not coincidentally toward the undetected contact
       metadata:
         vessel_type: Lekiu-class Guided Missile Frigate
         hull_number: "30"
@@ -97,11 +106,12 @@ scenario:
         hull_number: "171"
         callsign_radio: KD KEDAH
 
-    # CONTACT ALPHA — submerged submarine, heading SE
+    # CONTACT ALPHA — submerged submarine, heading SE.
     - id: CONTACT-001
       type: MIL_SUBMARINE
       callsign: SUBMERGED CONTACT ALPHA
       sidc: "10013500001100000000"
+      spawn_at: "23:59:59"
       initial_position:
         lat: 5.220
         lon: 99.890
@@ -124,36 +134,112 @@ scenario:
       description: MPA on routine patrol, northern strait.
       on_initiate: >
         TUDM Peregrine 2 on routine maritime patrol, northern Malacca
-        Strait. Altitude 1,500ft. Commercial traffic normal.
+        Strait. Altitude 500ft. ULISSES passive acoustic monitoring
+        active. Seaspray 7300E in maritime search mode. Commercial
+        traffic normal.
       alert_agencies: [RMAF]
+      actionee: RMAF-MPA-001
+      action: transit
+      # Destination is ~1.4 nm past the physical overfly point (5.2151, 99.8985)
+      # on heading 227°. Aircraft flies through the overfly at T+03:56 and
+      # continues on the same heading for ~20 s before mpa_search banks it
+      # into the expanding square.
+      destination: {lat: 5.1993, lon: 99.8815}
+      speed: 250
+      altitude_m: 1524   # 5 000 ft cruise
+      on_complete: >
+        TUDM Peregrine 2 past overfly — ULISSES continuing acoustic analysis.
 
     - id: mad_alert
-      time: "00:03"
+      time: "00:03:56"   # Aircraft physically over the sub at 250 kn from start
       type: DETECTION
-      description: MAD system triggered — large ferrous mass at shallow depth.
+      description: ULISSES acoustic system declares — submerged contact detected.
       on_initiate: >
-        TUDM Peregrine 2: MAD ALERT — Magnetic Anomaly Detection
-        triggered. Bearing 235°, range 2nm. Signature consistent with
-        large ferrous mass at shallow depth. Executing contact protocol.
+        TUDM Peregrine 2: ACOUSTIC CONTACT — ULISSES passive detection
+        confirmed. Bearing 055° relative, range estimated 0.4 nm.
+        Narrowband signature consistent with diesel-electric submarine
+        at slow speed. ATOS mission system correlating all sensor data.
+        Executing contact prosecution protocol.
       source: RMAF-MPA-001
-      position: {lat: 5.220, lon: 99.890}
       alert_agencies: [RMAF, MIL]
       severity: WARNING
-      # MPA begins prosecution — orbit the contact
+      actionee: CONTACT-001
+      action: activate
+
+    - id: mpa_search
+      after: {event: mad_alert, phase: initiate, offset: "00:00:15"}
+      type: ORDER
+      description: Peregrine 2 banks into expanding-square search.
+      on_initiate: >
+        TUDM Peregrine 2 banking left into localisation pattern — slowing
+        to 160 kn, expanding-square steps one nautical mile outward.
+        ULISSES switching to active/passive multistatic mode.
       actionee: RMAF-MPA-001
-      action: orbit
-      orbit_center: CONTACT-001
-      orbit_radius_nm: 2.0
-      orbit_speed: 140
-      altitude_m: 150
+      action: search_pattern
+      search_center: CONTACT-001
+      search_step_nm: 1.0
+      search_iterations: 12
+      search_speed: 160
+      altitude_m: 1524   # 5 000 ft search altitude (descends to 500 ft only for ID run)
+      alert_agencies: [RMAF, MIL]
+
+    - id: sonobuoy_1
+      after: {event: mad_alert, phase: initiate, offset: "00:00:02"}
+      type: DETECTION
+      description: Sonobuoy 1 jettisoned — ULISSES multistatic field initiated.
+      on_initiate: >
+        TUDM Peregrine 2: first ULISSES sonobuoy deployed on acoustic
+        mark — channel 1 active. Multistatic tracking initiated.
+      actionee: RMAF-MPA-001
+      action: drop_sonobuoy
+      channel: 1
+      alert_agencies: [RMAF, MIL]
+
+    - id: sonobuoy_2
+      after: {event: sonobuoy_1, phase: initiate, offset: "00:02:30"}
+      type: DETECTION
+      description: Sonobuoy 2 deployed.
+      on_initiate: >
+        TUDM Peregrine 2: sonobuoy channel 2 away. ULISSES triangulating.
+      actionee: RMAF-MPA-001
+      action: drop_sonobuoy
+      channel: 2
+      alert_agencies: [RMAF, MIL]
+
+    - id: sonobuoy_3
+      after: {event: sonobuoy_2, phase: initiate, offset: "00:02:30"}
+      type: DETECTION
+      description: Sonobuoy 3 deployed.
+      on_initiate: >
+        TUDM Peregrine 2: sonobuoy channel 3 away.
+      actionee: RMAF-MPA-001
+      action: drop_sonobuoy
+      channel: 3
+      alert_agencies: [RMAF, MIL]
+
+    - id: sonobuoy_4
+      after: {event: sonobuoy_3, phase: initiate, offset: "00:02:30"}
+      type: DETECTION
+      description: Sonobuoy 4 deployed — ULISSES multistatic field complete.
+      on_initiate: >
+        TUDM Peregrine 2: sonobuoy channel 4 away. Four-buoy ULISSES
+        multistatic field complete — continuous acoustic tracking active.
+        Contact bearing, range, depth and course now available via
+        multistatic triangulation.
+      actionee: RMAF-MPA-001
+      action: drop_sonobuoy
+      channel: 4
+      alert_agencies: [RMAF, MIL]
 
     - id: mad_confirmed
       after: {event: mad_alert, phase: initiate, offset: "00:02:00"}
       type: ALERT
-      description: Second MAD pass confirms submerged contact.
+      description: ULISSES confirms submerged contact — diesel-electric submarine.
       on_initiate: >
-        TUDM Peregrine 2: MAD CONFIRMED — diesel-electric submarine.
-        Contact moving SE at 8-9 knots. Datum established 5.21°N
+        TUDM Peregrine 2: CONTACT CONFIRMED — diesel-electric submarine.
+        ULISSES multistatic tracking: contact moving SE at 8-9 knots,
+        depth 40-50m. Seaspray 7300E detecting intermittent periscope
+        returns. ATOS correlating all sources. Datum established 5.21°N
         99.91°E. No submarine transit notification on file. Classify
         UNKNOWN SUBMARINE CONTACT ALPHA.
       source: RMAF-MPA-001
@@ -198,18 +284,19 @@ scenario:
     - id: mpa2_scramble
       after: {event: asw_activated}
       type: ORDER
-      description: Second MPA scrambled from Subang for sonobuoy resupply.
+      description: Second MPA scrambled from Subang — fresh sonobuoys, full fuel.
       on_initiate: >
-        TUDM Peregrine 3 scrambled from RMAF Subang. Fresh sonobuoys
-        and full fuel. ETA ~40 minutes.
+        TUDM Peregrine 3 scrambled from RMAF Subang. Full ULISSES
+        sonobuoy load and 10+ hours endurance. ETA ~35 minutes.
       actionee: RMAF-MPA-002
       action: transit
       destination: {lat: 5.145, lon: 99.825}
-      speed: 220
+      speed: 250
       alert_agencies: [RMAF, MIL]
       on_complete: >
-        TUDM Peregrine 3 on scene. Immediate sonobuoy drop — contact
-        re-acquired. Two MPAs now coordinating via COP.
+        TUDM Peregrine 3 on scene. Immediate ULISSES sonobuoy drop —
+        contact re-acquired on multistatic track. Two P-72M MPAs now
+        coordinating via ATOS datalink and COP.
       on_complete_action: orbit
       orbit_center: CONTACT-001
       orbit_radius_nm: 3.0
@@ -239,11 +326,12 @@ scenario:
     - id: lofar_analysis
       after: {event: mad_confirmed, phase: initiate, offset: "00:07:00"}
       type: DETECTION
-      description: LOFAR analysis identifies submarine type.
+      description: ULISSES LOFAR analysis identifies submarine type.
       on_initiate: >
-        Peregrine 2 LOFAR: narrowband propulsion signature suggests
-        Type 209 or similar. Regional operators: Indonesia (Nagapasa),
-        Singapore (Archer), Myanmar. Indonesia most probable.
+        Peregrine 2 ULISSES LOFAR: narrowband propulsion signature
+        suggests Type 209 or similar. Regional operators: Indonesia
+        (Nagapasa-class), Singapore (Archer-class), Myanmar. Indonesia
+        most probable based on acoustic library match.
       source: RMAF-MPA-001
       alert_agencies: [MIL]
       severity: WARNING
@@ -251,11 +339,13 @@ scenario:
     - id: contact_tracked
       after: {event: lofar_analysis, phase: initiate, offset: "00:06:00"}
       type: DETECTION
-      description: Sonobuoy pattern tracking contact SE.
+      description: ULISSES multistatic field tracking contact SE.
       on_initiate: >
-        Contact tracked by sonobuoy pattern. Speed 8kn, heading
-        095-105° SE. Depth 40-55m — periscope depth regime. Contact
-        likely unaware of prosecution.
+        Contact tracked by ULISSES multistatic sonobuoy field.
+        Speed 8kn, heading 095-105° SE. Depth 40-55m — periscope
+        depth regime. Seaspray 7300E intermittent periscope/snorkel
+        returns correlate with acoustic track. Contact likely unaware
+        of prosecution.
       source: RMAF-MPA-001
       position: {lat: 5.168, lon: 99.975}
       alert_agencies: [MIL]
@@ -272,7 +362,6 @@ scenario:
       alert_agencies: [MIL]
       severity: CRITICAL
 
-    # Sub reacts to prosecution — slows and alters course
     - id: sub_reacts
       after: {event: lekiu_intercept, phase: complete, offset: "00:04:00"}
       type: DETECTION
@@ -336,7 +425,6 @@ scenario:
       source: RMN-FF-001
       position: {lat: 5.115, lon: 100.028}
       alert_agencies: [MIL]
-      # Reclassify to friendly
       reclassify:
         targets: [CONTACT-001]
         new_type: MIL_SUBMARINE_FRIENDLY
@@ -349,6 +437,6 @@ scenario:
       on_initiate: >
         ENDSTATE — KRI Nagapasa identified and surface-navigating under
         RMN escort. Transit notification admin error. Detection to
-        identification in 45 minutes. Two MPAs, one frigate, one OPV
-        coordinated via single COP.
+        identification in 45 minutes. Two P-72M MPAs with ULISSES,
+        one frigate, one OPV coordinated via single COP.
       alert_agencies: [RMAF, MIL]

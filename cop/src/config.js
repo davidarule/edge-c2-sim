@@ -86,6 +86,7 @@ export function initConfig() {
       'MIL_NAVAL_FIC':        '10033000001205010000',  // Patrol Craft (fast intercept)
       'MIL_SUBMARINE':          '10013500000000000000',  // Sea Subsurface, Unknown (Symbol Set 35)
       'MIL_SUBMARINE_FRIENDLY': '10033500000000000000',  // Sea Subsurface, Friend (after identification)
+      'SONOBUOY':               '10033500001302000000',  // Sea Subsurface, Friend, Sonobuoy (SS35/130200)
       'SUSPECT_VESSEL':       '10053000001400000000',  // Suspect, Non-Military
       'SUSPECT_FAST_BOAT':    '10013000001400000000',  // Unknown, Non-Military (fast boat)
       'HOSTILE_VESSEL':       '10063000001400000000',  // Hostile, Non-Military
@@ -103,7 +104,7 @@ export function initConfig() {
       'RMAF_FIGHTER':         '10030100001101020000',  // Fixed Wing, Fighter/Bomber
       'RMAF_HELICOPTER':      '10030100001102000000',  // Rotary Wing
       'RMAF_TRANSPORT':       '10030100001101310000',  // Fixed Wing, Transport
-      'RMAF_MPA':             '10030100001107000000',  // Fixed Wing, Patrol (01110700)
+      'RMAF_MPA':             '10030100001101000200',  // Military Fixed Wing + Mod-1 02 Bomber (torpedo-capable ATR 72-600 MPA)
       'RMP_HELICOPTER':       '10030100001102000000',  // Rotary Wing
       'CIVILIAN_COMMERCIAL':  '10040100001200000000',  // Neutral, Civilian generic
       'CIVILIAN_LIGHT':       '10040100001201000000',  // Neutral, Civilian, Fixed Wing

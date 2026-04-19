@@ -64,7 +64,7 @@ DOMAIN_ACTIONS: dict[Any, frozenset[str]] = {
     "AIR": frozenset({
         "transit", "orbit", "hold_station", "escape", "approach",
         "intercept", "pursue", "rtb", "deploy", "respond", "reclassify",
-        "activate",
+        "activate", "search_pattern", "drop_sonobuoy",
     }),
     "PERSONNEL": frozenset({
         "transit", "embark", "disembark", "hold_station", "approach",
@@ -153,13 +153,22 @@ ENTITY_TYPES: dict[str, dict[str, Any]] = {
         "speed_range": (0, 20), "sidc": "10033500000000000000",  # Friendly — after identification
         "turn": (60.0, 3.0, 2.0),
     },
+    # Air-dropped acoustic sonobuoy (2525D SS35, entity 130200). Stationary
+    # passive sensor — drifts on the surface, hydrophone submerged.
+    "SONOBUOY": {
+        "domain": Domain.MARITIME, "agency": Agency.RMAF,
+        "speed_range": (0, 0), "sidc": "10033500001302000000",
+    },
     "RMAF_TRANSPORT": {
         "domain": Domain.AIR, "agency": Agency.RMAF,
         "speed_range": (120, 280), "sidc": "10030100001101310000",
     },
     "RMAF_MPA": {
         "domain": Domain.AIR, "agency": Agency.RMAF,
-        "speed_range": (120, 280), "sidc": "10030100001101000300",
+        # Mod-1 02 = Bomber (torpedo-capable); ATR 72-600 MPA carries
+        # lightweight torpedoes so Cargo (03) is incorrect.
+        "speed_range": (120, 280), "sidc": "10030100001101000200",
+        "turn": (27.17, 40.0, 2.0),   # Leonardo ATR 72-600 MPA; R ≈ 1087 m
     },
     "RMAF_HELICOPTER": {
         "domain": Domain.AIR, "agency": Agency.RMAF,
