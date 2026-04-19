@@ -21,6 +21,41 @@ export function initOverlayManager(viewer, config) {
         fill: Cesium.Color.YELLOW.withAlpha(0.03)
       },
       defaultVisible: false
+    },
+    {
+      id: 'my_eez',
+      label: 'Malaysian Waters (EEZ — Strait)',
+      url: '/geodata/boundaries/malaysia_eez_peninsula.geojson',
+      style: {
+        // Jalur Gemilang red
+        stroke: Cesium.Color.fromCssColorString('#CC0001').withAlpha(0.85),
+        strokeWidth: 2,
+        fill: Cesium.Color.fromCssColorString('#CC0001').withAlpha(0.08)
+      },
+      defaultVisible: false
+    },
+    {
+      id: 'id_eez',
+      label: 'Indonesian Waters (EEZ — Sumatra)',
+      url: '/geodata/boundaries/indonesia_eez_sumatra.geojson',
+      style: {
+        // Merah Putih red
+        stroke: Cesium.Color.fromCssColorString('#E70011').withAlpha(0.85),
+        strokeWidth: 2,
+        fill: Cesium.Color.fromCssColorString('#FFFFFF').withAlpha(0.06)
+      },
+      defaultVisible: false
+    },
+    {
+      id: 'my_id_median',
+      label: 'MY–ID Maritime Boundary (1970)',
+      url: '/geodata/boundaries/my_id_median_line.geojson',
+      style: {
+        stroke: Cesium.Color.fromCssColorString('#FFFFFF').withAlpha(0.95),
+        strokeWidth: 3,
+        fill: Cesium.Color.TRANSPARENT
+      },
+      defaultVisible: false
     }
   ];
 
@@ -29,8 +64,7 @@ export function initOverlayManager(viewer, config) {
       const dataSource = await Cesium.GeoJsonDataSource.load(def.url, {
         stroke: def.style.stroke || Cesium.Color.YELLOW,
         strokeWidth: def.style.strokeWidth || 2,
-        fill: def.style.fill || Cesium.Color.TRANSPARENT,
-        markerSize: 0
+        fill: def.style.fill || Cesium.Color.TRANSPARENT
       });
       dataSource.show = def.defaultVisible;
       viewer.dataSources.add(dataSource);

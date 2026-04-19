@@ -59,3 +59,5 @@ docker-compose.override.yml
 
 # Claude Desktop ↔ Claude Code relay
 .comms/
+Screenshot*.png
+cop/public/geodata

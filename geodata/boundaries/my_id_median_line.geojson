@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "name": "MY-ID Maritime Boundary (Strait of Malacca)",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Malaysia–Indonesia Continental Shelf Boundary (1969/1970 Agreement, approximate)",
+        "agreement": "1969-10-27 Continental Shelf; 1970 Territorial Sea",
+        "note": "Simplified median line — approximate, for visualization only"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [98.016, 5.949],
+          [98.550, 5.750],
+          [98.850, 5.500],
+          [99.300, 5.200],
+          [99.620, 4.900],
+          [100.020, 4.500],
+          [100.380, 4.000],
+          [100.700, 3.400],
+          [101.100, 2.850],
+          [101.700, 2.300],
+          [102.200, 1.780],
+          [103.000, 1.300]
+        ]
+      }
+    }
+  ]
+}

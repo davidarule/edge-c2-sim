@@ -36,6 +36,11 @@ CRUISE_ALTITUDES = {
 # Field elevation for ESSZONE bases (feet)
 FIELD_ELEVATION = 50  # Approximate for Sabah coastal bases
 
+# Below this speed the aircraft is taxiing — stays on the ground and altitude
+# remains 0. Above this speed with on_ground True, the aviation simulator
+# transitions to takeoff/climb.
+TAXI_SPEED_KN = 60.0
+
 
 class AviationSimulator:
     """Aviation domain simulator — flight profiles and ADS-B generation."""
@@ -91,7 +96,13 @@ class AviationSimulator:
         if entity.status in (EntityStatus.ACTIVE, EntityStatus.RESPONDING,
                              EntityStatus.INTERCEPTING):
             if on_ground and entity.speed_knots > 0:
-                # Taking off
+                if entity.speed_knots < TAXI_SPEED_KN:
+                    # Taxiing — stay on ground, altitude 0. Do not climb.
+                    entity.metadata["flight_phase"] = "taxi"
+                    entity.metadata["vertical_rate_fpm"] = 0
+                    entity.position.altitude_m = 0.0
+                    return
+                # Taking off (at or above rotation speed)
                 entity.metadata["on_ground"] = False
                 entity.metadata["flight_phase"] = "takeoff"
                 on_ground = False

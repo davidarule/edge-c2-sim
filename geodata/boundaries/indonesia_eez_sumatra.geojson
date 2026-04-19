@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "name": "Indonesia EEZ — Sumatra East Coast (simplified)",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Indonesia EEZ (Strait of Malacca side, simplified)",
+        "note": "Approximate polygon bounded by Sumatra east coast and MY-ID median line. For demo visualization only."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [95.300, 5.550],
+          [97.500, 5.850],
+          [98.016, 5.949],
+          [98.550, 5.750],
+          [98.850, 5.500],
+          [99.300, 5.200],
+          [99.620, 4.900],
+          [100.020, 4.500],
+          [100.380, 4.000],
+          [100.700, 3.400],
+          [101.100, 2.850],
+          [101.700, 2.300],
+          [102.200, 1.780],
+          [103.000, 1.300],
+          [103.600, 0.700],
+          [102.800, 0.300],
+          [101.500, 0.800],
+          [100.400, 1.500],
+          [99.400, 2.500],
+          [98.700, 3.500],
+          [98.000, 4.500],
+          [97.500, 5.000],
+          [95.300, 5.550]
+        ]]
+      }
+    }
+  ]
+}

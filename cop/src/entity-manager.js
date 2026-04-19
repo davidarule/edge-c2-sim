@@ -323,7 +323,10 @@ export function initEntityManager(viewer, config) {
         scale: globalIconScale,
         rotation: 0,
         pixelOffset: new Cesium.Cartesian2(0, 0),
-        disableDepthTestDistance: Number.POSITIVE_INFINITY
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        // Pull billboard toward the camera in eye-space so trail polylines
+        // never paint over the 2525D icon.
+        eyeOffset: new Cesium.Cartesian3(0, 0, -1000)
       },
       // No Cesium Label — callsign labels are HTML overlay divs (see updateLabelOverlay)
     });

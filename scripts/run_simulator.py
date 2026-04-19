@@ -171,11 +171,23 @@ async def simulation_loop(
 
                 entity_store.upsert_entity(entity)
 
-                # Fixed-wing aircraft: swap to orbit when movement completes
+                # Fixed-wing aircraft: swap to orbit when movement completes —
+                # but ONLY when the aircraft is airborne AND the scenario
+                # doesn't already have a scripted follow-on waiting for this
+                # movement's completion. If a _PendingCompletion is queued for
+                # this entity, the event engine is about to fire the next
+                # scripted step (intercept, orbit, rtb, ...); auto-orbiting
+                # here would yank the movement out from under it.
+                pending_for_entity = any(
+                    pc.entity_id == entity_id and not pc.fired
+                    for pc in getattr(event_engine, "_pending_completions", [])
+                )
                 if (
                     domain_key == "AIR"
                     and movement.is_complete(sim_time)
                     and not isinstance(movement, OrbitMovement)
+                    and not entity.metadata.get("on_ground", False)
+                    and not pending_for_entity
                 ):
                     type_def = ENTITY_TYPES.get(entity.entity_type, {})
                     min_speed = type_def.get("speed_range", (0, 100))[0]
