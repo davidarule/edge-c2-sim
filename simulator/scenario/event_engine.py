@@ -626,11 +626,14 @@ class EventEngine:
             entity.speed_knots = cruise
 
         elif action == "disembark":
-            # Personnel-only. Default: disembark back onto the carrier named
-            # in metadata.embarked_on (teleport to its position; no movement).
-            # If event.metadata.onto names a different entity, teleport to
-            # THAT entity and assign a HoldStationMovement tracking it so the
-            # disembarked personnel ride the onto-entity as it moves.
+            # Personnel-only. The disembarked entity is teleported to its
+            # carrier's current position and given a HoldStationMovement that
+            # tracks that carrier — so it rides the carrier as it moves.
+            #
+            # Carrier resolution order:
+            #   1. event.metadata.onto — named transfer target (e.g. boarders
+            #      stepping from their skiff onto the tanker)
+            #   2. entity.metadata.embarked_on — the original carrier
             onto_id = event.metadata.get("onto")
             carrier_id = onto_id or entity.metadata.get("embarked_on")
             if carrier_id:
@@ -642,18 +645,19 @@ class EventEngine:
                         altitude_m=carrier.position.altitude_m,
                     )
                     entity.heading_deg = carrier.heading_deg
-                    if onto_id:
-                        # Ride the onto-entity — offset is effectively zero
-                        # at this instant, so personnel stay at target's pos.
-                        self._movements[target_id] = HoldStationMovement(
-                            lat=entity.position.latitude,
-                            lon=entity.position.longitude,
-                            alt_m=entity.position.altitude_m,
-                            heading_deg=entity.heading_deg,
-                            target_entity_id=onto_id,
-                            entity_store=self._entity_store,
-                        )
-                        entity.metadata["embarked_on"] = onto_id
+                    # Always attach a HoldStationMovement so the disembarked
+                    # entity follows its carrier.
+                    self._movements[target_id] = HoldStationMovement(
+                        lat=entity.position.latitude,
+                        lon=entity.position.longitude,
+                        alt_m=entity.position.altitude_m,
+                        heading_deg=entity.heading_deg,
+                        target_entity_id=carrier_id,
+                        entity_store=self._entity_store,
+                    )
+                    # Record the new carrier so subsequent events / re-embarks
+                    # see the right entity.
+                    entity.metadata["embarked_on"] = carrier_id
             entity.status = EntityStatus.ACTIVE
 
         # === LEGACY ACTIONS (backward compatible) ===
