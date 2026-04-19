@@ -9,6 +9,7 @@ movement strategies, fire events, push updates through transport adapters.
 import asyncio
 import json
 import logging
+import math
 import os
 import signal
 from datetime import datetime, timedelta, timezone
@@ -57,19 +58,39 @@ async def simulation_loop(
     sim_context is a mutable dict with keys 'scenario_state' and 'event_engine'.
     This ensures the loop always sees the current objects after a reset, since
     handle_restart replaces them in the same dict.
+
+    Physics sub-stepping: at high sim-speeds the per-real-tick sim-time jump
+    can get large (e.g. 60 s at 60x with a 1 Hz tick). That's too coarse for
+    close-range interactions — fast-moving entities skip past each other and
+    InterceptMovement may miss its 500 m radius check. We subdivide the
+    sim-time advance into at most MAX_SUBSTEP_S-wide sub-ticks, running
+    movement + event dispatch on each sub-tick. Adapter pushes only fire
+    once per real tick (after the last sub-step) to avoid flooding the COP.
     """
     # Per-entity noise generators (each entity gets its own instance)
     noise_cache: dict[str, PositionNoise] = {}
     tick_count = 0
     domain_sims = domain_simulators or []
+    last_sim_time: datetime | None = None
+    MAX_SUBSTEP_S = 5.0
 
     while not stop_event.is_set():
         if not clock.is_running:
             await asyncio.sleep(0.1)
+            last_sim_time = None  # resync on resume so the first tick doesn't replay catch-up
             continue
 
         tick_start = asyncio.get_event_loop().time()
-        sim_time = clock.get_sim_time()
+        target_sim_time = clock.get_sim_time()
+        if last_sim_time is None:
+            last_sim_time = target_sim_time
+        # Clamp the worst case: if something pauses the process (debugger,
+        # long GC, etc.) don't suddenly run hundreds of sub-steps.
+        sim_delta_s = (target_sim_time - last_sim_time).total_seconds()
+        sim_delta_s = max(0.0, min(sim_delta_s, 300.0))
+        n_substeps = max(1, int(math.ceil(sim_delta_s / MAX_SUBSTEP_S))) if sim_delta_s > 0 else 1
+        substep_s = sim_delta_s / n_substeps if n_substeps > 0 else 0.0
+        sub_sim_time = last_sim_time
 
         # Read current scenario_state and event_engine from shared context
         scenario_state = sim_context["scenario_state"]
@@ -89,107 +110,120 @@ async def simulation_loop(
         for eid in spawned:
             del pending[eid]
 
-        # Update all entity positions via movement strategies
-        for entity_id, movement in list(scenario_state.movements.items()):
-            entity = entity_store.get_entity(entity_id)
-            if not entity:
-                continue
+        # Substep loop: advance sim_time in MAX_SUBSTEP_S-wide increments so
+        # high-speed physics (e.g. interceptors crossing each other's radius)
+        # stays accurate. Adapter pushes happen once per real tick, after all
+        # sub-ticks, to avoid flooding the COP.
+        scenario_ended = False
+        for _ in range(n_substeps):
+            sub_sim_time = sub_sim_time + timedelta(seconds=substep_s)
+            sim_time = sub_sim_time
 
-            state = movement.get_state(sim_time)
+            # Update all entity positions via movement strategies
+            for entity_id, movement in list(scenario_state.movements.items()):
+                entity = entity_store.get_entity(entity_id)
+                if not entity:
+                    continue
 
-            # Per-entity noise instance
-            domain_key = entity.domain.value
-            if entity_id not in noise_cache:
-                noise_cache[entity_id] = PositionNoise.for_domain(domain_key)
-            noisy_state = noise_cache[entity_id].apply(state)
+                state = movement.get_state(sim_time)
 
-            # Store clean (pre-noise) position for trail rendering
-            entity.metadata["track_lat"] = state.lat
-            entity.metadata["track_lon"] = state.lon
+                # Per-entity noise instance
+                domain_key = entity.domain.value
+                if entity_id not in noise_cache:
+                    noise_cache[entity_id] = PositionNoise.for_domain(domain_key)
+                noisy_state = noise_cache[entity_id].apply(state)
 
-            # Terrain validation: ensure entity is on correct surface
-            final_lat = noisy_state.lat
-            final_lon = noisy_state.lon
-            if domain_key in ("MARITIME", "GROUND_VEHICLE", "PERSONNEL"):
-                if not validate_position(final_lat, final_lon, domain_key):
-                    fix = find_nearest_valid_point(final_lat, final_lon, domain_key)
-                    if fix:
-                        final_lat, final_lon = fix
+                # Store clean (pre-noise) position for trail rendering
+                entity.metadata["track_lat"] = state.lat
+                entity.metadata["track_lon"] = state.lon
 
-            # Update entity position
-            entity.update_position(
-                latitude=final_lat,
-                longitude=final_lon,
-                altitude_m=noisy_state.alt_m,
-                heading_deg=noisy_state.heading_deg,
-                speed_knots=noisy_state.speed_knots,
-                course_deg=noisy_state.course_deg,
-            )
+                # Terrain validation: ensure entity is on correct surface
+                final_lat = noisy_state.lat
+                final_lon = noisy_state.lon
+                if domain_key in ("MARITIME", "GROUND_VEHICLE", "PERSONNEL"):
+                    if not validate_position(final_lat, final_lon, domain_key):
+                        fix = find_nearest_valid_point(final_lat, final_lon, domain_key)
+                        if fix:
+                            final_lat, final_lon = fix
 
-            # Apply metadata overrides from waypoints
-            if noisy_state.metadata_overrides:
-                overrides = noisy_state.metadata_overrides
-                # Special keys update entity-level fields
-                if "sidc" in overrides:
-                    entity.sidc = overrides["sidc"]
-                if "callsign" in overrides:
-                    entity.callsign = overrides["callsign"]
-                # Rest goes to metadata dict
-                entity.metadata.update(
-                    {k: v for k, v in overrides.items() if k not in ("sidc", "callsign")}
+                # Update entity position
+                entity.update_position(
+                    latitude=final_lat,
+                    longitude=final_lon,
+                    altitude_m=noisy_state.alt_m,
+                    heading_deg=noisy_state.heading_deg,
+                    speed_knots=noisy_state.speed_knots,
+                    course_deg=noisy_state.course_deg,
                 )
 
-            entity_store.upsert_entity(entity)
-
-            # Fixed-wing aircraft: swap to orbit when movement completes
-            if (
-                domain_key == "AIR"
-                and movement.is_complete(sim_time)
-                and not isinstance(movement, OrbitMovement)
-            ):
-                type_def = ENTITY_TYPES.get(entity.entity_type, {})
-                min_speed = type_def.get("speed_range", (0, 100))[0]
-                if min_speed > 0:
-                    orbit_radius_m = 3000.0
-                    c_lat, c_lon, init_heading = tangent_orbit_params(
-                        final_lat, final_lon, noisy_state.heading_deg,
-                        orbit_radius_m, direction="CW",
-                    )
-                    scenario_state.movements[entity_id] = OrbitMovement(
-                        center_lat=c_lat,
-                        center_lon=c_lon,
-                        altitude_m=noisy_state.alt_m,
-                        speed_knots=min_speed,
-                        orbit_radius_m=orbit_radius_m,
-                        initial_heading=init_heading,
-                        direction="CW",
-                    )
-                    logger.info(
-                        f"Fixed-wing {entity_id} switching to orbit at "
-                        f"{min_speed} kts"
+                # Apply metadata overrides from waypoints
+                if noisy_state.metadata_overrides:
+                    overrides = noisy_state.metadata_overrides
+                    # Special keys update entity-level fields
+                    if "sidc" in overrides:
+                        entity.sidc = overrides["sidc"]
+                    if "callsign" in overrides:
+                        entity.callsign = overrides["callsign"]
+                    # Rest goes to metadata dict
+                    entity.metadata.update(
+                        {k: v for k, v in overrides.items() if k not in ("sidc", "callsign")}
                     )
 
-        # Tick domain simulators
-        for domain_sim in domain_sims:
-            try:
-                domain_sim.tick(sim_time)
-            except Exception as e:
-                logger.debug(f"Domain sim tick error: {e}")
+                entity_store.upsert_entity(entity)
 
-        # Process events
-        fired_events = event_engine.tick(sim_time)
-        scenario_ended = False
-        for event in fired_events:
-            event_dict = event.to_dict()
-            event_dict["time"] = sim_time.isoformat()
-            for adapter in adapters:
+                # Fixed-wing aircraft: swap to orbit when movement completes
+                if (
+                    domain_key == "AIR"
+                    and movement.is_complete(sim_time)
+                    and not isinstance(movement, OrbitMovement)
+                ):
+                    type_def = ENTITY_TYPES.get(entity.entity_type, {})
+                    min_speed = type_def.get("speed_range", (0, 100))[0]
+                    if min_speed > 0:
+                        orbit_radius_m = 3000.0
+                        c_lat, c_lon, init_heading = tangent_orbit_params(
+                            final_lat, final_lon, noisy_state.heading_deg,
+                            orbit_radius_m, direction="CW",
+                        )
+                        scenario_state.movements[entity_id] = OrbitMovement(
+                            center_lat=c_lat,
+                            center_lon=c_lon,
+                            altitude_m=noisy_state.alt_m,
+                            speed_knots=min_speed,
+                            orbit_radius_m=orbit_radius_m,
+                            initial_heading=init_heading,
+                            direction="CW",
+                        )
+                        logger.info(
+                            f"Fixed-wing {entity_id} switching to orbit at "
+                            f"{min_speed} kts"
+                        )
+
+            # Tick domain simulators
+            for domain_sim in domain_sims:
                 try:
-                    await adapter.push_event(event_dict)
+                    domain_sim.tick(sim_time)
                 except Exception as e:
-                    logger.debug(f"Event push error: {e}")
-            # Stop clock on RESOLUTION event (scenario endstate)
-            if event.event_type == "RESOLUTION":
-                scenario_ended = True
+                    logger.debug(f"Domain sim tick error: {e}")
+
+            # Process events (at the sub-step's sim_time — accurate for timing)
+            fired_events = event_engine.tick(sim_time)
+            for event in fired_events:
+                event_dict = event.to_dict()
+                event_dict["time"] = sim_time.isoformat()
+                for adapter in adapters:
+                    try:
+                        await adapter.push_event(event_dict)
+                    except Exception as e:
+                        logger.debug(f"Event push error: {e}")
+                # Stop clock on RESOLUTION event (scenario endstate)
+                if event.event_type == "RESOLUTION":
+                    scenario_ended = True
+
+            if scenario_ended:
+                break
+
+        last_sim_time = sub_sim_time
 
         if scenario_ended:
             clock.pause()
