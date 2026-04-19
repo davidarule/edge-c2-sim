@@ -461,7 +461,16 @@ async def run(
             from simulator.ais.live_feed import AIS_ENTITY_PREFIX
 
             clock.pause()
-            clock.reset()
+
+            # Load the new scenario FIRST so we can rebase the clock to its
+            # start_time before any movement code queries sim_time. Without
+            # this rebase, clock._start_time stays at the previous scenario's
+            # value and EscapeMovement.get_state() sees negative elapsed on
+            # switch — entities dead-reckon on the reverse bearing.
+            fresh = None
+            if scenario_path:
+                fresh = ScenarioLoader().load(scenario_path)
+            clock.reset(start_time=fresh.start_time if fresh else None)
 
             # Always stop AIS feed on restart/switch — may restart below
             if ais_feed:
@@ -480,8 +489,7 @@ async def run(
                 ws_adapter._trail_history.update(ais_trails)
 
             ws_adapter._event_history.clear()
-            if scenario_path:
-                fresh = ScenarioLoader().load(scenario_path)
+            if fresh is not None:
                 sim_context["scenario_state"] = fresh
                 with store._lock:
                     store._entities.clear()

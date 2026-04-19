@@ -24,6 +24,13 @@ export function initAgencyFilter(containerId, entityManager, config) {
       </div>
       <div class="filter-group filter-collapsible" id="domain-filters"></div>
     </div>
+    <div class="filter-section" id="filter-section-background">
+      <div class="filter-section-header" data-target="background-filters">
+        <span class="filter-section-title">Background</span>
+        <span class="filter-section-chevron">\u25bc</span>
+      </div>
+      <div class="filter-group filter-collapsible" id="background-filters"></div>
+    </div>
     <div class="stats-section" id="filter-stats"></div>
     <div class="filter-section" id="filter-section-entities">
       <div class="filter-section-header" data-target="entity-list">
@@ -36,6 +43,7 @@ export function initAgencyFilter(containerId, entityManager, config) {
 
   const agencyGroup = document.getElementById('agency-filters');
   const domainGroup = document.getElementById('domain-filters');
+  const backgroundGroup = document.getElementById('background-filters');
   const statsEl = document.getElementById('filter-stats');
 
   // Wire collapsible section headers
@@ -88,6 +96,23 @@ export function initAgencyFilter(containerId, entityManager, config) {
     domainGroup.appendChild(toggle);
   }
 
+  // Background toggle — hide/show AIS-prefixed ambient traffic
+  {
+    const toggle = document.createElement('div');
+    toggle.className = 'filter-toggle';
+    toggle.dataset.background = 'ais';
+    toggle.innerHTML = `
+      <div class="filter-swatch" style="background: #78909C"></div>
+      <span class="filter-label">AIS Traffic</span>
+      <span class="filter-count" id="count-background-ais">0</span>
+    `;
+    toggle.addEventListener('click', () => {
+      const hidden = toggle.classList.toggle('hidden');
+      entityManager.setBackgroundFilter(!hidden);
+    });
+    backgroundGroup.appendChild(toggle);
+  }
+
   const entityListEl = document.getElementById('entity-list');
 
   // Entity click callbacks (BUG-015)
@@ -107,6 +132,12 @@ export function initAgencyFilter(containerId, entityManager, config) {
     for (const key of Object.keys(config.domainLabels)) {
       const el = document.getElementById(`count-domain-${key}`);
       if (el) el.textContent = domainCounts[key] || 0;
+    }
+
+    // Background AIS count
+    const bgEl = document.getElementById('count-background-ais');
+    if (bgEl && entityManager.getBackgroundCount) {
+      bgEl.textContent = entityManager.getBackgroundCount();
     }
 
     const total = entityManager.getEntityCount();

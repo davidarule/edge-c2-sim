@@ -52,7 +52,7 @@ export function initEntityManager(viewer, config) {
   const symbolCache = new Map();
   const clickHandlers = [];
   const doubleClickHandlers = [];
-  const filters = { agencies: new Set(), domains: new Set() };
+  const filters = { agencies: new Set(), domains: new Set(), hideBackground: false };
 
   // Global display state (settable via settings panel)
   let globalIconSizePx = 60;   // desired display size in pixels (matches settings-panel default)
@@ -221,9 +221,11 @@ export function initEntityManager(viewer, config) {
     if (!trail) return;
 
     const entry = entities.get(entityId);
+    const isBackground = entry && (entry.data.entity_id || '').startsWith('AIS-');
     const hidden = !entry ||
                    filters.agencies.has(entry.data.agency) ||
-                   filters.domains.has(entry.data.domain);
+                   filters.domains.has(entry.data.domain) ||
+                   (filters.hideBackground && isBackground);
 
     const override = entityTrailOverrides.get(entityId);
     const userVisible = override !== undefined ? override : globalTrailsVisible;
@@ -442,13 +444,28 @@ export function initEntityManager(viewer, config) {
     const entry = entities.get(id);
     if (!entry) return;
 
+    const isBackground = (entry.data.entity_id || '').startsWith('AIS-');
     const hidden = filters.agencies.has(entry.data.agency) ||
-                   filters.domains.has(entry.data.domain);
+                   filters.domains.has(entry.data.domain) ||
+                   (filters.hideBackground && isBackground);
 
     entry.cesiumEntity.show = !hidden;
     entry.visible = !hidden;
     // Trail visibility handled by updateTrailVisibility() — separate system
     updateTrailVisibility(id);
+  }
+
+  function setBackgroundFilter(visible) {
+    filters.hideBackground = !visible;
+    entities.forEach((_, id) => applyVisibility(id));
+  }
+
+  function getBackgroundCount() {
+    let n = 0;
+    entities.forEach((entry) => {
+      if ((entry.data.entity_id || '').startsWith('AIS-')) n++;
+    });
+    return n;
   }
 
   // === PIXEL-DISTANCE DECLUTTER WITH RING OFFSET ===
@@ -747,6 +764,10 @@ export function initEntityManager(viewer, config) {
   return {
     loadSnapshot(entityList) {
       entities.forEach((_, id) => removeEntity(id));
+      // trails.clear() alone would orphan the underlying Cesium polylines;
+      // remove them from the data source first so stale lines don't linger
+      // after a scenario reload.
+      trailDataSource.entities.removeAll();
       trails.clear();
       trailPositions.clear();
       updateCounters.clear();
@@ -789,6 +810,8 @@ export function initEntityManager(viewer, config) {
     removeEntity,
     setAgencyFilter,
     setDomainFilter,
+    setBackgroundFilter,
+    getBackgroundCount,
     getEntity: (id) => entities.get(id)?.data,
     getCesiumEntity: (id) => entities.get(id)?.cesiumEntity,
     getAllEntities: () => [...entities.values()].map(e => e.data),

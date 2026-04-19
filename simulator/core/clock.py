@@ -64,11 +64,21 @@ class SimulationClock:
         self._running = True
         self._wall_start = time.monotonic()
 
-    def reset(self) -> None:
-        """Reset clock to the beginning (elapsed = 0). Clock is left paused."""
+    def reset(self, start_time: datetime | None = None) -> None:
+        """Reset clock to the beginning (elapsed = 0). Clock is left paused.
+
+        If start_time is provided, also rebases the clock's start to that
+        instant — required when switching to a scenario with a different
+        top-level start_time, otherwise get_sim_time() returns the *old*
+        scenario's start and movements receive negative elapsed-time
+        arguments (the sign flip that sends entities shooting on their
+        reverse bearing).
+        """
         self._running = False
         self._wall_start = None
         self._accumulated_sim = timedelta()
+        if start_time is not None:
+            self._start_time = start_time
 
     def set_speed(self, multiplier: float) -> None:
         """Change speed multiplier. Accumulates elapsed time at old speed first."""

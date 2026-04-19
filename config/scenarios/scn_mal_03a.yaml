@@ -35,6 +35,7 @@ scenario:
     include:
       - ais_background_malacca.yaml
       - ais_background_singapore.yaml
+      - ais_background_east_singapore.yaml   # 475 entities covering Horsburgh / east-SG approaches
 
   scenario_entities:
 
