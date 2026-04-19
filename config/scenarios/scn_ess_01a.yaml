@@ -25,6 +25,7 @@ scenario:
     Demonstrates: maritime surveillance, multi-agency ESSCOM coordination,
     fleet scatter and pursuit, boarding operations, port processing.
   duration_minutes: 50
+  start_time: 2026-04-15T22:00:00Z  # 06:00 MYT — dawn fishing intercept
   center: {lat: 5.50, lon: 118.50}
   zoom: 9
   background:

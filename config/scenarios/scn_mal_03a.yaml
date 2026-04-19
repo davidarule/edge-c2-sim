@@ -28,6 +28,7 @@ scenario:
     Demonstrates: MALSINDO trilateral coordination, concurrent multi-incident
     management, cross-border custody handoff, joint boarding protocols.
   duration_minutes: 65
+  start_time: 2026-04-15T00:00:00Z  # 08:00 MYT — daytime trilateral patrol
   center: {lat: 2.50, lon: 102.00}
   zoom: 8
   background:

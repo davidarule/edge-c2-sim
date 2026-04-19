@@ -19,6 +19,11 @@ scenario:
   name:              str      # human-readable name
   description:       str      # long description, may be multi-line
   duration_minutes:  int      # when the simulator auto-stops
+  start_time:        str      # ISO 8601 UTC, e.g. "2026-04-15T19:00:00Z"
+                              # required for realistic time-of-day (night
+                              # scenarios should NOT default to 08:00 UTC).
+                              # If omitted the loader uses DEFAULT_START and
+                              # logs a warning. Malaysia local time = UTC+8.
   center:            {lat, lon}   # initial camera centre
   zoom:              int      # initial camera altitude (see COP main.js)
   background:                 # optional — include background traffic files

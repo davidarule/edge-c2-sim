@@ -19,6 +19,7 @@ scenario:
     SSAS during night boarding. Multi-agency response using reactive
     event chains — zero waypoints, all action-driven.
   duration_minutes: 75
+  start_time: 2026-04-15T19:00:00Z  # 03:00 MYT — pre-dawn piracy boarding
   center: {lat: 3.41, lon: 100.49}
   zoom: 9
   background:

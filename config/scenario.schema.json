@@ -31,6 +31,10 @@
           "maximum": 1440,
           "description": "Scenario length in minutes"
         },
+        "start_time": {
+          "type": "string",
+          "description": "Absolute start instant in ISO 8601 UTC (e.g. '2026-04-15T19:00:00Z'). Required for realistic time-of-day — night scenarios should not default to 08:00 UTC. Malaysia local time = UTC+8."
+        },
         "center": {
           "$ref": "#/$defs/Position",
           "description": "Map center for COP initial view"

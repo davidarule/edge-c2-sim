@@ -222,6 +222,29 @@ _FISHING_NAMES = ["Nelayan", "FB"]
 _TANKER_NAMES = ["Miri Crude", "Kerteh", "Labuan Palm", "Bintulu Gas"]
 
 
+def _parse_start_time(value: Any) -> datetime:
+    """Parse a scenario-level start_time into a UTC datetime.
+
+    Accepts ISO 8601 strings ('2026-04-15T22:00:00Z', '2026-04-15T22:00:00+00:00',
+    '2026-04-15 22:00') and the datetime instance PyYAML produces for timestamp
+    scalars. Bare HH:MM strings are not supported here — start_time is an
+    absolute instant, not an offset.
+    """
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    if isinstance(value, str):
+        s = value.strip().replace("Z", "+00:00")
+        # `fromisoformat` handles both 'T' and space separators since 3.11.
+        try:
+            dt = datetime.fromisoformat(s)
+        except ValueError as e:
+            raise ValueError(
+                f"start_time must be ISO 8601 UTC (e.g. 2026-04-15T22:00:00Z), got {value!r}"
+            ) from e
+        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+    raise ValueError(f"start_time must be a string or datetime, got {type(value).__name__}")
+
+
 def _parse_time_offset(time_str: str) -> timedelta:
     """Parse 'HH:MM' or 'HH:MM:SS' to timedelta."""
     parts = time_str.split(":")
@@ -351,7 +374,22 @@ class ScenarioLoader:
         duration_min = scenario["duration_minutes"]
         center = (scenario["center"]["lat"], scenario["center"]["lon"])
         zoom = scenario.get("zoom", 9)
-        start = start_time or DEFAULT_START
+        # Resolution order for the scenario start clock:
+        #   1. explicit start_time argument (programmatic override)
+        #   2. top-level `start_time` field in the YAML (ISO 8601 UTC)
+        #   3. DEFAULT_START (daytime placeholder)
+        yaml_start = scenario.get("start_time")
+        if start_time is not None:
+            start = start_time
+        elif yaml_start:
+            start = _parse_start_time(yaml_start)
+        else:
+            start = DEFAULT_START
+            logger.warning(
+                f"Scenario {scenario_path} has no top-level `start_time` — "
+                f"using default {DEFAULT_START.isoformat()}. "
+                f"Night / specific-time scenarios should set start_time explicitly."
+            )
 
         entities: dict[str, Entity] = {}
         movements: dict[str, Any] = {}
@@ -428,9 +466,16 @@ class ScenarioLoader:
     ) -> None:
         """Validate all maritime/ground entity starting positions and waypoints.
 
-        Raises ValueError if any maritime entity's initial position is on land,
-        so bad scenario coordinates are caught at load time rather than silently
-        corrected or hidden behind skip_terrain_check workarounds.
+        If a maritime entity's authored starting position falls on land per the
+        terrain dataset, auto-snap it to the nearest sea point *when* that point
+        is within AUTO_SNAP_THRESHOLD_M. This covers the common case where
+        authored dock coordinates sit at the waterfront edge and the Natural
+        Earth 10m dataset treats that pixel as land — snap distance is typically
+        10–30 m.
+
+        Entities flagged as on land with NO nearby sea point, or with nearest
+        sea further than the threshold, still raise (the scenario is
+        genuinely pointing at the interior — an authoring error).
         """
         try:
             from scripts.terrain import get_nearest_sea_point, is_land
@@ -439,9 +484,14 @@ class ScenarioLoader:
             logger.debug("Terrain validation unavailable (scripts.terrain not installed)")
             return
 
-        # Check initial positions — hard fail for maritime entities on land.
-        # For patrol entities, check the movement's actual initial state rather
-        # than the YAML initial_position (which is just a hint for patrol).
+        # Auto-snap radius for authored starting positions. The terrain
+        # dataset (Natural Earth 10m raster) classifies piers, jetties, and
+        # port infrastructure as "land" — authored dock coordinates routinely
+        # sit 100 m to 3 km from the nearest raster-water pixel. 5 km is wide
+        # enough to absorb that while still rejecting truly-inland authoring
+        # errors (points that land dozens of km from any sea).
+        AUTO_SNAP_THRESHOLD_M = 5000.0
+
         terrain_errors = []
         for eid, entity in entities.items():
             domain = entity.domain.value
@@ -454,25 +504,60 @@ class ScenarioLoader:
                 # Patrol position is authoritative — YAML initial_position is a hint
                 state = movement.get_state(start)
                 lat, lon = state.lat, state.lon
+                is_patrol = True
             else:
                 lat = entity.position.latitude
                 lon = entity.position.longitude
-            if is_land(lat, lon):
-                nearest = get_nearest_sea_point(lat, lon)
-                nearest_str = (
-                    f"nearest sea point: ({nearest[0]:.4f}, {nearest[1]:.4f})"
-                    if nearest else "no nearby sea point found"
-                )
+                is_patrol = False
+            if not is_land(lat, lon):
+                continue
+
+            nearest = get_nearest_sea_point(lat, lon)
+            if not nearest:
                 msg = (
                     f"Maritime entity '{entity.callsign}' ({eid}) is on land: "
-                    f"({lat:.4f}, {lon:.4f}) — {nearest_str}"
+                    f"({lat:.4f}, {lon:.4f}) — no nearby sea point found"
+                )
+                logger.warning(msg)
+                terrain_errors.append(msg)
+                continue
+
+            # Distance to nearest sea point (haversine-ish, adequate for < 1 km).
+            import math
+            dy_m = (nearest[0] - lat) * 111_111.0
+            dx_m = (nearest[1] - lon) * 111_111.0 * math.cos(math.radians(lat))
+            snap_dist_m = math.hypot(dx_m, dy_m)
+
+            if snap_dist_m <= AUTO_SNAP_THRESHOLD_M and not is_patrol:
+                entity.position = Position(
+                    latitude=nearest[0],
+                    longitude=nearest[1],
+                    altitude_m=entity.position.altitude_m,
+                )
+                if entity.initial_position:
+                    entity.initial_position = Position(
+                        latitude=nearest[0],
+                        longitude=nearest[1],
+                        altitude_m=entity.initial_position.altitude_m,
+                    )
+                logger.info(
+                    f"Auto-snapped '{entity.callsign}' ({eid}) from "
+                    f"({lat:.6f}, {lon:.6f}) to nearest sea "
+                    f"({nearest[0]:.6f}, {nearest[1]:.6f}) — shift {snap_dist_m:.1f} m"
+                )
+            else:
+                msg = (
+                    f"Maritime entity '{entity.callsign}' ({eid}) is on land: "
+                    f"({lat:.4f}, {lon:.4f}) — nearest sea "
+                    f"({nearest[0]:.4f}, {nearest[1]:.4f}) is {snap_dist_m:.0f} m away "
+                    f"(> {AUTO_SNAP_THRESHOLD_M:.0f} m auto-snap limit)"
                 )
                 logger.warning(msg)
                 terrain_errors.append(msg)
 
         if terrain_errors:
             raise ValueError(
-                f"Scenario has {len(terrain_errors)} maritime entity/entities on land:\n"
+                f"Scenario has {len(terrain_errors)} maritime entity/entities too far inland:\n"
                 + "\n".join(f"  • {e}" for e in terrain_errors)
             )
 
@@ -559,6 +644,27 @@ class ScenarioLoader:
         # Read initial speed/heading from position (v2 format)
         initial_speed = pos.get("speed_kn", 0.0)
         initial_heading = pos.get("heading_deg", 0.0)
+
+        # Soft precision check: maritime/port starting positions should be
+        # authored at ~11 m resolution (4 decimal places) so entities are
+        # placed at specific berths. Warn if either axis is exact at 3 dp or
+        # coarser (i.e. lat*1000 is an integer within float tolerance).
+        if type_def.get("domain") == Domain.MARITIME:
+            raw_lat = pos.get("lat", 0.0)
+            raw_lon = pos.get("lon", 0.0)
+            coarse = []
+            for label, val in (("lat", raw_lat), ("lon", raw_lon)):
+                if val == 0.0:
+                    continue
+                scaled = val * 1000.0
+                if abs(scaled - round(scaled)) < 1e-7:
+                    coarse.append(label)
+            if coarse:
+                logger.warning(
+                    f"Maritime entity '{entry.get('callsign', entity_id)}' ({entity_id}) "
+                    f"initial_position {','.join(coarse)} has <4 decimal places "
+                    f"(~110 m resolution). Use at least 4 dp for berth-specific placement."
+                )
 
         entity = Entity(
             entity_id=entity_id,

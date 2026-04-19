@@ -23,6 +23,7 @@ scenario:
     Demonstrates: AIS anomaly detection, dark target tracking, multi-agency
     coordination, air-sea coordination, law enforcement boarding.
   duration_minutes: 45
+  start_time: 2026-04-15T14:00:00Z  # 22:00 MYT — night surveillance (AIS loss more notable at night)
   center: {lat: 2.55, lon: 102.00}
   zoom: 9
   background:
@@ -37,8 +38,8 @@ scenario:
       type: CIVILIAN_CARGO
       callsign: MV Hai Long 7
       initial_position:
-        lat: 2.78
-        lon: 102.48
+        lat: 3.355426
+        lon: 100.464362
         speed_kn: 12
         heading_deg: 315
       metadata:
@@ -58,8 +59,8 @@ scenario:
       callsign: KM Penggalang
       agency: MMEA
       initial_position:
-        lat: 2.42
-        lon: 102.30
+        lat: 4.236544
+        lon: 100.615622
         speed_kn: 10
         heading_deg: 330
       metadata:
@@ -72,8 +73,8 @@ scenario:
       callsign: KM Marlin
       agency: MMEA
       initial_position:
-        lat: 2.63
-        lon: 102.15
+        lat: 4.237150
+        lon: 100.615148
         speed_kn: 12
         heading_deg: 240
       metadata:
@@ -114,8 +115,8 @@ scenario:
       callsign: PDRM Marine Klang 01
       agency: RMP
       initial_position:
-        lat: 3.00
-        lon: 101.42
+        lat: 2.99308
+        lon: 101.39018
         speed_kn: 0
         heading_deg: 0
       metadata:

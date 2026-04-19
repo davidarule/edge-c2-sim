@@ -24,6 +24,7 @@ scenario:
     Demonstrates: cross-border incursion detection, ESSCOM joint command,
     Operation Pasir protocols, multi-agency pursuit, hostage rescue.
   duration_minutes: 75
+  start_time: 2026-04-15T17:00:00Z  # 01:00 MYT — middle-of-night KFR incident
   center: {lat: 4.45, lon: 118.65}
   zoom: 11
   background:

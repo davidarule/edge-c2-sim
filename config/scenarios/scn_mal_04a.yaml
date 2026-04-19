@@ -25,6 +25,7 @@ scenario:
     Demonstrates: multi-domain ASW operations, MPA-surface coordination,
     submarine contact prosecution, diplomatic notification protocol.
   duration_minutes: 60
+  start_time: 2026-04-15T15:00:00Z  # 23:00 MYT — night submarine infiltration
   center: {lat: 5.30, lon: 100.00}
   zoom: 9
   background:
