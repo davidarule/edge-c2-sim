@@ -22,9 +22,9 @@ scenario:
 
     Demonstrates: AIS anomaly detection, dark target tracking, multi-agency
     coordination, air-sea coordination, law enforcement boarding.
-  duration_minutes: 45
+  duration_minutes: 240
   start_time: 2026-04-15T14:00:00Z  # 22:00 MYT — night surveillance (AIS loss more notable at night)
-  center: {lat: 2.55, lon: 102.00}
+  center: {lat: 3.355426, lon: 100.464362}  # MV Hai Long 7 initial position
   zoom: 9
   background:
     include:
@@ -81,16 +81,16 @@ scenario:
         vessel_type: Offshore Patrol Vessel
         callsign_radio: MMEA MARLIN
 
-    # KD Keris — RMN OPV, southern backstop
+    # KD Keris — RMN OPV on patrol, joins pursuit
     - id: RMN-PV-001
       type: MIL_NAVAL
       callsign: KD Keris
       agency: MIL
       initial_position:
-        lat: 2.15
-        lon: 101.88
+        lat: 2.9
+        lon: 100.7
         speed_kn: 10
-        heading_deg: 150
+        heading_deg: 330
       metadata:
         vessel_type: Offshore Patrol Vessel
 
@@ -115,8 +115,8 @@ scenario:
       callsign: PDRM Marine Klang 01
       agency: RMP
       initial_position:
-        lat: 2.99308
-        lon: 101.39018
+        lat: 3.06
+        lon: 101.16
         speed_kn: 0
         heading_deg: 0
       metadata:
@@ -139,7 +139,7 @@ scenario:
         MMEA Lumut: MV Hai Long 7 tracked on AIS transiting NW through
         Malacca TSS. Speed 12 knots. Chinese flag, bulk carrier.
         Standard commercial traffic.
-      position: {lat: 2.78, lon: 102.48}
+      position: {lat: 3.355426, lon: 100.464362}
       alert_agencies: [MMEA]
 
     - id: ais_loss
@@ -183,29 +183,58 @@ scenario:
     # PHASE 2: MULTI-AGENCY RESPONSE
     # ========================================
 
-    - id: intercept_order
+    # The lead fast intercept craft (KM Penggalang) is the one we'll track
+    # for intercept completion — it has the shortest transit time at 35 kn.
+    - id: penggalang_intercept
       after: {event: vessel_profile, phase: initiate, offset: "00:01:00"}
       type: ORDER
-      description: MMEA orders intercept — both patrol assets converge.
+      description: MMEA orders fast intercept — KM Penggalang closes on dark contact.
       on_initiate: >
         MMEA Director of Operations orders intercept. KM Penggalang
-        and KM Marlin converge on dark contact at best speed.
-      targets: [MMEA-FI-001, MMEA-PV-001]
+        (lead) underway at best speed to close on dark contact.
+      actionee: MMEA-FI-001
       action: intercept
       target: SUSPECT-001
+      speed: 35
+      intercept_radius_nm: 0.3
       alert_agencies: [MMEA]
+      on_complete: >
+        KM Penggalang alongside MV Hai Long 7. Vessel hove to.
+        Master on bridge wing. MMEA officers conducting initial
+        inspection.
+      on_complete_action: alongside
+
+    - id: marlin_intercept
+      after: {event: penggalang_intercept, phase: initiate}
+      type: ORDER
+      description: MMEA patrol vessel dispatched to join intercept.
+      on_initiate: >
+        KM Marlin dispatched to support. ETA on scene depends on
+        transit distance.
+      actionee: MMEA-PV-001
+      action: intercept
+      target: SUSPECT-001
+      speed: 22
+      intercept_radius_nm: 0.3
+      alert_agencies: [MMEA]
+      on_complete: >
+        KM Marlin on scene — full MMEA intercept force assembled
+        alongside MV Hai Long 7.
+      on_complete_action: alongside
 
     - id: mpa_scramble
-      after: {event: intercept_order, phase: initiate, offset: "00:01:00"}
+      after: {event: penggalang_intercept, phase: initiate, offset: "00:01:00"}
       type: ORDER
       description: RMAF MPA scrambled for aerial surveillance.
       on_initiate: >
         RMAF maritime patrol support requested. TUDM Peregrine 1
-        scrambled from Subang — ETA on scene ~19 minutes.
+        scrambled from Subang to establish 2 nm orbit around contact.
       actionee: RMAF-MPA-001
-      action: transit
-      destination: {lat: 2.58, lon: 102.10}
+      action: intercept
+      target: SUSPECT-001
       speed: 220
+      altitude_m: 150
+      intercept_radius_nm: 2.0
       alert_agencies: [MMEA, RMAF]
       on_complete: >
         RMAF Peregrine 1 on scene. FLIR confirms bulk carrier, no
@@ -215,43 +244,51 @@ scenario:
       orbit_radius_nm: 2.0
       orbit_speed: 150
 
-    - id: rmn_blocking
-      after: {event: intercept_order, phase: initiate, offset: "00:02:00"}
+    - id: rmn_pursue
+      after: {event: penggalang_intercept, phase: initiate, offset: "00:02:00"}
       type: ORDER
-      description: RMN directed to southern blocking position.
+      description: RMN directed to join pursuit.
       on_initiate: >
-        MMEA notifies RMN. KD Keris directed to establish southern
-        blocking position — cut off retreat toward Riau Islands.
+        MMEA notifies RMN. KD Keris directed to join pursuit of
+        dark contact — close at best speed.
       actionee: RMN-PV-001
-      action: transit
-      destination: {lat: 2.30, lon: 102.00}
+      action: intercept
+      target: SUSPECT-001
       speed: 25
+      intercept_radius_nm: 0.5
       alert_agencies: [MMEA, MIL]
       on_complete: >
-        KD Keris in blocking position. Southern escape route covered.
-      on_complete_action: hold_station
+        KD Keris on scene alongside MV Hai Long 7.
+      on_complete_action: alongside
 
     - id: rmp_deploy
-      after: {event: intercept_order, phase: initiate, offset: "00:04:00"}
+      after: {event: penggalang_intercept, phase: initiate, offset: "00:04:00"}
       type: ORDER
       description: RMP boarding team deployed from Port Klang.
       on_initiate: >
         RMP Marine Police boarding team deployed from Port Klang.
         PDRM Marine Klang 01 underway with eight-man boarding party.
       actionee: RMP-MP-001
-      action: transit
-      destination: {lat: 2.55, lon: 102.08}
+      action: intercept
+      target: SUSPECT-001
       speed: 35
+      intercept_radius_nm: 0.15
       alert_agencies: [MMEA, RMP]
       on_complete: >
-        PDRM Marine Klang 01 on scene. Boarding team standing by.
+        PDRM Marine Klang 01 alongside. Boarding team crosses to
+        suspect vessel via RHIB. Master and crew mustered on deck.
+        Vessel documents and cargo manifests demanded.
+      on_complete_action: alongside
 
     # ========================================
-    # PHASE 3: EVASION & CLOSING
+    # PHASE 3: EVASION
     # ========================================
 
+    # SUSPECT accelerates to a mild evasion speed some minutes after AIS
+    # loss. It won't outrun anything fast — purpose is to show the "evasion
+    # profile" detection, not to make the chase impossible.
     - id: evasion_detected
-      after: {event: intercept_order, phase: initiate, offset: "00:08:00"}
+      after: {event: penggalang_intercept, phase: initiate, offset: "00:08:00"}
       type: DETECTION
       description: Radar shows suspect increasing speed — evasion profile.
       on_initiate: >
@@ -264,16 +301,12 @@ scenario:
       alert_agencies: [MMEA]
       severity: WARNING
 
-    - id: visual_contact
-      after: {event: evasion_detected, phase: initiate, offset: "00:04:00"}
-      type: DETECTION
-      description: KM Penggalang gains visual on suspect.
-      on_initiate: >
-        KM Penggalang: visual contact. Smoke on horizon bearing 315°.
-        Radar confirmed. Closing at 45 knots.
-      source: MMEA-FI-001
-      severity: WARNING
+    # ========================================
+    # PHASE 4: VISUAL / CLOSING (driven by actual intercept geometry)
+    # ========================================
 
+    # Fires when Peregrine reaches its 2 nm orbit — it's the first asset
+    # overhead, 15–20 min before the fast boats can close the surface gap.
     - id: flir_jettison
       after: {event: mpa_scramble, phase: complete, offset: "00:03:00"}
       type: DETECTION
@@ -286,62 +319,35 @@ scenario:
       severity: CRITICAL
       alert_agencies: [MMEA, MIL, RMP]
 
+    # VHF hail fires when KM Penggalang is within visual / VHF range —
+    # intercept completes at 0.3 nm so this fires ~90 s before alongside.
     - id: vhf_no_response
-      after: {event: visual_contact, phase: initiate, offset: "00:02:00"}
+      after: {event: penggalang_intercept, phase: complete}
       type: ALERT
-      description: No response to VHF hails.
+      description: VHF hails — no response.
       on_initiate: >
         KM Penggalang: no response to VHF Channel 16 hails in English
-        or Mandarin. Vessel speed reducing. Closing to 500 metres.
+        or Mandarin. Vessel hove to but master uncooperative.
       source: MMEA-FI-001
       alert_agencies: [MMEA, RMP]
       severity: WARNING
-      # Suspect forced to slow down
-      actionee: SUSPECT-001
-      action: approach
-      approach_target: MMEA-FI-001
-      final_speed: 2
-      approach_distance_nm: 0.5
-
-    # ========================================
-    # PHASE 4: INTERCEPT & BOARDING
-    # ========================================
-
-    - id: penggalang_alongside
-      after: {event: vhf_no_response, phase: initiate, offset: "00:04:00"}
-      type: INTERCEPT
-      description: Fast intercept craft alongside suspect vessel.
-      on_initiate: >
-        KM Penggalang alongside MV Hai Long 7. Vessel hove to.
-        Master on bridge wing. MMEA officers conducting initial
-        inspection.
+      # Force the suspect to slow to a stop for the boarding.
       actionee: SUSPECT-001
       action: hold_station
-      alert_agencies: [MMEA]
 
-    - id: marlin_arrives
-      after: {event: penggalang_alongside, phase: initiate, offset: "00:03:00"}
-      type: ALERT
-      description: Patrol vessel arrives — full intercept force assembled.
-      on_initiate: >
-        KM Marlin on scene. RMP Marine Police boarding team
-        transferring via RHIB. KD Keris holding southern position.
-      actionee: MMEA-PV-001
-      action: hold_station
-      hold_target: SUSPECT-001
-      alert_agencies: [MMEA, MIL, RMP]
+    # ========================================
+    # PHASE 5: BOARDING & RESOLUTION
+    # ========================================
 
     - id: rmp_boarding
-      after: {event: marlin_arrives, phase: initiate, offset: "00:03:00"}
+      after: {event: rmp_deploy, phase: complete}
       type: BOARDING
       description: RMP boarding team crosses to suspect vessel.
       on_initiate: >
         PDRM Marine Klang 01 alongside. Eight-man RMP boarding team
         cross-decks via RHIB. Master and crew mustered on deck.
         Vessel documents and cargo manifests demanded.
-      actionee: RMP-MP-001
-      action: hold_station
-      hold_target: SUSPECT-001
+      source: RMP-MP-001
       alert_agencies: [MMEA, RMP]
 
     - id: cargo_discrepancy
@@ -363,6 +369,5 @@ scenario:
       on_initiate: >
         ENDSTATE: MV Hai Long 7 detained under escort to Port Klang.
         Multi-agency coordination successful — MMEA, RMAF, RMN, RMP.
-        Dark target detected, tracked, and intercepted within 35 minutes
-        of AIS loss.
+        Dark target detected, tracked, and intercepted.
       alert_agencies: [MMEA, MIL, RMP, CI]

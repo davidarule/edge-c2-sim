@@ -804,8 +804,8 @@ function buildHeader(config) {
     </div>
     <div class="header-right">
       <div class="header-clock-group">
-        <div class="header-clock" id="header-sim-time">--:--:--</div>
-        <div class="header-clock-label">SIM TIME</div>
+        <div class="header-clock" id="header-sim-time">--:--:--Z</div>
+        <div class="header-clock-label">SIM TIME (UTC)</div>
       </div>
       <button class="header-icon-btn" id="header-btn-settings" title="Settings">\u2699</button>
       <!-- <button class="demo-mode-btn" id="btn-demo-mode">DEMO MODE</button> -->
@@ -922,7 +922,7 @@ function initHeaderControls(ws, config) {
   function updateClock(clockState) {
     if (clockState.sim_time) {
       const el = document.getElementById('header-sim-time');
-      if (el) el.textContent = new Date(clockState.sim_time).toISOString().substring(11, 19);
+      if (el) el.textContent = new Date(clockState.sim_time).toISOString().substring(11, 19) + 'Z';
     }
     if (clockState.running !== undefined) {
       running = clockState.running;

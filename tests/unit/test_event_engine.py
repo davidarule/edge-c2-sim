@@ -204,7 +204,7 @@ class TestEventEngine:
             entity_id="HOSTILE-001", entity_type="SUSPECT_VESSEL",
             domain=Domain.MARITIME, agency=Agency.CIVILIAN,
             callsign="Suspect 1", position=Position(4.9, 119.2),
-            status=EntityStatus.ACTIVE, sidc="SHSP------",
+            status=EntityStatus.ACTIVE, sidc="10053000001400000000",
         )
         store.add_entity(suspect)
 
@@ -226,7 +226,8 @@ class TestEventEngine:
 
         updated = store.get_entity("HOSTILE-001")
         assert updated.entity_type == "HOSTILE_VESSEL"
-        assert updated.sidc == "SHSP------"  # HOSTILE_VESSEL SIDC
+        # HOSTILE_VESSEL SIDC — 20-char 2525D (Sea Surface / Own Unit / Hostile)
+        assert updated.sidc == "10063000001400000000"
 
     def test_pursue_creates_intercept_movement(self, store, start_time):
         """Pursue action should create InterceptMovement like intercept."""

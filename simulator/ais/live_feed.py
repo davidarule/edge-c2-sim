@@ -60,8 +60,9 @@ POSITION_MSG_TYPES = [
 STATIC_MSG_TYPES = ["ShipStaticData", "StaticDataReport"]
 ALL_MSG_TYPES = POSITION_MSG_TYPES + STATIC_MSG_TYPES
 
-# SIDC for neutral surface (civilian vessel)
-DEFAULT_SIDC = "SNSP------"
+# SIDC for neutral surface (civilian vessel). 2525D 20-char — Sea Surface
+# Own Unit, Neutral, Civilian.
+DEFAULT_SIDC = "10043000001400000000"
 
 
 def _map_entity_type(ship_type_code: int, length_m: float | None = None) -> str:

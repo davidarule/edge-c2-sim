@@ -689,12 +689,20 @@ class EventEngine:
                         and event.metadata.get("orbit_radius_nm") is not None):
                     orbit_radius_m = event.metadata["orbit_radius_nm"] * 1852
                     intercept_kwargs["intercept_radius_m"] = orbit_radius_m
+                # Fixed-wing aircraft can't come to a full stop — force a
+                # min_speed so the intercept movement orbits the target at
+                # that speed instead of stalling at 0 kn when it arrives.
+                if entity.domain.value == "AIR":
+                    legacy = ENTITY_TYPES.get(entity.entity_type, {})
+                    min_speed = legacy.get("speed_range", (0, 0))[0]
+                else:
+                    min_speed = 0
                 self._movements[target_id] = InterceptMovement(
                     entity_speed_knots=speed,
                     target_entity_id=event.target,
                     entity_store=self._entity_store,
                     pursuer_entity_id=target_id,
-                    min_speed_knots=0,
+                    min_speed_knots=min_speed,
                     **intercept_kwargs,
                 )
                 entity.speed_knots = speed
@@ -813,13 +821,17 @@ class EventEngine:
             logger.warning(f"Reclassify: unknown entity type '{new_type}'")
             return
 
+        from simulator.scenario.loader import get_default_sidc
         for target_id in target_ids:
             entity = self._entity_store.get_entity(target_id)
             if not entity:
                 continue
             old_type = entity.entity_type
             entity.entity_type = new_type
-            entity.sidc = type_def.get("sidc", entity.sidc)
+            # Prefer the 20-char 2525D SIDC so the COP can decode it.
+            new_sidc = get_default_sidc(new_type)
+            if new_sidc:
+                entity.sidc = new_sidc
             self._entity_store.upsert_entity(entity)
             logger.info(f"Reclassified {target_id}: {old_type} -> {new_type}")
 

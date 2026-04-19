@@ -683,6 +683,9 @@ async def run(
         nonlocal ais_feed
         if "ws" not in transport_names:
             return None
+        if os.environ.get("SKIP_BACKGROUND"):
+            logger.info("SKIP_BACKGROUND=1 — AIS replay feed not started")
+            return None
         replay_pos = None
         if os.path.isdir(ais_config["replay_dir"]):
             csvs = sorted(

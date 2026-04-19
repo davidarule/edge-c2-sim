@@ -28,6 +28,28 @@ logger = logging.getLogger(__name__)
 DEFAULT_START = datetime(2026, 4, 15, 8, 0, 0, tzinfo=timezone.utc)
 
 
+# 20-char 2525D SIDCs come from config/entity_types.json; they're the format
+# the COP detail panel decodes. ENTITY_TYPES (below) carries legacy 10-char
+# 2525B codes which the panel can't parse. Look up the 2525D code first.
+_ENTITY_TYPE_DEFS_2525D: dict[str, dict] = {}
+try:
+    with open("config/entity_types.json") as _f:
+        _ENTITY_TYPE_DEFS_2525D = json.load(_f).get("entity_types", {})
+except (OSError, json.JSONDecodeError):
+    pass
+
+
+def get_default_sidc(entity_type: str) -> str:
+    """Default SIDC for an entity type. Prefers 20-char 2525D from
+    ``config/entity_types.json``; falls back to legacy 10-char 2525B in
+    ``ENTITY_TYPES``."""
+    td = _ENTITY_TYPE_DEFS_2525D.get(entity_type, {})
+    sidc = td.get("default_sidc")
+    if sidc:
+        return sidc
+    return ENTITY_TYPES.get(entity_type, {}).get("sidc", "")
+
+
 # Per-domain action whitelist.
 # An action/on_complete_action on an event whose actionee is in a given domain
 # must be in this set; otherwise the validator emits an error. The `boarding`,
@@ -54,162 +76,164 @@ DOMAIN_ACTIONS: dict[Any, frozenset[str]] = {
     }),
 }
 
-# Entity type definitions: type_name -> (domain, default_agency, speed_range, sidc_prefix)
+# Entity type definitions. SIDC is 20-char MIL-STD-2525D throughout — we use
+# 2525D as the platform's one-and-only symbol standard; 2525B/C are not
+# supported. SIDCs are kept in sync with config/entity_types.json default_sidc.
 ENTITY_TYPES: dict[str, dict[str, Any]] = {
     "SUSPECT_VESSEL": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
-        "speed_range": (0, 35), "sidc": "SHSP------",
+        "speed_range": (0, 35), "sidc": "10053000001400000000",
         "turn": (100.0, 3.5, 2.5),   # ~100m cargo/bulk carrier
     },
     "SUSPECT_FAST_BOAT": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
-        "speed_range": (0, 45), "sidc": "SHSP------",
+        "speed_range": (0, 45), "sidc": "10013000001400000000",
         "turn": (10.0, 1.5, 0.8),    # ~10m pirate skiff / fast attack boat
     },
     "CIVILIAN_FISHING": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
-        "speed_range": (2, 8), "sidc": "SNSP------",
+        "speed_range": (2, 8), "sidc": "10043000001402000000",
         "turn": (25.0, 2.5, 1.5),    # ~25m fishing vessel
     },
     "CIVILIAN_CARGO": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
-        "speed_range": (8, 16), "sidc": "SNSP------",
+        "speed_range": (8, 16), "sidc": "10043000001401010000",
         "turn": (130.0, 3.5, 2.5),   # ~130m general cargo
     },
     "CIVILIAN_TANKER": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
-        "speed_range": (8, 14), "sidc": "SNSP------",
+        "speed_range": (8, 14), "sidc": "10043000001401020000",
         "turn": (180.0, 4.0, 3.0),   # ~180m product tanker
     },
     "CIVILIAN_TANKER_VLCC": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
-        "speed_range": (8, 14), "sidc": "SNSP------",
+        "speed_range": (8, 14), "sidc": "10043000001401020000",
         "turn": (300.0, 4.5, 3.5),   # ~300m VLCC crude tanker (e.g. MT Labuan Palm)
     },
     "CIVILIAN_LIGHT": {
         "domain": Domain.AIR, "agency": Agency.CIVILIAN,
-        "speed_range": (80, 140), "sidc": "SNAP------",
+        "speed_range": (80, 140), "sidc": "10040100001201000000",
     },
     "CIVILIAN_COMMERCIAL": {
         "domain": Domain.AIR, "agency": Agency.CIVILIAN,
-        "speed_range": (200, 400), "sidc": "SNAP------",
+        "speed_range": (200, 400), "sidc": "10040100001200000000",
     },
     "MMEA_PATROL": {
         "domain": Domain.MARITIME, "agency": Agency.MMEA,
-        "speed_range": (8, 28), "sidc": "SFSP------",
+        "speed_range": (8, 28), "sidc": "10033000001205020000",
         "turn": (60.0, 3.0, 2.0),    # ~60m patrol vessel
     },
     "MMEA_FAST_INTERCEPT": {
         "domain": Domain.MARITIME, "agency": Agency.MMEA,
-        "speed_range": (15, 50), "sidc": "SFSP------",
+        "speed_range": (15, 50), "sidc": "10033000001205010000",
         "turn": (39.0, 2.0, 1.2),    # ~39m fast intercept craft
     },
     "MIL_NAVAL": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
-        "speed_range": (10, 35), "sidc": "SFSP------",
+        "speed_range": (10, 35), "sidc": "10033000001202060003",
         "turn": (80.0, 3.0, 2.5),    # ~80m corvette
     },
     "MIL_NAVAL_FRIGATE": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
-        "speed_range": (15, 30), "sidc": "SFSP------",
+        "speed_range": (15, 30), "sidc": "10033000001202040000",
         "turn": (105.0, 3.0, 2.5),   # ~105m frigate (KD Lekiu-class)
     },
     "MIL_NAVAL_FIC": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
-        "speed_range": (15, 35), "sidc": "SFSP------",
+        "speed_range": (15, 35), "sidc": "10033000001205010000",
         "turn": (50.0, 2.5, 1.5),    # ~50m fast intercept craft
     },
     "MIL_SUBMARINE": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
-        "speed_range": (0, 20), "sidc": "SUUP------",  # Unknown until identified
+        "speed_range": (0, 20), "sidc": "10013500000000000000",  # Unknown until identified
         "turn": (60.0, 3.0, 2.0),    # ~60m submarine
     },
     "MIL_SUBMARINE_FRIENDLY": {
         "domain": Domain.MARITIME, "agency": Agency.MIL,
-        "speed_range": (0, 20), "sidc": "SFUP------",  # Friendly — after identification
+        "speed_range": (0, 20), "sidc": "10033500000000000000",  # Friendly — after identification
         "turn": (60.0, 3.0, 2.0),
     },
     "RMAF_TRANSPORT": {
         "domain": Domain.AIR, "agency": Agency.RMAF,
-        "speed_range": (120, 280), "sidc": "SFAP------",
+        "speed_range": (120, 280), "sidc": "10030100001101310000",
     },
     "RMAF_MPA": {
         "domain": Domain.AIR, "agency": Agency.RMAF,
-        "speed_range": (120, 280), "sidc": "SFAP------",
+        "speed_range": (120, 280), "sidc": "10030100001101000300",
     },
     "RMAF_HELICOPTER": {
         "domain": Domain.AIR, "agency": Agency.RMAF,
-        "speed_range": (0, 140), "sidc": "SFAP------",
+        "speed_range": (0, 140), "sidc": "10030100001102000000",
     },
     "RMAF_FIGHTER": {
         "domain": Domain.AIR, "agency": Agency.RMAF,
-        "speed_range": (200, 550), "sidc": "SFAP------",
+        "speed_range": (200, 550), "sidc": "10030100001101020000",
     },
     "RMP_PATROL_CAR": {
         "domain": Domain.GROUND_VEHICLE, "agency": Agency.RMP,
-        "speed_range": (20, 80), "sidc": "SFGP------",
+        "speed_range": (20, 80), "sidc": "10031500001700000000",
     },
     "RMP_PATROL_BOAT": {
         "domain": Domain.MARITIME, "agency": Agency.RMP,
-        "speed_range": (10, 30), "sidc": "SFSP------",
+        "speed_range": (10, 30), "sidc": "10033000001208010000",
         "turn": (8.0, 1.8, 1.0),     # ~8m patrol boat
     },
     "RMP_MARINE_PATROL": {
         "domain": Domain.MARITIME, "agency": Agency.RMP,
-        "speed_range": (10, 30), "sidc": "SFSP------",
+        "speed_range": (10, 30), "sidc": "10033000001208010000",
         "turn": (15.0, 2.0, 1.2),    # ~15m marine patrol vessel
     },
     "RMP_OFFICER": {
         "domain": Domain.PERSONNEL, "agency": Agency.RMP,
-        "speed_range": (0, 4), "sidc": "SFGP------",
+        "speed_range": (0, 4), "sidc": "10031000001401000000",
     },
     "CI_OFFICER": {
         "domain": Domain.PERSONNEL, "agency": Agency.CI,
-        "speed_range": (0, 4), "sidc": "SFGP------",
+        "speed_range": (0, 4), "sidc": "10031500001703000000",
     },
     "CI_IMMIGRATION_TEAM": {
         "domain": Domain.PERSONNEL, "agency": Agency.CI,
-        "speed_range": (0, 4), "sidc": "SFGP------",
+        "speed_range": (0, 4), "sidc": "10031500001703000000",
     },
     "MIL_VEHICLE": {
         "domain": Domain.GROUND_VEHICLE, "agency": Agency.MIL,
-        "speed_range": (0, 50), "sidc": "SFGP------",
+        "speed_range": (0, 50), "sidc": "10031500001202000000",
     },
     "MIL_APC": {
         "domain": Domain.GROUND_VEHICLE, "agency": Agency.MIL,
-        "speed_range": (0, 40), "sidc": "SFGP------",
+        "speed_range": (0, 40), "sidc": "10031500001201010000",
     },
     "MIL_INFANTRY": {
         "domain": Domain.PERSONNEL, "agency": Agency.MIL,
-        "speed_range": (0, 4), "sidc": "SFGP------",
+        "speed_range": (0, 4), "sidc": "10031000001201000000",
     },
     "HOSTILE_VESSEL": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
-        "speed_range": (0, 35), "sidc": "SHSP------",
+        "speed_range": (0, 35), "sidc": "10063000001400000000",
     },
     "HOSTILE_PERSONNEL": {
         "domain": Domain.PERSONNEL, "agency": Agency.CIVILIAN,
-        "speed_range": (0, 6), "sidc": "SHGP------",
+        "speed_range": (0, 6), "sidc": "10061000001201000000",
     },
     "CIVILIAN_TOURIST": {
         "domain": Domain.PERSONNEL, "agency": Agency.CIVILIAN,
-        "speed_range": (0, 3), "sidc": "SNGP------",
+        "speed_range": (0, 3), "sidc": "10041000001100000000",
     },
     "CIVILIAN_BOAT": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
-        "speed_range": (3, 15), "sidc": "SNSP------",
+        "speed_range": (3, 15), "sidc": "10043000001400000000",
     },
     "CIVILIAN_PASSENGER": {
         "domain": Domain.MARITIME, "agency": Agency.CIVILIAN,
-        "speed_range": (5, 20), "sidc": "SNSP------",
+        "speed_range": (5, 20), "sidc": "10043000001401030000",
     },
     "RMP_TACTICAL_TEAM": {
         "domain": Domain.PERSONNEL, "agency": Agency.RMP,
-        "speed_range": (0, 25), "sidc": "SFGP------",  # up to 25kn for RHIB ops
+        "speed_range": (0, 25), "sidc": "10031000001211000000",  # up to 25kn for RHIB ops
     },
     "MIL_INFANTRY_SQUAD": {
         "domain": Domain.PERSONNEL, "agency": Agency.MIL,
-        "speed_range": (0, 6), "sidc": "SFGP------",
+        "speed_range": (0, 6), "sidc": "10031000001201000000",
     },
 }
 
@@ -403,9 +427,19 @@ class ScenarioLoader:
 
         # Load included entity files (external YAML lists of scenario_entities)
         # Supports both v2 format (background.include) and legacy (include_entities)
+        # Env var SKIP_BACKGROUND=1 disables background includes — useful when
+        # you want to watch a scenario without 300 AIS vessels cluttering the
+        # COP.
         scenario_dir = Path(scenario_path).parent
         bg = scenario.get("background", {})
         include_list = bg.get("include", []) if isinstance(bg, dict) else []
+        if os.environ.get("SKIP_BACKGROUND"):
+            if include_list:
+                logger.info(
+                    f"SKIP_BACKGROUND=1 — ignoring {len(include_list)} "
+                    f"background include(s): {include_list}"
+                )
+            include_list = []
         if not include_list:
             include_list = scenario.get("include_entities", [])
         for include_path in include_list:
@@ -677,7 +711,7 @@ class ScenarioLoader:
             speed_knots=initial_speed,
             course_deg=initial_heading,
             status=EntityStatus.IDLE if entry.get("behavior") == "standby" else EntityStatus.ACTIVE,
-            sidc=entry.get("sidc") or type_def.get("sidc", ""),
+            sidc=entry.get("sidc") or get_default_sidc(entity_type),
             metadata=metadata,
             initial_position=Position(
                 latitude=pos.get("lat", 0.0),
