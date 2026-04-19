@@ -223,12 +223,13 @@ scenario:
       on_complete_action: alongside
 
     - id: mpa_scramble
-      after: {event: penggalang_intercept, phase: initiate, offset: "00:01:00"}
+      after: {event: penggalang_intercept, phase: initiate, offset: "00:10:00"}
       type: ORDER
       description: RMAF MPA scrambled for aerial surveillance.
       on_initiate: >
         RMAF maritime patrol support requested. TUDM Peregrine 1
-        scrambled from Subang to establish 2 nm orbit around contact.
+        airborne from Subang (10 min scramble) to establish 2 nm orbit
+        around contact.
       actionee: RMAF-MPA-001
       action: intercept
       target: SUSPECT-001
