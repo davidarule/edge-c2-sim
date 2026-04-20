@@ -61,6 +61,7 @@ services:
       - AIS_MAX_ENTITIES=${AIS_MAX_ENTITIES:-300}
       - AIS_UPDATE_INTERVAL=${AIS_UPDATE_INTERVAL:-30}
       - AIS_STALE_SECONDS=${AIS_STALE_SECONDS:-300}
+      - FORWARD_URL=${FORWARD_URL:-}
     volumes:
       - ./config:/app/config
       - ./geodata:/app/geodata
