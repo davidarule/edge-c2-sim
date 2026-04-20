@@ -126,6 +126,20 @@
   border-color: var(--severity-info);
 }
 
+/* Scenario-load failure states (set by headerControls.setScenarioError). */
+.header-select-error {
+  border-color: var(--severity-critical) !important;
+  color: var(--severity-critical);
+  background: rgba(248, 81, 73, 0.08);
+}
+.header-scenario-error {
+  color: var(--severity-critical) !important;
+}
+.header-scenario-error-icon {
+  margin-left: 4px;
+  font-size: 13px;
+}
+
 /* Header icon buttons (info SVG, settings gear) */
 .header-icon-btn {
   background: none;

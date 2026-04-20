@@ -168,6 +168,12 @@ html, body {
 .toast-critical { border-color: var(--severity-critical); background: rgba(61, 17, 23, 0.95); }
 .toast-warning { border-color: var(--severity-warning); }
 .toast-info { border-color: var(--severity-info); }
+.toast-scenario-error {
+  max-width: 520px;
+  line-height: 1.4;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
 .toast-agency {
   font-weight: 600;
   margin-right: 8px;

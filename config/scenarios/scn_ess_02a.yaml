@@ -1,11 +1,16 @@
 # SCN-ESS-02A: Kidnapping-for-Ransom Response — Semporna
 # Schema reference: docs/scenario-schema.md
-# Version: 2.0
+# Version: 2.1
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
 # Author: BrumbieSoft
 #
 # Changelog:
+#   v2.1 (2026-04-20) — Removed all absolute time triggers. Added hostile_approach
+#     transit event as scenario trigger. radar_contact and landfall now chain from
+#     hostile_approach (initiate and complete respectively). Hostile starting
+#     positions moved closer (~13nm from Pulau Bum Bum) for physics-valid
+#     ~26min transit at 30kn. All events are now purely action-based.
 #   v2.0 (2026-04-17) — Complete rewrite to action-based reactive chains.
 #     Zero waypoints. embarked_on for GOF Alpha tactical team.
 #     Hostage/KFR pursuit pattern with helicopter overwatch.
@@ -39,7 +44,7 @@ scenario:
       type: SUSPECT_VESSEL
       callsign: Suspect Speedboat 1
       sidc: "10013000001400000000"
-      initial_position: {lat: 4.85, lon: 119.10, speed_kn: 30, heading_deg: 240}
+      initial_position: {lat: 4.62, lon: 118.82, speed_kn: 0, heading_deg: 240}
       metadata:
         ais_active: false
         vessel_type: High-speed fibreglass boat
@@ -50,7 +55,7 @@ scenario:
       type: SUSPECT_VESSEL
       callsign: Suspect Speedboat 2
       sidc: "10013000001400000000"
-      initial_position: {lat: 4.87, lon: 119.08, speed_kn: 30, heading_deg: 240}
+      initial_position: {lat: 4.64, lon: 118.80, speed_kn: 0, heading_deg: 240}
       metadata:
         ais_active: false
         vessel_type: High-speed fibreglass boat
@@ -182,17 +187,33 @@ scenario:
   events:
 
     # ========================================
+    # PHASE 0: HOSTILE APPROACH (scenario trigger)
+    # ========================================
+
+    - id: hostile_approach
+      time: "00:00"
+      type: ORDER
+      description: Hostile speedboats inbound from Sulu Sea toward Pulau Bum Bum.
+      on_initiate: >
+        Two high-speed contacts crossing Sulu Sea heading southwest
+        toward Semporna archipelago at 30 knots. No AIS. No comms.
+      targets: [HOSTILE-001, HOSTILE-002]
+      action: transit
+      destination: {lat: 4.47, lon: 118.66}
+      speed: 30
+
+    # ========================================
     # PHASE 1: INCURSION DETECTION
     # ========================================
 
     - id: radar_contact
-      time: "00:05"
+      after: {event: hostile_approach, phase: initiate, offset: "00:05:00"}
       type: DETECTION
       description: Coastal radar detects fast contacts from Sulu Sea.
       on_initiate: >
         Coastal radar Station 10: two fast-moving contacts approaching
         from Sulu Sea at 30 knots. Heading SW toward Semporna.
-      position: {lat: 4.75, lon: 118.95}
+      position: {lat: 4.59, lon: 118.79}
       alert_agencies: [MIL, MMEA]
       severity: WARNING
 
@@ -243,7 +264,7 @@ scenario:
     # ========================================
 
     - id: landfall
-      time: "00:18"
+      after: {event: hostile_approach, phase: complete}
       type: ALERT
       description: Contacts make landfall on Pulau Bum Bum.
       on_initiate: >

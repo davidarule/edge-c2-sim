@@ -516,6 +516,7 @@ class EventEngine:
             entity.status = EntityStatus.ACTIVE
 
         elif action == "orbit":
+            from simulator.movement.orbit import tangent_orbit_params
             orbit_center = source_event.metadata.get("orbit_center")
             radius_nm = source_event.metadata.get("orbit_radius_nm", 1.0)
             if not source_event.metadata.get("orbit_radius_nm"):
@@ -529,28 +530,50 @@ class EventEngine:
                 "altitude_m",
                 _get_action_altitude(entity.entity_type, "orbit") or entity.position.altitude_m,
             )
-            # Resolve orbit centre (dynamic tracking target overrides entity self-centre)
-            orbit_center_lat = entity.position.latitude
-            orbit_center_lon = entity.position.longitude
+
+            # Tangent-entry fix — see docs/scenario-schema.md for the history.
+            # Without this, an aircraft finishing a transit and snapping to
+            # orbit teleports onto the orbit circle and instantly changes
+            # heading by ~90°. tangent_orbit_params keeps the aircraft at
+            # its current position and heading and derives the orbit centre
+            # so the current heading is tangent to the circle. We keep
+            # target tracking so the orbit follows a moving target — the
+            # centre is stored as an OFFSET from target (target_offset_lat
+            # / _lon below), recomputed each tick in OrbitMovement.
+            target_lat = entity.position.latitude
+            target_lon = entity.position.longitude
+            target_id = None
             if orbit_center:
                 center_entity = self._entity_store.get_entity(orbit_center)
                 if center_entity:
-                    orbit_center_lat = center_entity.position.latitude
-                    orbit_center_lon = center_entity.position.longitude
-            initial_heading = _bearing_from_center(
-                orbit_center_lat, orbit_center_lon,
+                    target_lat = center_entity.position.latitude
+                    target_lon = center_entity.position.longitude
+                    target_id = orbit_center
+
+            radius_m = radius_nm * 1852
+            c_lat, c_lon, init_angle = tangent_orbit_params(
                 entity.position.latitude, entity.position.longitude,
+                entity.heading_deg,
+                radius_m,
+                direction=direction,
             )
+            # Offset of tangent centre from the nominal target — applied
+            # every tick so a moving target drags the orbit with it.
+            target_offset_lat = c_lat - target_lat
+            target_offset_lon = c_lon - target_lon
+
             self._movements[entity_id] = OrbitMovement(
-                center_lat=orbit_center_lat,
-                center_lon=orbit_center_lon,
+                center_lat=c_lat,
+                center_lon=c_lon,
                 altitude_m=altitude,
                 speed_knots=orbit_speed,
-                orbit_radius_m=radius_nm * 1852,
-                initial_heading=initial_heading,
+                orbit_radius_m=radius_m,
+                initial_heading=init_angle,
                 direction=direction,
-                target_entity_id=orbit_center,
+                target_entity_id=target_id,
                 entity_store=self._entity_store,
+                target_offset_lat=target_offset_lat,
+                target_offset_lon=target_offset_lon,
             )
             entity.speed_knots = orbit_speed
             entity.status = EntityStatus.ACTIVE
@@ -652,6 +675,36 @@ class EventEngine:
         # enum is still set by each branch below.
         entity.current_action = action
         entity.next_action = event.on_complete_action
+        # Snapshot the driving event so the COP detail panel can show
+        # who/what/why (e.g. "intercept → IFF-005, on_complete hold_station").
+        # `after` is normalised to a human-readable string.
+        after_str = None
+        if isinstance(event.after, dict):
+            src = event.after.get("event")
+            phase = event.after.get("phase", "initiate")
+            offset = event.after.get("offset")
+            after_str = f"{src}:{phase}" if src else None
+            if after_str and offset:
+                after_str = f"{after_str} +{offset}"
+        elif isinstance(event.after, str):
+            after_str = event.after
+        # Resolve the target's callsign so the detail panel can show
+        # "Target Name: Unknown Mothership" alongside "Target ID: IFF-005".
+        target_name = None
+        if event.target:
+            t_ent = self._entity_store.get_entity(event.target)
+            if t_ent:
+                target_name = t_ent.callsign
+        entity.current_event = {
+            "id": event.id,
+            "description": event.description,
+            "after": after_str,
+            "type": event.event_type,
+            "action": action,
+            "target": event.target,
+            "target_name": target_name,
+            "on_complete_action": event.on_complete_action,
+        }
 
         # === NEW V2 ACTIONS ===
 

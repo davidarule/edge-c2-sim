@@ -100,7 +100,7 @@ async function main() {
   // Track last scenario file so we only fly camera on scenario change, not every snapshot
   let _lastScenarioFile = null;
 
-  const zoomToAlt = { 7: 600000, 8: 300000, 9: 150000, 10: 75000, 11: 40000, 12: 20000, 13: 10000 };
+  const zoomToAlt = { 6: 850000, 7: 600000, 8: 300000, 9: 150000, 10: 75000, 11: 40000, 12: 20000, 13: 10000 };
 
   const ws = connectWebSocket(config.wsUrl, {
     onSnapshot: (entities, data) => {
@@ -114,6 +114,7 @@ async function main() {
 
       if (data && data.scenario_file && headerControls) {
         headerControls.setCurrentScenario(data.scenario_file);
+        headerControls.clearScenarioError();
       }
       if (data && data.scenario_meta && headerControls) {
         headerControls.setScenarioMeta(data.scenario_meta);
@@ -158,6 +159,12 @@ async function main() {
     },
     onRoutes: (routes) => {
       if (settings) settings.setRoutes(routes);
+    },
+    onScenarioError: (msg) => {
+      const file = msg.scenario || '';
+      const err = msg.error || 'Scenario failed to load.';
+      showScenarioErrorToast(file, err);
+      if (headerControls) headerControls.setScenarioError(file, err);
     }
   });
 
@@ -807,7 +814,7 @@ function buildHeader(config) {
         <div class="header-clock" id="header-sim-time">--:--:--Z</div>
         <div class="header-clock-label">SIM TIME (UTC)</div>
       </div>
-      <button class="header-icon-btn" id="header-btn-settings" title="Settings">\u2699</button>
+      <button class="header-icon-btn" id="header-btn-settings" title="Settings"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
       <!-- <button class="demo-mode-btn" id="btn-demo-mode">DEMO MODE</button> -->
       <select id="header-scenario-select" class="header-select">
         <option value="">Loading\u2026</option>
@@ -957,7 +964,73 @@ function initHeaderControls(ws, config) {
     _entities = entities || [];
   }
 
-  return { updateClock, setCurrentScenario, setScenarioMeta, setEntities };
+  function setScenarioError(file, errorMsg) {
+    // Only flag the header if the failing file matches the user's current selection —
+    // prevents a stale error from a previous attempt from painting the new pick red.
+    const target = file || _currentScenarioFile;
+    if (!target) return;
+    if (scenarioSelect) {
+      scenarioSelect.classList.add('header-select-error');
+      scenarioSelect.title = errorMsg || 'Scenario failed to load.';
+    }
+    if (scenarioName) {
+      scenarioName.classList.add('header-scenario-error');
+      scenarioName.title = errorMsg || 'Scenario failed to load.';
+      // Append error icon (but keep the name text intact) — idempotent.
+      if (!scenarioName.querySelector('.header-scenario-error-icon')) {
+        const icon = document.createElement('span');
+        icon.className = 'header-scenario-error-icon';
+        icon.textContent = ' \u26A0';
+        scenarioName.appendChild(icon);
+      }
+    }
+  }
+
+  function clearScenarioError() {
+    if (scenarioSelect) {
+      scenarioSelect.classList.remove('header-select-error');
+      scenarioSelect.title = '';
+    }
+    if (scenarioName) {
+      scenarioName.classList.remove('header-scenario-error');
+      scenarioName.title = '';
+      const icon = scenarioName.querySelector('.header-scenario-error-icon');
+      if (icon) icon.remove();
+    }
+  }
+
+  // Clear any previous error state when the user picks a fresh scenario.
+  scenarioSelect.addEventListener('change', clearScenarioError);
+
+  return {
+    updateClock, setCurrentScenario, setScenarioMeta, setEntities,
+    setScenarioError, clearScenarioError,
+  };
+}
+
+function showScenarioErrorToast(scenarioFile, errorMsg) {
+  const toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) return;
+  const fileLabel = scenarioFile
+    ? scenarioFile.replace('config/scenarios/', '').replace('.yaml', '').toUpperCase().replace(/_/g, '-')
+    : 'SCENARIO';
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-critical toast-scenario-error';
+  const agency = document.createElement('span');
+  agency.className = 'toast-agency';
+  agency.style.color = 'var(--severity-critical)';
+  agency.textContent = `\u26A0 ${fileLabel} failed to load`;
+  const body = document.createElement('span');
+  body.textContent = errorMsg || 'Scenario failed to load.';
+  body.style.whiteSpace = 'pre-wrap';
+  toast.appendChild(agency);
+  toast.appendChild(document.createElement('br'));
+  toast.appendChild(body);
+  toastContainer.appendChild(toast);
+  // Hold longer than standard toasts — load errors carry enough text
+  // that 4 s isn't enough to read them.
+  setTimeout(() => toast.classList.add('toast-exit'), 11000);
+  setTimeout(() => toast.remove(), 12000);
 }
 
 function showScenarioInfoModal(meta, entities, scenarioFile) {

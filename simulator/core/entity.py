@@ -91,6 +91,11 @@ class Entity:
     # `next_action` is the on_complete_action queued to fire after it.
     current_action: str | None = None
     next_action: str | None = None
+    # Snapshot of the scenario event that last drove an action on this
+    # entity — surfaced in the COP detail panel for situational awareness
+    # (who is intercepting whom, what triggered it, what comes next).
+    # Keys: id, description, after, type, action, target, on_complete_action.
+    current_event: dict[str, Any] | None = None
 
     def update_position(
         self,
@@ -129,6 +134,7 @@ class Entity:
             "metadata": self.metadata,
             "current_action": self.current_action,
             "next_action": self.next_action,
+            "current_event": self.current_event,
             **({"initial_position": self.initial_position.to_dict()} if self.initial_position else {}),
         }
 
@@ -152,4 +158,5 @@ class Entity:
             initial_position=Position.from_dict(d["initial_position"]) if d.get("initial_position") else None,
             current_action=d.get("current_action"),
             next_action=d.get("next_action"),
+            current_event=d.get("current_event"),
         )

@@ -218,18 +218,48 @@
 .detail-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .detail-key {
   font-size: 12px;
   color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .detail-value {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-emphasis);
+  text-align: right;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* Collapsible sections — click the title to toggle. A rotating chevron
+   sits at the right of the title; when .collapsed is set, all body
+   children hide and the chevron rotates. */
+.detail-section-title {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+.detail-section-title::after {
+  content: '\25BE';   /* ▾ (CSS escape — hex, no 'u' prefix) */
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-secondary);
+  transition: transform 0.15s ease;
+  margin-left: 6px;
+}
+.detail-section.collapsed > *:not(.detail-section-title) {
+  display: none;
+}
+.detail-section.collapsed .detail-section-title::after {
+  transform: rotate(-90deg);
 }
 
 .entity-detail-actions {

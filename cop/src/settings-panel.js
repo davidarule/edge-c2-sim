@@ -36,24 +36,9 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
     display: none; flex-direction: column;
   `;
 
-  const toggleBtn = document.createElement('button');
-  toggleBtn.id = 'settings-toggle';
-  toggleBtn.innerHTML = '\u2699';
-  toggleBtn.title = 'Settings';
-  toggleBtn.style.cssText = `
-    position: absolute; top: 10px; right: 10px; z-index: 101;
-    background: rgba(13,17,23,0.8); border: 1px solid #30363D;
-    border-radius: 4px; padding: 5px 9px; cursor: pointer;
-    color: #8B949E; font-size: 16px; line-height: 1;
-  `;
-
-  toggleBtn.addEventListener('click', () => { showPanel(true); });
-
   function showPanel(open) {
     panelOpen = open;
     panel.style.display = open ? 'flex' : 'none';
-    // Floating toggle is hidden — settings opened via header button
-    toggleBtn.style.display = 'none';
   }
 
   // ── Panel content ──
@@ -131,7 +116,6 @@ export function initSettingsPanel(viewer, entityManager, ws, config) {
   `;
 
   cesiumContainer.appendChild(panel);
-  cesiumContainer.appendChild(toggleBtn);
 
   // Inject scoped styles
   const style = document.createElement('style');

@@ -1,11 +1,32 @@
 # SCN-ESS-01A: IUU Fishing Fleet Intercept — Sulu Sea
 # Schema reference: docs/scenario-schema.md
-# Version: 2.1
+# Version: 3.1
 # Schema: v2 (action-based reactive chains)
 # Created: 2026-04-17
 # Author: BrumbieSoft
 #
 # Changelog:
+#   v3.1 (2026-04-20) — Tactical tweaks:
+#     • MPA 15-min ground spin-up before airborne.
+#     • EC725 launches on MPA arrival +10 min (MPA calls it in).
+#     • MPA departs orbit when EC725 arrives, search_pattern to the south.
+#     • Fleet scatter retriggered on KM Sangitan arrival alongside Trawler
+#       1 (surface contact), not MPA overhead — aircraft don't spook them.
+#     • Trawler 1 does not flee (already held by Sangitan).
+#     • RMP Marine Police removed from at-sea engagement — Marine 01
+#       stays at Semporna, Marine 02 stands off ~6 nm east of Sandakan
+#       for harbour escort / port boarding when escort arrives.
+#     • Sea boardings re-attributed to MMEA / RMN boarding teams from
+#       the interceptors themselves.
+#   v3.0 (2026-04-20) — Event chain restructured to pure action/reaction
+#     (MAL-01A..04A style). Fleet now starts NE outside the EEZ and
+#     scatters only when the MPA achieves visual contact (phase:complete),
+#     not on order-issuance. All dispatch events chain from a single
+#     ESSCOM response order. Per-trawler stop events tied to their
+#     interceptor's phase:complete. Boarding chain expanded per vessel.
+#     Duration extended 50→180 min for NE start geometry. Fixed
+#     RMAF-MPA-101 actionee typo → RMAF-MPA-001. Stale destination
+#     coords updated to the new fleet position.
 #   v2.1 (2026-04-17) — Redirect KD Keris from IFF-004 (already covered
 #     by G2000 Alpha) to intercept IFF-002 fleeing west. All 5 trawlers
 #     + mothership now have dedicated interceptors with stop events.
@@ -24,10 +45,10 @@ scenario:
 
     Demonstrates: maritime surveillance, multi-agency ESSCOM coordination,
     fleet scatter and pursuit, boarding operations, port processing.
-  duration_minutes: 50
+  duration_minutes: 480
   start_time: 2026-04-15T22:00:00Z  # 06:00 MYT — dawn fishing intercept
   center: {lat: 5.50, lon: 118.50}
-  zoom: 9
+  zoom: 6
   background:
     include:
       - ais_background_esszone.yaml
@@ -40,35 +61,35 @@ scenario:
       type: SUSPECT_VESSEL
       callsign: Unknown Trawler 1
       sidc: "10013000001400000000"
-      initial_position: {lat: 5.75, lon: 118.85, speed_kn: 4, heading_deg: 225}
+      initial_position: {lat: 6.60362, lon: 119.40799, speed_kn: 4, heading_deg: 225}
       metadata: {ais_active: false, flag: VNM, vessel_type: Steel-hull trawler, estimated_crew: 15}
 
     - id: IFF-002
       type: SUSPECT_VESSEL
       callsign: Unknown Trawler 2
       sidc: "10013000001400000000"
-      initial_position: {lat: 5.77, lon: 118.83, speed_kn: 4, heading_deg: 225}
+      initial_position: {lat: 6.62362, lon: 119.38799, speed_kn: 4, heading_deg: 225}
       metadata: {ais_active: false, flag: VNM}
 
     - id: IFF-003
       type: SUSPECT_VESSEL
       callsign: Unknown Trawler 3
       sidc: "10013000001400000000"
-      initial_position: {lat: 5.73, lon: 118.87, speed_kn: 4, heading_deg: 225}
+      initial_position: {lat: 6.58362, lon: 119.42799, speed_kn: 4, heading_deg: 225}
       metadata: {ais_active: false, flag: VNM}
 
     - id: IFF-004
       type: SUSPECT_VESSEL
       callsign: Unknown Trawler 4
       sidc: "10013000001400000000"
-      initial_position: {lat: 5.79, lon: 118.81, speed_kn: 3, heading_deg: 225}
+      initial_position: {lat: 6.64362, lon: 119.36799, speed_kn: 3, heading_deg: 225}
       metadata: {ais_active: false, flag: VNM, note: Fleet leader — attempts to flee}
 
     - id: IFF-005
       type: SUSPECT_VESSEL
       callsign: Unknown Mothership
       sidc: "10013000001400000000"
-      initial_position: {lat: 5.85, lon: 118.95, speed_kn: 5, heading_deg: 210}
+      initial_position: {lat: 6.70362, lon: 119.50799, speed_kn: 5, heading_deg: 210}
       metadata: {ais_active: false, flag: VNM, vessel_type: Reefer/mothership, estimated_crew: 25}
 
     # === MMEA ENFORCEMENT ===
@@ -77,7 +98,7 @@ scenario:
       type: MMEA_PATROL
       callsign: KM Semporna
       agency: MMEA
-      initial_position: {lat: 5.84, lon: 118.07, speed_kn: 12, heading_deg: 90}
+      initial_position: {lat: 5.84256, lon: 118.12942, speed_kn: 12, heading_deg: 60}
       metadata: {vessel_type: Offshore Patrol Vessel}
 
     - id: MMEA-FI-101
@@ -90,7 +111,7 @@ scenario:
       type: MMEA_PATROL
       callsign: KM Sangitan
       agency: MMEA
-      initial_position: {lat: 5.50, lon: 118.30, speed_kn: 10, heading_deg: 60}
+      initial_position: {lat: 7.050170, lon: 117.943470, speed_kn: 12, heading_deg: 60}
       metadata: {vessel_type: Offshore Patrol Vessel}
 
     # === RMN NAVAL ===
@@ -99,29 +120,35 @@ scenario:
       type: MIL_NAVAL
       callsign: KD G2000 Alpha
       agency: MIL
-      initial_position: {lat: 5.84, lon: 118.10, speed_kn: 0, heading_deg: 0}
+      initial_position: {lat: 5.84237, lon: 118.12829, speed_kn: 0, heading_deg: 0}
       metadata: {vessel_type: G2000 Mk II Fast Interceptor Craft}
 
     - id: RMN-PV-101
       type: MIL_NAVAL
       callsign: KD Keris
       agency: MIL
-      initial_position: {lat: 5.20, lon: 118.50, speed_kn: 12, heading_deg: 45}
+      initial_position: {lat: 4.793773, lon: 119.655794, speed_kn: 12, heading_deg: 45}
 
     # === RMAF AIR ===
 
-    - id: RMAF-MPA-101
+    - id: RMAF-MPA-001
       type: RMAF_MPA
-      callsign: TUDM MPA Beechcraft
+      callsign: TUDM Peregrine 2
       agency: RMAF
-      initial_position: {lat: 5.30, lon: 115.25, speed_kn: 0, heading_deg: 0}
-      metadata: {aircraft_type: B350, home_base: {lat: 5.30, lon: 115.25}}
-
+      initial_position: {lat: 5.29335, lon: 115.25766, speed_kn: 0, heading_deg: 0}
+      metadata:
+        aircraft_type: Leonardo ATR 72-600 MPA (P-72M)
+        home_base: {lat: 5.29335, lon: 115.25766}  # RMAF Kuantan
+        altitude_ft: 5000   # Search altitude (500 ft only for ID runs)
+        sensors: [ULISSES_acoustic_system, sonobuoys_multistatic, Seaspray_7300E_AESA_radar, EO_IR_turret, ESM_ELINT, AIS]
+        mission_system: Leonardo ATOS (4 operator consoles)
+        endurance_hours: 10
+        
     - id: RMAF-HELI-101
       type: RMAF_HELICOPTER
-      callsign: TUDM EC725 Sandakan
+      callsign: TUDM EC725 Lahad Datu
       agency: RMAF
-      initial_position: {lat: 5.04, lon: 118.33, speed_kn: 0, heading_deg: 0}
+      initial_position: {lat: 5.02943, lon: 118.32846, speed_kn: 0, heading_deg: 0}
       metadata: {aircraft_type: EC725, home_base: {lat: 5.04, lon: 118.33}}
 
     # === RMP MARINE POLICE ===
@@ -137,7 +164,12 @@ scenario:
       type: RMP_PATROL_BOAT
       callsign: PDRM Marine 02
       agency: RMP
-      initial_position: {lat: 5.84, lon: 118.07, speed_kn: 0, heading_deg: 0}
+      # Patrol home — Sandakan harbour approach. Runs a back-and-forth
+      # leg between here and (5.78215, 118.03354) via rmp02_patrol_*
+      # events. Repositions to harbour stand-off (5.88979, 118.20620)
+      # two hours after escort_order fires, for escort/port boarding.
+      initial_position: {lat: 5.827330, lon: 118.130820, speed_kn: 0, heading_deg: 240}
+
 
     # === CUSTOMS & IMMIGRATION ===
 
@@ -158,7 +190,7 @@ scenario:
   events:
 
     # ========================================
-    # PHASE 1: DETECTION
+    # PHASE 1: DETECTION & INTELLIGENCE
     # ========================================
 
     - id: radar_detect
@@ -166,9 +198,10 @@ scenario:
       type: DETECTION
       description: Coastal radar detects cluster of unidentified contacts.
       on_initiate: >
-        SPEXER 2000 Station 6: cluster of 5 unidentified contacts in
-        Malaysian EEZ. No AIS signals. Fishing formation pattern.
-      position: {lat: 5.80, lon: 118.88}
+        SPEXER 2000 Station 6: cluster of 5 unidentified contacts
+        detected inside Malaysian EEZ. No AIS signals.
+        Fishing formation pattern.
+      position: {lat: 6.65362, lon: 119.43799}
       alert_agencies: [MMEA, MIL]
       severity: WARNING
 
@@ -182,187 +215,355 @@ scenario:
       alert_agencies: [MMEA, MIL, RMP, CI]
       severity: WARNING
 
+    - id: esscom_response
+      after: {event: intel_correlate, phase: initiate, offset: "00:01:00"}
+      type: ORDER
+      description: ESSCOM issues multi-agency tasking matrix.
+      on_initiate: >
+        ESSCOM HQ Lahad Datu — TASKING MATRIX, execute:
+          RMAF  : Peregrine 2 (ATR 72 MPA) — visual ID + area overwatch.
+                  EC725 Lahad Datu — CAS, launches on MPA arrival.
+          RMN   : G2000 Alpha → Trawler 2.
+                  Keris       → Mothership (high-value target).
+          MMEA  : Sangitan    → Trawler 1.
+                  Semporna    → Trawler 3.
+                  Penggalang 7 → Trawler 4.
+          RMP   : Marine 02 — Sandakan harbour escort + port boarding.
+          CI    : Sandakan port — standby for crew processing.
+        Report readiness by agency.
+      alert_agencies: [MMEA, MIL, RMP, CI, RMAF]
+      severity: WARNING
+
+    # === AGENCY ACKNOWLEDGEMENTS ===
+    # Each lead agency confirms its individual tasking back to ESSCOM so
+    # the coordination is explicit on the timeline — no ambiguity about
+    # who is intercepting whom.
+
+    - id: rmn_ack
+      after: {event: esscom_response, phase: initiate, offset: "00:00:20"}
+      type: ALERT
+      description: RMN Eastern Fleet acknowledges tasking.
+      on_initiate: >
+        RMN Eastern Fleet (MAWILLA 2 Sandakan) — copy ESSCOM tasking:
+          KD G2000 Alpha → Trawler 2 (closest, fastest interceptor)
+          KD Keris       → Mothership (high-value, boarding priority)
+        Both units underway.
+      alert_agencies: [MIL, MMEA, RMAF]
+      severity: INFO
+
+    - id: mmea_ack
+      after: {event: esscom_response, phase: initiate, offset: "00:00:35"}
+      type: ALERT
+      description: MMEA Sector 2 acknowledges tasking.
+      on_initiate: >
+        MMEA Sector 2 (Sandakan) — copy ESSCOM tasking:
+          KM Sangitan    → Trawler 1
+          KM Semporna    → Trawler 3
+          KM Penggalang 7 (Semporna station) → Trawler 4
+        Three units underway, boarding teams embarked.
+      alert_agencies: [MMEA, MIL, RMAF]
+      severity: INFO
+
+    - id: rmaf_ack
+      after: {event: esscom_response, phase: initiate, offset: "00:00:50"}
+      type: ALERT
+      description: RMAF Labuan / Sandakan acknowledge tasking.
+      on_initiate: >
+        RMAF Labuan — copy tasking: TUDM Peregrine 2 (ATR 72 MPA)
+        spinning up, airborne in 15 min, direct to fleet position.
+        EC725 Lahad Datu on 10-min alert at Lahad Datu FOB — launches
+        on Peregrine 2 visual-contact confirmation.
+      alert_agencies: [RMAF, MMEA, MIL]
+      severity: INFO
+
     # ========================================
-    # PHASE 2: RESPONSE
+    # PHASE 2: ASSET DISPATCH
+    # All dispatch chain from esscom_response (single parent order).
     # ========================================
 
-    - id: sangitan_intercept
-      after: {event: intel_correlate, phase: initiate, offset: "00:02:00"}
+    - id: mpa_dispatch
+      # 15-minute ground spin-up from the time ESSCOM issues the alert
+      # until Peregrine 2 is airborne.
+      after: {event: esscom_response, phase: initiate, offset: "00:15:00"}
       type: ORDER
-      description: Nearest patrol vessel investigates.
+      description: RMAF MPA scrambled from Labuan for aerial surveillance.
       on_initiate: >
-        ESSCOM directs KM Sangitan to investigate contacts.
+        TUDM Peregrine 2 (ATR 72 MPA) airborne from Labuan after 15-min
+        ground spin-up — climbing to 5000 ft, direct transit to the
+        suspect fleet.
+      actionee: RMAF-MPA-001
+      action: transit
+      destination: {lat: 6.60, lon: 119.41}
+      speed: 250
+      alert_agencies: [RMAF, MMEA, MIL]
+      on_complete: >
+        Peregrine 2 overhead. Visual ID confirms 5 foreign trawlers +
+        1 refrigerated mothership. Vietnamese flag markings, no AIS.
+      on_complete_action: orbit
+      orbit_center: IFF-005
+      orbit_radius_nm: 7.0
+      orbit_speed: 150
+
+    - id: sangitan_intercept
+      after: {event: esscom_response, phase: initiate, offset: "00:00:30"}
+      type: ORDER
+      description: KM Sangitan vectored to Trawler 1.
+      on_initiate: >
+        MMEA Sector 2: KM Sangitan underway from Sandakan —
+        vector NE, intercept Trawler 1.
       actionee: MMEA-PV-102
       action: intercept
       target: IFF-001
+      intercept_radius_nm: 0.3
       alert_agencies: [MMEA]
       on_complete: >
-        KM Sangitan alongside Trawler 1. Vietnamese flag, no permits.
+        KM Sangitan alongside Trawler 1. Vietnamese crew, no permits,
+        illegal catch observed.
       on_complete_action: hold_station
       hold_target: IFF-001
 
-    - id: mpa_dispatch
-      after: {event: intel_correlate, phase: initiate, offset: "00:04:00"}
-      type: ORDER
-      description: MPA dispatched for aerial surveillance.
-      on_initiate: >
-        RMAF MPA dispatched from Labuan.
-      actionee: RMAF-MPA-101
-      action: transit
-      destination: {lat: 5.75, lon: 118.85}
-      speed: 220
-      alert_agencies: [RMAF]
-      on_complete: >
-        MPA confirms 5 foreign trawlers + 1 mothership. No AIS.
-        Vietnamese flag markings.
-      on_complete_action: orbit
-      orbit_radius_nm: 5.0
-      orbit_speed: 150
-
     - id: rmn_scramble
-      after: {event: intel_correlate, phase: initiate, offset: "00:06:00"}
+      after: {event: esscom_response, phase: initiate, offset: "00:01:00"}
       type: ORDER
-      description: RMN fast interceptor from Sandakan.
+      description: RMN KD G2000 Alpha scrambled from MAWILLA 2 Sandakan.
       on_initiate: >
-        RMN G2000 Alpha scrambled from MAWILLA 2 Sandakan.
+        RMN Eastern Fleet: KD G2000 Alpha (Fast Interceptor Craft)
+        underway from MAWILLA 2 Sandakan — vector Trawler 2.
       actionee: RMN-FIC-101
       action: intercept
-      target: IFF-004
+      target: IFF-002
+      intercept_radius_nm: 0.3
       alert_agencies: [MIL]
       on_complete: >
-        G2000 Alpha intercepts Trawler 4 before international waters.
+        G2000 Alpha alongside Trawler 2 — vessel stopped.
       on_complete_action: hold_station
-      hold_target: IFF-004
+      hold_target: IFF-002
 
     - id: semporna_divert
-      after: {event: intel_correlate, phase: initiate, offset: "00:08:00"}
+      after: {event: esscom_response, phase: initiate, offset: "00:01:30"}
       type: ORDER
-      description: KM Semporna diverted to mothership.
+      description: KM Semporna diverted to intercept Trawler 3.
       on_initiate: >
-        KM Semporna diverted to intercept mothership.
+        MMEA Sector 2: KM Semporna diverted from Sandakan patrol —
+        intercept Trawler 3.
       actionee: MMEA-PV-101
       action: intercept
-      target: IFF-005
-      alert_agencies: [MMEA]
-      on_complete: >
-        KM Semporna stops Mothership — large illegal catch in hold.
-      on_complete_action: hold_station
-      hold_target: IFF-005
-
-    - id: fi_launch
-      after: {event: intel_correlate, phase: initiate, offset: "00:14:00"}
-      type: ORDER
-      description: MMEA fast intercept from Semporna.
-      on_initiate: >
-        MMEA fast intercept launched from Semporna — southern cutoff.
-      actionee: MMEA-FI-101
-      action: intercept
       target: IFF-003
+      intercept_radius_nm: 0.3
       alert_agencies: [MMEA]
       on_complete: >
-        Fast intercept stops Trawler 3 near Semporna sector.
+        KM Semporna alongside Trawler 3 — vessel stopped.
       on_complete_action: hold_station
       hold_target: IFF-003
 
-    - id: rmp_deploy
-      after: {event: intel_correlate, phase: initiate, offset: "00:16:00"}
+    - id: fi_launch
+      after: {event: esscom_response, phase: initiate, offset: "00:02:00"}
       type: ORDER
-      description: RMP Marine Police boats for boarding.
+      description: MMEA KM Penggalang 7 fast intercept launched from Semporna.
       on_initiate: >
-        RMP Marine Police boats launched for boarding operations.
-      targets: [RMP-MP-101, RMP-MP-102]
+        MMEA Semporna: KM Penggalang 7 (Fast Interceptor) launched —
+        intercept Trawler 4 (fleet leader).
+      actionee: MMEA-FI-101
+      action: intercept
+      target: IFF-004
+      intercept_radius_nm: 0.3
+      alert_agencies: [MMEA]
+      on_complete: >
+        KM Penggalang 7 alongside Trawler 4 — fleet leader stopped.
+      on_complete_action: hold_station
+      hold_target: IFF-004
+
+    - id: keris_vector
+      after: {event: esscom_response, phase: initiate, offset: "00:02:30"}
+      type: ORDER
+      description: KD Keris vectored to intercept the Mothership.
+      on_initiate: >
+        RMN Eastern Fleet: KD Keris diverted from patrol —
+        intercept the Mothership (high-value target).
+      actionee: RMN-PV-101
+      action: intercept
+      target: IFF-005
+      intercept_radius_nm: 0.3
+      alert_agencies: [MIL]
+      on_complete: >
+        KD Keris alongside Mothership — large illegal catch in
+        refrigerated hold, 25 crew aboard.
+      on_complete_action: hold_station
+      hold_target: IFF-005
+
+    # PDRM Marine 01 (Semporna) and Marine 02 (Sandakan) are coastal
+    # assets — not ocean-going. They remain near their stations for
+    # harbour escort / port boarding duties at Sandakan in Phase 6.
+    # Sea boardings are handled by the intercepting MMEA / RMN vessels'
+    # own boarding teams.
+
+    # PDRM Marine 02 patrols back-and-forth between her home point
+    # (5.82733, 118.13082) and (5.78215, 118.03354), ~6.4 nm apart.
+    # At 8 kn each leg is ~48 min. Four legs cover ~3 hours — she'll
+    # hold station between the last leg and the escort+2h repositioning.
+    - id: rmp02_patrol_leg1
+      after: {event: radar_detect, phase: initiate}
+      type: ORDER
+      description: PDRM Marine 02 begins harbour-approach patrol.
+      on_initiate: >
+        PDRM Marine 02 — routine Sandakan harbour-approach patrol.
+        Outbound leg to (5.78215, 118.03354).
+      actionee: RMP-MP-102
       action: transit
-      destination: {lat: 5.65, lon: 118.80}
-      speed: 30
+      destination: {lat: 5.78215, lon: 118.03354}
+      speed: 8
       alert_agencies: [RMP]
 
-    - id: heli_dispatch
-      after: {event: intel_correlate, phase: initiate, offset: "00:18:00"}
+    - id: rmp02_patrol_leg2
+      after: {event: rmp02_patrol_leg1, phase: complete}
       type: ORDER
-      description: Helicopter for close air support.
+      description: PDRM Marine 02 — patrol leg (return).
+      actionee: RMP-MP-102
+      action: transit
+      destination: {lat: 5.82733, lon: 118.13082}
+      speed: 8
+      alert_agencies: [RMP]
+
+    - id: rmp02_patrol_leg3
+      after: {event: rmp02_patrol_leg2, phase: complete}
+      type: ORDER
+      description: PDRM Marine 02 — patrol leg (outbound).
+      actionee: RMP-MP-102
+      action: transit
+      destination: {lat: 5.78215, lon: 118.03354}
+      speed: 8
+      alert_agencies: [RMP]
+
+    - id: rmp02_patrol_leg4
+      after: {event: rmp02_patrol_leg3, phase: complete}
+      type: ORDER
+      description: PDRM Marine 02 — patrol leg (return).
+      actionee: RMP-MP-102
+      action: transit
+      destination: {lat: 5.82733, lon: 118.13082}
+      speed: 8
+      alert_agencies: [RMP]
+
+    # Peregrine 2 completes a visual ID run 2 min after arriving overhead.
+    # Vietnamese flag markings confirmed, no Malaysian registry — all
+    # 5 vessels reclassified from UNKNOWN (SIDC identity 1) to HOSTILE
+    # (SIDC identity 6) via batch sidc_override on the targets list.
+    - id: mpa_visual_id
+      after: {event: mpa_dispatch, phase: complete, offset: "00:02:00"}
+      type: DETECTION
+      description: Peregrine 2 visual ID — fleet reclassified Hostile.
       on_initiate: >
-        EC725 dispatched from Lahad Datu FOB.
+        TUDM Peregrine 2 visual ID from 5000 ft (EO/IR turret) — all
+        5 trawlers and mothership confirmed Vietnamese flag markings,
+        no Malaysian registry, no fishing permits. All vessels
+        reclassified from UNKNOWN to HOSTILE.
+      targets: [IFF-001, IFF-002, IFF-003, IFF-004, IFF-005]
+      sidc_override: "10063000001400000000"
+      alert_agencies: [MMEA, MIL, RMP, RMAF]
+      severity: WARNING
+
+    # EC725 launches when Peregrine 2 arrives overhead the fleet and
+    # has confirmed ID — MPA calls the heli in for CAS/winching support.
+    - id: heli_dispatch
+      after: {event: mpa_dispatch, phase: complete, offset: "00:10:00"}
+      type: ORDER
+      description: RMAF EC725 dispatched for close air support.
+      on_initiate: >
+        Peregrine 2 confirms target composition — calls in EC725 Lahad Datu
+        from Lahad Datu FOB for close air support and winching capability.
       actionee: RMAF-HELI-101
       action: transit
-      destination: {lat: 5.70, lon: 118.85}
+      destination: {lat: 6.60, lon: 119.41}
       speed: 120
       alert_agencies: [RMAF]
+      on_complete: >
+        EC725 on station overhead fleet — visual watch handoff from
+        Peregrine 2. Orbit set on the Mothership (fleet has scattered,
+        Mothership is priority).
       on_complete_action: orbit
+      orbit_center: IFF-005
       orbit_radius_nm: 3.0
       orbit_speed: 60
 
+    # Peregrine 2 hands over visual watch to EC725 and departs south
+    # for wider search — free to track any scattered trawlers.
+    - id: mpa_patrol_south
+      after: {event: heli_dispatch, phase: complete}
+      type: ORDER
+      description: Peregrine 2 departs fleet orbit, patrols south.
+      on_initiate: >
+        TUDM Peregrine 2: EC725 on station — breaking orbit, heading
+        south for wider area search pattern.
+      actionee: RMAF-MPA-001
+      action: search_pattern
+      search_center: {lat: 5.80, lon: 119.60}
+      search_step_nm: 5.0
+      search_iterations: 8
+      search_speed: 200
+      altitude_m: 1524
+      alert_agencies: [RMAF, MMEA, MIL]
+
     # ========================================
-    # PHASE 3: SCATTER & PURSUIT
+    # PHASE 3: SURFACE CONTACT & FLEET SCATTER
+    # Fleet disregards the MPA (aircraft overhead is expected in this
+    # region). They scatter only when a surface patrol vessel closes
+    # to visual range — KD G2000 Alpha (fastest interceptor) arrives
+    # alongside Trawler 2 first. At that point the rest of the fleet
+    # sees enforcement on the scene and scatters. Trawler 2 is already
+    # held by G2000 Alpha and does not flee.
     # ========================================
 
     - id: fleet_scatters
-      after: {event: sangitan_intercept, phase: initiate, offset: "00:05:00"}
+      after: {event: rmn_scramble, phase: complete, offset: "00:00:30"}
       type: ALERT
-      description: Fleet spots approaching vessels — scatters!
+      description: Fleet spots KD G2000 Alpha alongside Trawler 2 — scatters.
       on_initiate: >
-        Fishing fleet scatters! Multiple vessels fleeing toward
-        Philippine waters.
-      alert_agencies: [MMEA, MIL, RMP]
+        Surface contact — KD G2000 Alpha observed alongside Trawler 2.
+        Remaining trawlers and mothership accelerate, scatter on
+        divergent bearings. Fleet leader bolts NE for international waters.
+      alert_agencies: [MMEA, MIL, RMP, RMAF]
       severity: CRITICAL
 
-    - id: trawler4_flees
+    - id: trawler1_flees
       after: {event: fleet_scatters}
       type: ALERT
-      description: Fleet leader bolts for boundary.
-      actionee: IFF-004
+      description: Trawler 1 flees southeast.
+      actionee: IFF-001
       action: escape
-      bearing_deg: 45
-      speed: 12
-      sidc_override: "10063000001400000000"
-      callsign_override: Hostile Trawler 4
-
-    - id: trawler2_flees
-      after: {event: fleet_scatters}
-      type: ALERT
-      description: Trawler 2 flees west.
-      actionee: IFF-002
-      action: escape
-      bearing_deg: 250
-      speed: 9
+      bearing_deg: 135
+      speed: 6
 
     - id: trawler3_flees
       after: {event: fleet_scatters}
       type: ALERT
-      description: Trawler 3 flees south.
+      description: Trawler 3 flees southwest.
       actionee: IFF-003
       action: escape
-      bearing_deg: 180
+      bearing_deg: 225
       speed: 8
+
+    - id: trawler4_flees
+      after: {event: fleet_scatters}
+      type: ALERT
+      description: Fleet leader bolts NE toward international waters.
+      actionee: IFF-004
+      action: escape
+      bearing_deg: 45
+      speed: 12
 
     - id: mothership_flees
       after: {event: fleet_scatters}
       type: ALERT
-      description: Mothership flees toward open Sulu Sea.
+      description: Mothership flees ENE toward Philippine waters.
       actionee: IFF-005
       action: escape
       bearing_deg: 60
       speed: 10
 
-    # KD Keris intercepts Trawler 2 fleeing west — Keris is south of
-    # the fleet on patrol, well positioned for the westbound cutoff
-    - id: keris_intercept
-      after: {event: fleet_scatters, phase: initiate, offset: "00:03:00"}
-      type: ORDER
-      description: KD Keris diverted to intercept Trawler 2 fleeing west.
-      on_initiate: >
-        KD Keris diverted to intercept Trawler 2 fleeing west —
-        cutting off westbound escape route.
-      actionee: RMN-PV-101
-      action: intercept
-      target: IFF-002
-      alert_agencies: [MIL]
-      on_complete: >
-        KD Keris intercepts Trawler 2. Vessel stopped.
-      on_complete_action: hold_station
-      hold_target: IFF-002
-
     # ========================================
-    # PHASE 4: INTERCEPT STOPS & BOARDING
+    # PHASE 4: INTERCEPT COMPLETIONS
+    # Each trawler stop is chained to its interceptor's phase:complete.
+    # Stop events fire only when the actual asset has caught its target.
     # ========================================
 
     - id: trawler1_stopped
@@ -373,71 +574,226 @@ scenario:
       action: hold_station
 
     - id: trawler2_stopped
-      after: {event: keris_intercept, phase: complete}
+      after: {event: rmn_scramble, phase: complete}
       type: INTERCEPT
-      description: Trawler 2 stopped by KD Keris.
+      description: Trawler 2 stopped by KD G2000 Alpha.
       actionee: IFF-002
       action: hold_station
 
     - id: trawler3_stopped
-      after: {event: fi_launch, phase: complete}
+      after: {event: semporna_divert, phase: complete}
       type: INTERCEPT
-      description: Trawler 3 stopped by MMEA fast intercept.
+      description: Trawler 3 stopped by KM Semporna.
       actionee: IFF-003
       action: hold_station
 
     - id: trawler4_stopped
-      after: {event: rmn_scramble, phase: complete}
+      after: {event: fi_launch, phase: complete}
       type: INTERCEPT
-      description: Trawler 4 stopped by G2000 Alpha.
+      description: Trawler 4 stopped by KM Penggalang 7.
       actionee: IFF-004
       action: hold_station
 
     - id: mothership_stopped
-      after: {event: semporna_divert, phase: complete}
+      after: {event: keris_vector, phase: complete}
       type: INTERCEPT
-      description: Mothership stopped by KM Semporna.
+      description: Mothership stopped by KD Keris.
       actionee: IFF-005
       action: hold_station
 
-    - id: trawler1_boarded
-      after: {event: sangitan_intercept, phase: complete, offset: "00:05:00"}
-      type: BOARDING
-      description: Trawler 1 boarded — crew detained.
-      on_initiate: >
-        RMP boards Trawler 1 — 15 Vietnamese nationals detained.
-        Illegal catch documented.
-
-    # ========================================
-    # PHASE 5: ESCORT & PROCESSING
-    # ========================================
-
-    - id: escort_order
-      after: {event: semporna_divert, phase: complete, offset: "00:04:00"}
+    # EC725 stays on Mothership orbit for 5 min after she's stopped,
+    # then RTB to Lahad Datu FOB.
+    - id: heli_rtb
+      after: {event: mothership_stopped, phase: initiate, offset: "00:05:00"}
       type: ORDER
-      description: All seized vessels escorted to Sandakan.
+      description: EC725 breaks orbit — RTB Lahad Datu.
       on_initiate: >
-        ESSCOM: all seized vessels escorted to Sandakan for processing.
-      targets: [IFF-001, IFF-002, IFF-003, IFF-004, IFF-005]
+        RMAF EC725 Lahad Datu: Mothership boxed in by Keris, visual
+        watch complete — breaking orbit, RTB Lahad Datu FOB.
+      actionee: RMAF-HELI-101
+      action: rtb
+      alert_agencies: [RMAF]
+
+    # ========================================
+    # PHASE 5: BOARDING
+    # Each boarding chains from its own stop event.
+    # ========================================
+
+    - id: trawler1_boarded
+      after: {event: trawler1_stopped, phase: initiate, offset: "00:05:00"}
+      type: BOARDING
+      description: KM Sangitan boarding team boards Trawler 1.
+      on_initiate: >
+        MMEA boarding team from KM Sangitan secures Trawler 1 —
+        15 Vietnamese nationals detained, illegal catch documented.
+      alert_agencies: [MMEA]
+
+    - id: trawler2_boarded
+      after: {event: trawler2_stopped, phase: initiate, offset: "00:05:00"}
+      type: BOARDING
+      description: KD G2000 Alpha boarding team boards Trawler 2.
+      on_initiate: >
+        RMN boarding team from KD G2000 Alpha secures Trawler 2 —
+        14 nationals detained.
+      alert_agencies: [MIL]
+
+    - id: trawler3_boarded
+      after: {event: trawler3_stopped, phase: initiate, offset: "00:05:00"}
+      type: BOARDING
+      description: KM Semporna boarding team boards Trawler 3.
+      on_initiate: >
+        MMEA boarding team from KM Semporna secures Trawler 3 —
+        13 nationals detained.
+      alert_agencies: [MMEA]
+
+    - id: trawler4_boarded
+      after: {event: trawler4_stopped, phase: initiate, offset: "00:05:00"}
+      type: BOARDING
+      description: KM Penggalang 7 boarding team boards Trawler 4.
+      on_initiate: >
+        MMEA boarding team from KM Penggalang 7 secures Trawler 4 —
+        fleet leader detained with 18 nationals, navigation logs seized.
+      alert_agencies: [MMEA]
+
+    - id: mothership_boarded
+      after: {event: mothership_stopped, phase: initiate, offset: "00:05:00"}
+      type: BOARDING
+      description: KD Keris boarding team boards Mothership.
+      on_initiate: >
+        RMN boarding team from KD Keris secures Mothership —
+        25 nationals detained, 40 tonnes of illegal catch seized.
+      alert_agencies: [MIL]
+      severity: CRITICAL
+
+    # ========================================
+    # PHASE 6: ESCORT & PROCESSING
+    # Escort chains from the final boarding (mothership), so escort
+    # only begins when all seizures are complete.
+    # ========================================
+
+    # Per-ship tow-back: each seized vessel is escorted to Sandakan as
+    # soon as its boarding team has secured the crew (+5 min after the
+    # boarding event initiates). The interceptor's hold_station
+    # movement tracks the IFF vessel, so the escort naturally rides
+    # alongside as the tow begins.
+
+    - id: trawler1_escort
+      after: {event: trawler1_boarded, phase: initiate, offset: "00:05:00"}
+      type: ORDER
+      description: Trawler 1 under tow — transit Sandakan.
+      on_initiate: >
+        KM Sangitan (MMEA) takes Trawler 1 under tow — transit to
+        Sandakan port for processing.
+      actionee: IFF-001
       action: transit
       destination: {lat: 5.84, lon: 118.105}
-      speed: 5
-      alert_agencies: [MMEA, MIL, RMP]
+      speed: 6
+      alert_agencies: [MMEA, RMP]
+
+    - id: trawler2_escort
+      after: {event: trawler2_boarded, phase: initiate, offset: "00:05:00"}
+      type: ORDER
+      description: Trawler 2 under tow — transit Sandakan.
+      on_initiate: >
+        KD G2000 Alpha (RMN) takes Trawler 2 under tow — transit to
+        Sandakan port for processing.
+      actionee: IFF-002
+      action: transit
+      destination: {lat: 5.84, lon: 118.105}
+      speed: 6
+      alert_agencies: [MIL, RMP]
+
+    - id: trawler3_escort
+      after: {event: trawler3_boarded, phase: initiate, offset: "00:05:00"}
+      type: ORDER
+      description: Trawler 3 under tow — transit Sandakan.
+      on_initiate: >
+        KM Semporna (MMEA) takes Trawler 3 under tow — transit to
+        Sandakan port for processing.
+      actionee: IFF-003
+      action: transit
+      destination: {lat: 5.84, lon: 118.105}
+      speed: 6
+      alert_agencies: [MMEA, RMP]
+
+    - id: trawler4_escort
+      after: {event: trawler4_boarded, phase: initiate, offset: "00:05:00"}
+      type: ORDER
+      description: Trawler 4 under tow — transit Sandakan.
+      on_initiate: >
+        KM Penggalang 7 (MMEA) takes Trawler 4 (fleet leader) under
+        tow — transit to Sandakan port for processing.
+      actionee: IFF-004
+      action: transit
+      destination: {lat: 5.84, lon: 118.105}
+      speed: 6
+      alert_agencies: [MMEA, RMP]
+
+    - id: mothership_escort
+      after: {event: mothership_boarded, phase: initiate, offset: "00:05:00"}
+      type: ORDER
+      description: Mothership under tow — transit Sandakan.
+      on_initiate: >
+        KD Keris (RMN) takes Mothership under tow — transit to
+        Sandakan port for processing.
+      actionee: IFF-005
+      action: transit
+      destination: {lat: 5.84, lon: 118.105}
+      speed: 6
+      alert_agencies: [MIL, RMP]
+
+    # Convoy checkpoint — narrative only. Anchors the CI activation and
+    # PDRM Marine 02 harbour repositioning timers (escort_order +2h).
+    - id: escort_order
+      after: {event: mothership_escort, phase: initiate}
+      type: ORDER
+      description: All seized vessels under tow to Sandakan.
+      on_initiate: >
+        ESSCOM: all 5 trawlers and mothership under tow to Sandakan
+        — Customs & Immigration standby, PDRM Marine 02 to reposition
+        for harbour boarding.
+      alert_agencies: [MMEA, MIL, RMP, CI]
+
+    # Two hours after the escort convoy starts back to Sandakan, PDRM
+    # Marine 02 breaks patrol and transits to the harbour-approach
+    # stand-off waypoint to rendezvous with the inbound convoy.
+    - id: rmp02_to_waitpos
+      after: {event: escort_order, phase: initiate, offset: "02:00:00"}
+      type: ORDER
+      description: PDRM Marine 02 moves to harbour-approach waiting position.
+      on_initiate: >
+        RMP Sandakan: PDRM Marine 02 breaking patrol — transit to
+        harbour-approach stand-off (5.88979, 118.20620) to rendezvous
+        with inbound escort convoy.
+      actionee: RMP-MP-102
+      action: transit
+      destination: {lat: 5.88979, lon: 118.20620}
+      speed: 10
+      alert_agencies: [RMP, MMEA, MIL]
+      on_complete: >
+        PDRM Marine 02 on station at harbour-approach waypoint —
+        ready to escort seized vessels into Sandakan port.
+      on_complete_action: hold_station
 
     - id: ci_activated
       after: {event: escort_order, phase: initiate, offset: "00:02:00"}
       type: ORDER
-      description: Customs and Immigration at Sandakan port.
+      description: Customs & Immigration activated at Sandakan.
       on_initiate: >
-        Customs & Immigration activated at Sandakan for crew processing.
+        Customs & Immigration teams deployed to Sandakan port for
+        crew processing and evidence intake.
       targets: [CI-TEAM-101, CI-IMMI-101]
       alert_agencies: [CI]
 
     - id: endstate
       after: {event: ci_activated, phase: initiate, offset: "00:04:00"}
       type: RESOLUTION
-      description: All vessels secured.
+      description: All vessels secured — scenario endstate.
       on_initiate: >
         ENDSTATE: 5 trawlers + mothership secured. 85 foreign crew
-        detained. 40 tonnes illegal catch seized. Vessels at Sandakan.
+        detained. 40 tonnes illegal catch seized. Vessels under escort
+        to Sandakan — PDRM Marine 02 will intercept the escort at the
+        harbour approach for port boarding and crew handover to
+        Customs & Immigration.
       alert_agencies: [MMEA, MIL, RMP, CI]
+      severity: INFO

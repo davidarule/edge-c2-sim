@@ -72,6 +72,9 @@ export function connectWebSocket(url, handlers) {
             _scenariosCallback = null;
           }
           break;
+        case 'scenario_error':
+          if (handlers.onScenarioError) handlers.onScenarioError(msg);
+          break;
         default:
           console.debug('Unknown message type:', msg.type);
       }

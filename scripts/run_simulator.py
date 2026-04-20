@@ -528,6 +528,7 @@ async def run(
                 ws_adapter._scenario_center = fresh.center
                 ws_adapter._scenario_zoom = fresh.zoom
                 ws_adapter._scenario_file = scenario_path if scenario_path else None
+                ws_adapter._scenario_duration_s = fresh.duration.total_seconds()
                 ws_adapter._scenario_meta = {
                     "name": fresh.name,
                     "description": fresh.description,
@@ -585,14 +586,27 @@ async def run(
             # Security: restrict to config/scenarios/*.yaml only
             if not (new_path.startswith("config/scenarios/") and new_path.endswith(".yaml")):
                 logger.warning(f"load_scenario: rejected invalid path: {new_path!r}")
+                await ws_adapter._broadcast(json.dumps({
+                    "type": "scenario_error",
+                    "scenario": new_path,
+                    "error": "Invalid scenario path (must be config/scenarios/*.yaml).",
+                }))
                 return
             is_switch = new_path != active_scenario[0]
             logger.info(f"Loading scenario: {new_path} ({'switch' if is_switch else 'reload'})")
+            prev_path = active_scenario[0]
             active_scenario[0] = new_path
             try:
                 await _do_restart(new_path, switch=is_switch)
             except Exception as e:
+                # Roll back so a subsequent reset targets the last known-good scenario.
+                active_scenario[0] = prev_path
                 logger.error(f"load_scenario failed: {e}")
+                await ws_adapter._broadcast(json.dumps({
+                    "type": "scenario_error",
+                    "scenario": new_path,
+                    "error": str(e),
+                }))
                 return
             logger.info(f"Scenario {'switched to' if is_switch else 'reloaded'}: {new_path}")
 

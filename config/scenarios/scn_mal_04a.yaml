@@ -57,24 +57,6 @@ scenario:
         mission_system: Leonardo ATOS (4 operator consoles)
         endurance_hours: 10
 
-    # TUDM Peregrine 3 — second MPA, standby at Subang
-    - id: RMAF-MPA-002
-      type: RMAF_MPA
-      callsign: TUDM Peregrine 3
-      agency: RMAF
-      initial_position:
-        lat: 3.131
-        lon: 101.549
-        speed_kn: 0
-        heading_deg: 0
-      metadata:
-        aircraft_type: Leonardo ATR 72-600 MPA (P-72M)
-        home_base: {lat: 3.131, lon: 101.549}  # RMAF Subang (deployed)
-        altitude_ft: 300
-        sensors: [ULISSES_acoustic_system, sonobuoys_multistatic, Seaspray_7300E_AESA_radar, EO_IR_turret, ESM_ELINT, AIS]
-        mission_system: Leonardo ATOS (4 operator consoles)
-        endurance_hours: 10
-
     # KD Lekiu — primary ASW frigate
     - id: RMN-FF-001
       type: MIL_NAVAL_FRIGATE
@@ -134,7 +116,7 @@ scenario:
       description: MPA on routine patrol, northern strait.
       on_initiate: >
         TUDM Peregrine 2 on routine maritime patrol, northern Malacca
-        Strait. Altitude 500ft. ULISSES passive acoustic monitoring
+        Strait. Altitude 5 000 ft. ULISSES passive acoustic monitoring
         active. Seaspray 7300E in maritime search mode. Commercial
         traffic normal.
       alert_agencies: [RMAF]
@@ -257,7 +239,7 @@ scenario:
       description: RMN Western Fleet activates ASW response.
       on_initiate: >
         RMN Western Fleet: ASW response activated. KD Lekiu diverted
-        to datum at best speed. TUDM Peregrine 3 scrambled from Subang.
+        to datum at best speed. KD Kedah moving to northern barrier.
       alert_agencies: [RMAF, MIL]
       severity: CRITICAL
 
@@ -280,27 +262,6 @@ scenario:
       orbit_center: CONTACT-001
       orbit_radius_nm: 1.5
       orbit_speed: 12
-
-    - id: mpa2_scramble
-      after: {event: asw_activated}
-      type: ORDER
-      description: Second MPA scrambled from Subang — fresh sonobuoys, full fuel.
-      on_initiate: >
-        TUDM Peregrine 3 scrambled from RMAF Subang. Full ULISSES
-        sonobuoy load and 10+ hours endurance. ETA ~35 minutes.
-      actionee: RMAF-MPA-002
-      action: transit
-      destination: {lat: 5.145, lon: 99.825}
-      speed: 250
-      alert_agencies: [RMAF, MIL]
-      on_complete: >
-        TUDM Peregrine 3 on scene. Immediate ULISSES sonobuoy drop —
-        contact re-acquired on multistatic track. Two P-72M MPAs now
-        coordinating via ATOS datalink and COP.
-      on_complete_action: orbit
-      orbit_center: CONTACT-001
-      orbit_radius_nm: 3.0
-      orbit_speed: 130
 
     - id: kedah_barrier
       after: {event: asw_activated, phase: initiate, offset: "00:03:00"}
@@ -387,7 +348,7 @@ scenario:
     # ========================================
 
     - id: indonesia_confirms
-      after: {event: mpa2_scramble, phase: complete, offset: "00:03:00"}
+      after: {event: diplomatic_protocol, phase: initiate, offset: "00:04:00"}
       type: ALERT
       description: Indonesian Navy confirms — KRI Nagapasa on undeclared transit.
       on_initiate: >
@@ -437,6 +398,6 @@ scenario:
       on_initiate: >
         ENDSTATE — KRI Nagapasa identified and surface-navigating under
         RMN escort. Transit notification admin error. Detection to
-        identification in 45 minutes. Two P-72M MPAs with ULISSES,
+        identification in 45 minutes. One P-72M MPA with ULISSES,
         one frigate, one OPV coordinated via single COP.
       alert_agencies: [RMAF, MIL]

@@ -59,6 +59,9 @@ class OrbitMovement:
         direction: str = "CW",
         target_entity_id: str | None = None,
         entity_store=None,
+        target_offset_lat: float = 0.0,
+        target_offset_lon: float = 0.0,
+        capture_duration_s: float = 30.0,
     ) -> None:
         self._center_lat = center_lat
         self._center_lon = center_lon
@@ -69,6 +72,14 @@ class OrbitMovement:
         self._direction = 1.0 if direction == "CW" else -1.0
         self._target_id = target_entity_id
         self._entity_store = entity_store
+        # Initial tangent-entry offset — used for a smooth transit->orbit
+        # transition (no teleport, no heading snap). The offset decays
+        # linearly to (0, 0) over capture_duration_s so that the orbit
+        # converges onto the actual target centre within ~30 s.
+        self._target_offset_lat = target_offset_lat
+        self._target_offset_lon = target_offset_lon
+        self._capture_duration_s = max(capture_duration_s, 0.001)
+        self._capture_start: datetime | None = None
         self._last_sim_time: datetime | None = None
 
         # Derive orbit rate from speed and radius
@@ -91,14 +102,31 @@ class OrbitMovement:
             self._orbit_angle + self._direction * self._orbit_rate_deg_s * dt_s
         ) % 360.0
 
+        # Capture-phase offset decay: start at 100% tangent offset so the
+        # transition from transit is smooth, linearly decay to zero over
+        # capture_duration_s so the orbit ends up centred on the target.
+        if self._capture_start is None:
+            self._capture_start = sim_time
+        capture_elapsed = (sim_time - self._capture_start).total_seconds()
+        offset_scale = max(0.0, 1.0 - (capture_elapsed / self._capture_duration_s))
+
         # Get center point (dynamic if tracking target)
         center_lat = self._center_lat
         center_lon = self._center_lon
         if self._target_id and self._entity_store:
             target = self._entity_store.get_entity(self._target_id)
             if target:
-                center_lat = target.position.latitude
-                center_lon = target.position.longitude
+                # During the capture phase the offset eases from its
+                # initial tangent value toward zero, so the orbit slides
+                # onto the target's true centre over ~capture_duration_s.
+                center_lat = (
+                    target.position.latitude
+                    + self._target_offset_lat * offset_scale
+                )
+                center_lon = (
+                    target.position.longitude
+                    + self._target_offset_lon * offset_scale
+                )
 
         # Position on the orbit circle
         angle_rad = math.radians(self._orbit_angle)

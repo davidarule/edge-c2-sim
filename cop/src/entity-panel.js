@@ -37,13 +37,7 @@ export function initEntityPanel(containerId, entityManager, viewer) {
           </div>
         </div>
 
-        <div class="entity-detail-status" style="color: ${statusColor}">
-          ${entity.status || 'UNKNOWN'}
-        </div>
-        ${entity.current_action ? `
-        <div class="entity-detail-action">
-          ${entity.current_action}${entity.next_action ? ` → ${entity.next_action}` : ''}
-        </div>` : ''}
+        ${buildCurrentEventSection(entity)}
 
         <div class="detail-section">
           <div class="detail-section-title">Position</div>
@@ -64,20 +58,26 @@ export function initEntityPanel(containerId, entityManager, viewer) {
 
         <div class="detail-section">
           <div class="detail-section-title">Info</div>
-          <div class="detail-row"><span class="detail-key">ID</span><span class="detail-value">${entity.entity_id}</span></div>
+          <div class="detail-row"><span class="detail-key">Entity ID</span><span class="detail-value">${entity.entity_id}</span></div>
           <div class="detail-row"><span class="detail-key">Domain</span><span class="detail-value">${entity.domain || ''}</span></div>
           ${entity.timestamp ? `<div class="detail-row"><span class="detail-key">Updated</span><span class="detail-value">${new Date(entity.timestamp).toISOString().substring(11, 19)}</span></div>` : ''}
         </div>
 
-        <div class="entity-detail-actions">
-          <button class="detail-action-btn" id="btn-flyto">FLY TO</button>
-          <button class="detail-action-btn ${following ? 'active' : ''}" id="btn-follow">FOLLOW</button>
-          <button class="detail-action-btn ${entityManager.getEntityTrailVisible(entity.entity_id) ? 'active' : ''}" id="btn-trail">TRAIL</button>
-          <button class="detail-action-btn" id="btn-rts">RTS</button>
-          <button class="detail-action-btn" id="btn-close">CLOSE</button>
+        <div class="detail-section">
+          <div class="detail-section-title">View</div>
+          <div class="entity-detail-actions">
+            <button class="detail-action-btn" id="btn-flyto">FLY TO</button>
+            <button class="detail-action-btn ${following ? 'active' : ''}" id="btn-follow">FOLLOW</button>
+            <button class="detail-action-btn ${entityManager.getEntityTrailVisible(entity.entity_id) ? 'active' : ''}" id="btn-trail">TRAIL</button>
+            <button class="detail-action-btn" id="btn-rts">RTS</button>
+            <button class="detail-action-btn" id="btn-close">CLOSE</button>
+          </div>
         </div>
       </div>
     `;
+
+    // Wire collapsible sections — click any section title to toggle its body.
+    container.querySelectorAll('.detail-section').forEach(wireSectionCollapse);
 
     // Wire actions
     document.getElementById('btn-flyto').addEventListener('click', () => {
@@ -204,6 +204,39 @@ export function initEntityPanel(containerId, entityManager, viewer) {
     return value;
   }
 
+  function wireSectionCollapse(section) {
+    const title = section.querySelector(':scope > .detail-section-title');
+    if (!title || title.dataset.collapseWired === '1') return;
+    title.dataset.collapseWired = '1';
+    title.addEventListener('click', () => {
+      section.classList.toggle('collapsed');
+    });
+  }
+
+  function buildCurrentEventSection(entity) {
+    const ev = entity.current_event;
+    if (!ev || !ev.id) return '';
+    const esc = (s) => String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+    const row = (label, val) => val
+      ? `<div class="detail-row"><span class="detail-key">${label}</span><span class="detail-value">${esc(val)}</span></div>`
+      : '';
+    return `
+      <div class="detail-section">
+        <div class="detail-section-title">Current Event</div>
+        ${row('Scenario ID', ev.id)}
+        ${row('Desc', ev.description)}
+        ${row('After', ev.after)}
+        ${row('Type', ev.type)}
+        ${row('Action', ev.action)}
+        ${row('Target Name', ev.target_name)}
+        ${row('Target ID', ev.target)}
+        ${row('On Complete', ev.on_complete_action)}
+      </div>
+    `;
+  }
+
   function buildMetadataSection(entity) {
     const meta = entity.metadata || {};
     const entries = Object.entries(meta).filter(([k, v]) =>
@@ -285,6 +318,46 @@ export function initEntityPanel(containerId, entityManager, viewer) {
       }
     } else if (actionEl) {
       actionEl.remove();
+    }
+
+    // Current event block — re-render when the event id or action changes,
+    // so the detail panel tracks the live action chain (intercept → hold).
+    const newEventHtml = buildCurrentEventSection(entity);
+    const newEventKey = entity.current_event
+      ? `${entity.current_event.id}|${entity.current_event.action}|${entity.current_event.on_complete_action}`
+      : '';
+    if (container.dataset.eventKey !== newEventKey) {
+      container.dataset.eventKey = newEventKey;
+      // Find the existing Current Event section (first section whose title
+      // text matches) and replace its outerHTML, or append after the action line.
+      const sections = container.querySelectorAll('.detail-section');
+      let eventSection = null;
+      for (const s of sections) {
+        const t = s.querySelector('.detail-section-title');
+        if (t && t.textContent.trim() === 'Current Event') { eventSection = s; break; }
+      }
+      if (eventSection) {
+        if (newEventHtml) {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = newEventHtml;
+          const newSection = tmp.firstElementChild;
+          eventSection.replaceWith(newSection);
+          wireSectionCollapse(newSection);
+        } else {
+          eventSection.remove();
+        }
+      } else if (newEventHtml) {
+        // Anchor is the header — Current Event section goes right below it,
+        // before Position/Movement/etc.
+        const anchor = container.querySelector('.entity-detail-header');
+        if (anchor) {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = newEventHtml;
+          const newSection = tmp.firstElementChild;
+          anchor.insertAdjacentElement('afterend', newSection);
+          wireSectionCollapse(newSection);
+        }
+      }
     }
   }
 

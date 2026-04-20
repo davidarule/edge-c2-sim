@@ -35,6 +35,17 @@ export function initOverlayManager(viewer, config) {
       defaultVisible: false
     },
     {
+      id: 'my_eez_sulu',
+      label: 'Malaysian Waters (EEZ — Sulu Sea)',
+      url: '/geodata/boundaries/malaysia_eez_sulu.geojson',
+      style: {
+        stroke: Cesium.Color.fromCssColorString('#CC0001').withAlpha(0.85),
+        strokeWidth: 2,
+        fill: Cesium.Color.fromCssColorString('#CC0001').withAlpha(0.08)
+      },
+      defaultVisible: false
+    },
+    {
       id: 'id_eez',
       label: 'Indonesian Waters (EEZ — Sumatra)',
       url: '/geodata/boundaries/indonesia_eez_sumatra.geojson',
@@ -64,7 +75,9 @@ export function initOverlayManager(viewer, config) {
       const dataSource = await Cesium.GeoJsonDataSource.load(def.url, {
         stroke: def.style.stroke || Cesium.Color.YELLOW,
         strokeWidth: def.style.strokeWidth || 2,
-        fill: def.style.fill || Cesium.Color.TRANSPARENT
+        fill: def.style.fill || Cesium.Color.TRANSPARENT,
+        markerSize: 1,
+        markerColor: Cesium.Color.TRANSPARENT
       });
       dataSource.show = def.defaultVisible;
       viewer.dataSources.add(dataSource);

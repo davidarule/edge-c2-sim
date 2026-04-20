@@ -1,0 +1,42 @@
+{
+  "type": "FeatureCollection",
+  "name": "Malaysia EEZ — Sulu Sea / Celebes Sea (simplified)",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Malaysia EEZ (Sulu Sea / Celebes Sea, Sabah — simplified)",
+        "note": "Approximate polygon bounded by eastern Sabah coast (Kudat–Tawau), the MY–PH median line in the Sulu Sea, and the MY–ID 1969 Celebes Sea boundary. For demo visualization only — not an authoritative claim."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [117.00, 7.05],
+          [117.30, 7.30],
+          [117.80, 7.55],
+          [118.40, 7.55],
+          [119.00, 7.30],
+          [119.70, 6.80],
+          [120.10, 6.10],
+          [120.25, 5.30],
+          [120.00, 4.70],
+          [119.60, 4.20],
+          [119.15, 4.00],
+          [118.80, 3.95],
+          [118.30, 3.95],
+          [117.95, 4.05],
+          [117.95, 4.25],
+          [118.30, 4.50],
+          [118.70, 4.55],
+          [118.55, 4.90],
+          [118.35, 5.25],
+          [118.15, 5.85],
+          [117.75, 6.20],
+          [117.30, 6.55],
+          [117.05, 6.85],
+          [117.00, 7.05]
+        ]]
+      }
+    }
+  ]
+}
